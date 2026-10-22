@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moth Tongue</title>
+<style>
+  :root {
+    --bg: #100c16;
+    --panel: #1b1524;
+    --ink: #f4ecd8;
+    --ink-dim: #b9ad98;
+    --ember: #f0a94a;
+    --moss: #9fd6a4;
+    --line: #3a2f47;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    overflow: hidden;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+  canvas#field {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  #top {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: calc(12px + env(safe-area-inset-top, 0px));
+    pointer-events: none;
+  }
+  h1 {
+    font-weight: 400;
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    margin: 0;
+    color: var(--ember);
+    text-shadow: 0 1px 8px var(--bg);
+  }
+  .sub {
+    margin: 2px 0 0;
+    font-size: 0.95rem;
+    color: var(--ink-dim);
+    text-shadow: 0 1px 8px var(--bg);
+  }
+  #panel {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    background: rgba(27, 21, 36, 0.92);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #readout {
+    flex: 1 1 14rem;
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  #word {
+    display: block;
+    color: var(--moss);
+    font-size: 1.25rem;
+  }
+  #gloss {
+    display: block;
+    color: var(--ember);
+    font-style: italic;
+    font-size: 0.95rem;
+  }
+  button {
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--ember);
+    border-radius: 999px;
+    padding: 10px 18px;
+    font: inherit;
+    min-height: 44px;
+    min-width: 44px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button:focus-visible, canvas#field:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 2px;
+  }
+  #note {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 0;
+    height: 0;
+    overflow: hidden;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="field" role="img" tabindex="0"
+  aria-label="A field of small moths. Tap one to read its invented name. Drag to draw them toward your finger."></canvas>
+
+<div id="top">
+  <h1>Moth Tongue</h1>
+  <p class="sub">Every moth has a name nobody gave it. Tap one to hear it.</p>
+</div>
+
+<div id="panel">
+  <p id="readout" aria-live="polite">
+    <span id="word">no moth chosen</span>
+    <span id="gloss">Tap a moth in the field.</span>
+  </p>
+  <button type="button" id="scatter">Scatter</button>
+</div>
+
+<p id="note" aria-hidden="true">Built by Kiln (Claude Haiku 5.5), a companion to Vesper's moth field. Names and glosses are invented by a seeded function in this file, not translations.</p>
+
+<script>
+(function () {
+  "use strict";
+
+  var CONS = ["k", "t", "r", "s", "l", "m", "n", "v", "th", "z", "ph", "x", "gh", "sh", "ly", "d"];
+  var VOW = ["a", "e", "i", "o", "u", "ae", "ou", "ia", "y", "eo"];
+  var CODA = ["", "", "", "n", "s", "th", "r", "k"];
+  var GLOSS_A = ["lantern", "salt", "ember", "frost", "bell", "ink", "door", "tide", "ash", "seed"];
+  var GLOSS_B = ["that came back", "half-spoken", "turned inward", "after rain", "before the fire", "that was promised"];
+  var TAU = Math.PI * 2;
+
+  var canvas = document.getElementById("field");
+  var ctx = canvas.getContext("2d");
+  var wordEl = document.getElementById("word");
+  var glossEl = document.getElementById("gloss");
+  var scatterBtn = document.getElementById("scatter");
+
+  var reduceMotion = false;
+  try {
+    reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch (e) { reduceMotion = false; }
+
+  var W = 0, H = 0, DPR = 1;
+  var moths = [];
+  var selected = -1;
+  var pointer = { x: 0, y: 0, down: false, id: null, moved: false, sx: 0, sy: 0 };
+  var scatterUntil = 0;
+  var t = 0;
+
+  // FNV-1a hash to an unsigned 32-bit int.
+  function hash(s) {
+    var x = 2166136261;
+    for (var i = 0; i < s.length; i++) {
+      x ^= s.charCodeAt(i);
+      x = Math.imul(x, 16777619) >>> 0;
+    }
+    return x >>> 0;
+  }
+
+  // mulberry32: seeded, so moth i always has the same name.
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function pick(r, arr) { return arr[Math.floor(r() * arr.length) % arr.length]; }
+
+  function nameFor(i) {
+    var r = rng(hash("moth:" + i));
+    var n = 2 + Math.floor(r() * 2);
+    var form = "";
+    for (var k = 0; k < n; k++) form += pick(r, CONS) + pick(r, VOW);
+    form += pick(r, CODA);
+    form = form.charAt(0).toUpperCase() + form.slice(1);
+    var gloss = "a moth " + pick(r, GLOSS_A) + " " + pick(r, GLOSS_B);
+    return { word: form, gloss: gloss };
+  }
+
+  // Layered sines give a slow current for the moths to follow.
+  function flow(x, y, time) {
+    var nx = x / W, ny = y / H;
+    return Math.sin(nx * TAU * 1.1 + time * 1.3)
+         + Math.cos(ny * TAU * 0.9 - time * 0.9)
+         + Math.sin((nx + ny) * TAU * 0.7 + time * 0.5);
+  }
+
+  function seed() {
+    var n = Math.round((W * H) / 9000);
+    n = Math.max(24, Math.min(110, n));
+    moths = [];
+    for (var i = 0; i < n; i++) {
+      var x = Math.random() * W;
+      var y = Math.random() * H;
+      moths.push({
+        i: i, x: x, y: y, vx: 0, vy: 0,
+        size: 1.6 + Math.random() * 1.8,
+        phase: Math.random() * TAU,
+        hue: 150 + Math.random() * 90
+      });
+    }
+    if (selected >= moths.length) selected = -1;
+  }
+
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    seed();
+    draw(performance.now());
+  }
+
+  function nearest(x, y, within) {
+    var best = -1, bestD = within * within;
+    for (var i = 0; i < moths.length; i++) {
+      var dx = moths[i].x - x, dy = moths[i].y - y;
+      var d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return best;
+  }
+
+  function select(i) {
+    selected = i;
+    if (i < 0) {
+      wordEl.textContent = "no moth chosen";
+      glossEl.textContent = "Tap a moth in the field.";
+      return;
+    }
+    var n = nameFor(i);
+    wordEl.textContent = n.word;
+    glossEl.textContent = n.gloss + " (invented, not a translation)";
+  }
+
+  canvas.addEventListener("pointerdown", function (e) {
+    pointer.down = true;
+    pointer.id = e.pointerId;
+    pointer.moved = false;
+    pointer.sx = e.clientX;
+    pointer.sy = e.clientY;
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* not all browsers */ }
+  });
+
+  canvas.addEventListener("pointermove", function (e) {
+    if (!pointer.down || e.pointerId !== pointer.id) return;
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+    var dx = pointer.x - pointer.sx, dy = pointer.y - pointer.sy;
+    if (dx * dx + dy * dy > 100) pointer.moved = true;
+    if (reduceMotion) draw(performance.now());
+  });
+
+  function release(e) {
+    if (!pointer.down || e.pointerId !== pointer.id) return;
+    pointer.down = false;
+    pointer.id = null;
+    // A tap, not a drag: name the nearest moth.
+    if (!pointer.moved) select(nearest(pointer.sx, pointer.sy, 36));
+    if (reduceMotion) draw(performance.now());
+  }
+  canvas.addEventListener("pointerup", release);
+  canvas.addEventListener("pointercancel", function () {
+    pointer.down = false;
+    pointer.id = null;
+  });
+  canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+  canvas.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      scatter();
+    }
+  });
+
+  function scatter() {
+    if (reduceMotion) return;
+    scatterUntil = performance.now() + 1200;
+  }
+
+  scatterBtn.addEventListener("click", scatter);
+  if (reduceMotion) {
+    scatterBtn.disabled = true;
+    scatterBtn.textContent = "Scatter is off (reduced motion)";
+  }
+
+  function step(now) {
+    t += 0.008;
+    var pulling = pointer.down && pointer.moved;
+    var scattering = now < scatterUntil;
+
+    for (var i = 0; i < moths.length; i++) {
+      var m = moths[i];
+      var a = flow(m.x, m.y, t);
+      var tx = Math.cos(a * Math.PI) * 0.7;
+      var ty = Math.sin(a * Math.PI) * 0.7;
+      m.vx += (tx - m.vx) * 0.05;
+      m.vy += (ty - m.vy) * 0.05;
+
+      if (pulling) {
+        var dx = pointer.x - m.x, dy = pointer.y - m.y;
+        var d = Math.sqrt(dx * dx + dy * dy) + 0.0001;
+        var pull = 0.9 * Math.exp(-d / 260);
+        m.vx += (dx / d) * pull;
+        m.vy += (dy / d) * pull;
+      }
+      if (scattering) {
+        m.vx += (Math.random() - 0.5) * 0.8;
+        m.vy += (Math.random() - 0.5) * 0.8;
+      }
+
+      var v = Math.sqrt(m.vx * m.vx + m.vy * m.vy);
+      if (v > 2.4) { m.vx *= 2.4 / v; m.vy *= 2.4 / v; }
+      m.x += m.vx;
+      m.y += m.vy;
+      if (m.x < -16) m.x = W + 16; else if (m.x > W + 16) m.x = -16;
+      if (m.y < -16) m.y = H + 16; else if (m.y > H + 16) m.y = -16;
+    }
+    draw(now);
+    requestAnimationFrame(step);
+  }
+
+  function draw(now) {
+    ctx.fillStyle = "#100c16";
+    ctx.fillRect(0, 0, W, H);
+
+    for (var i = 0; i < moths.length; i++) {
+      var m = moths[i];
+      var flicker = reduceMotion ? 0.7 : 0.55 + 0.45 * Math.sin(now * 0.004 + m.phase);
+      var isSel = i === selected;
+      ctx.fillStyle = "hsla(" + m.hue.toFixed(0) + ", 90%, " + (isSel ? 82 : 66) + "%, " +
+        (isSel ? 0.95 : 0.55 * flicker).toFixed(3) + ")";
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, isSel ? m.size * 2.2 : m.size, 0, TAU);
+      ctx.fill();
+    }
+
+    if (selected >= 0 && selected < moths.length) {
+      var s = moths[selected];
+      ctx.strokeStyle = "rgba(240, 169, 74, 0.7)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 18, 0, TAU);
+      ctx.stroke();
+    }
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+  if (!reduceMotion) requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>
