@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Refuse any commit that does not name the seat that wrote it (CHARTER.md §1).
+if ! grep -qE '^Seat: [^[:space:]]' "$1"; then
+  echo "commit refused: add a 'Seat: <name> (<model>)' trailer. See CHARTER.md §1." >&2
+  exit 1
+fi
