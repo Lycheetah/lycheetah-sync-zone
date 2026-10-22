@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Drift Lattice</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0912; color: #e8e0ff;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  canvas#field { position: fixed; inset: 0; width: 100%; height: 100%; display: block;
+    touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    z-index: 0; outline: none; }
+  canvas#field:focus-visible { outline: 3px solid #ffd27a; outline-offset: -6px; }
+  #note { position: fixed; left: 16px; right: 16px; top: calc(12px + env(safe-area-inset-top, 0px));
+    margin: 0; font-size: 15px; line-height: 1.5; opacity: 0.88; pointer-events: none; z-index: 2;
+    text-shadow: 0 0 10px #0b0912; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    display: flex; gap: 12px; align-items: center;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(11, 9, 18, 0.72); }
+  #listen { min-height: 44px; padding: 0 18px; border-radius: 999px; cursor: pointer;
+    border: 1px solid #7af0d0; background: rgba(122, 240, 208, 0.08); color: #e8e0ff;
+    font: inherit; font-size: 15px; white-space: nowrap; }
+  #listen[aria-pressed="true"] { background: #7af0d0; color: #0b0912; }
+  #bar label { font-size: 14px; white-space: nowrap; }
+  #vol { flex: 1; min-height: 36px; accent-color: #7af0d0; }
+  #volOut { min-width: 3.2em; text-align: right; font-size: 14px; font-variant-numeric: tabular-nums; }
+  #listen:focus-visible, #vol:focus-visible { outline: 3px solid #ffd27a; outline-offset: 3px; }
+</style>
+</head>
+<body>
+
+<canvas id="field" tabindex="0" role="application"
+  aria-label="Drift lattice. Twelve notes on a ring. Press and hold, or use the arrow keys: left and right choose a note, up and down set brightness, space plays. The ring shows the sound that is playing; it is blank while sound is off.">
+</canvas>
+
+<p id="note" role="status" aria-live="polite">Tap Listen to wake the sound. The lattice draws only what you hear.</p>
+
+<div id="bar">
+  <button id="listen" type="button" aria-pressed="false">Listen</button>
+  <label for="vol">Volume</label>
+  <input id="vol" type="range" min="0" max="1" step="0.01" value="0.2">
+  <output id="volOut" for="vol">20%</output>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const canvas = $('field');
+  const g = canvas.getContext('2d');
+  const listenBtn = $('listen');
+  const vol = $('vol');
+  const volOut = $('volOut');
+  const noteEl = $('note');
+
+  // Pitch map follows the same idea as builds/mycel-drift: 12 notes over D3, two octaves.
+  // Re-implemented here from reading that file. Nothing is copied from it, and it is not edited.
+  const BASE = 146.83;
+  const SCALE = [0, 2, 5, 7, 9, 10, 12, 14, 17, 19, 21, 24];
+  const N = SCALE.length;
+  const BARS = 64;                 // analyser bins drawn around the ring (fftSize 128)
+  const CEILING = 0.25;            // slider 1.0 maps to this gain, so the default 0.2 is quiet
+  const VOICE_LIMIT = 12;
+  const TAU = Math.PI * 2;
+  const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+
+  let ac = null;                   // AudioContext, created only after a tap on Listen
+  let master = null;
+  let analyser = null;
+  let freqData = null;
+  let listening = false;
+  const voices = [];
+  const pointers = new Map();
+  const ripples = [];
+  const flashes = new Float32Array(N);
+  const smooth = new Float32Array(BARS);
+  let cursor = 5;                  // keyboard-selected note
+  let kbY = 0.5;                   // keyboard brightness
+  let W = 0, H = 0, DPR = 1, cx = 0, cy = 0, R = 0;
+
+  // ---------- canvas ----------
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    cx = W / 2;
+    cy = H * 0.46;
+    R = Math.min(W, H) * 0.26;
+    g.fillStyle = '#0b0912';
+    g.fillRect(0, 0, W, H);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function nodeXY(i) {
+    const a = -Math.PI / 2 + (i / N) * TAU;
+    return { x: cx + Math.cos(a) * R, y: cy + Math.sin(a) * R, a };
+  }
+
+  // ---------- audio ----------
+  function buildAudio() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    ac = new AC();
+    master = ac.createGain();
+    master.gain.value = 0;                       // silent until Listen is pressed
+    analyser = ac.createAnalyser();
+    analyser.fftSize = 128;                      // 64 bins
+    analyser.smoothingTimeConstant = 0.8;
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    master.connect(analyser);
+    analyser.connect(ac.destination);
+  }
+
+  function disconnectAll(v) {
+    for (const n of v.nodes) {
+      try { n.disconnect(); } catch (e) { /* already gone */ }
+    }
+  }
+
+  // Cull a voice with a short fade, so the cap does not click.
+  function retire(v) {
+    const t = ac.currentTime;
+    try {
+      v.amp.gain.cancelScheduledValues(t);
+      v.amp.gain.setTargetAtTime(0, t, 0.01);
+      v.osc.stop(t + 0.08);
+      v.sh.stop(t + 0.08);
+    } catch (e) { /* already stopped */ }
+    setTimeout(() => disconnectAll(v), 150);
+  }
+
+  function voice(idx, yn, pan) {
+    const t = ac.currentTime;
+    const f = BASE * Math.pow(2, SCALE[idx] / 12);
+    const end = t + 1.8;
+
+    const osc = ac.createOscillator();
+    osc.type = idx % 3 === 0 ? 'triangle' : 'sine';
+    osc.frequency.value = f;
+
+    const sh = ac.createOscillator();            // near-octave partial, the beat that gives it shimmer
+    sh.type = 'sine';
+    sh.frequency.value = f * 2.007;
+    const shG = ac.createGain();
+    shG.gain.value = 0.2;
+
+    const amp = ac.createGain();
+    amp.gain.setValueAtTime(0, t);
+    amp.gain.linearRampToValueAtTime(0.4, t + 0.02);
+    amp.gain.exponentialRampToValueAtTime(0.0001, end);
+
+    const lp = ac.createBiquadFilter();          // brightness comes from the vertical position
+    lp.type = 'lowpass';
+    lp.frequency.value = 300 * Math.pow(2, 4 * yn);
+    lp.Q.value = 1 + 7 * yn;
+
+    const pn = ac.createStereoPanner();
+    pn.pan.value = clamp(pan, -0.9, 0.9);
+
+    osc.connect(amp);
+    sh.connect(shG);
+    shG.connect(amp);
+    amp.connect(lp);
+    lp.connect(pn);
+    pn.connect(master);
+
+    osc.start(t);
+    sh.start(t);
+    osc.stop(end);
+    sh.stop(end);
+
+    const rec = { osc, sh, amp, end, nodes: [osc, sh, shG, amp, lp, pn] };
+    voices.push(rec);
+    while (voices.length > VOICE_LIMIT) retire(voices.shift());
+  }
+
+  function live() {
+    return !!(ac && listening && ac.state === 'running');
+  }
+
+  // A sound event is the only thing that lights the lattice.
+  function strike(idx, yn, pan) {
+    if (!live()) return;
+    voice(idx, yn, pan);
+    flashes[idx] = 1;
+    ripples.push({ idx, life: 1 });
+    if (ripples.length > 24) ripples.splice(0, ripples.length - 24);
+  }
+
+  function setNote(msg) { noteEl.textContent = msg; }
+
+  function setLevelNow() {
+    if (!master || !ac) return;
+    const t = ac.currentTime;
+    const target = listening ? Number(vol.value) * CEILING : 0;
+    master.gain.cancelScheduledValues(t);
+    master.gain.setTargetAtTime(target, t, 0.03);
+  }
+
+  // ---------- listen ----------
+  listenBtn.addEventListener('click', async () => {
+    try {
+      if (!ac) buildAudio();
+      if (!listening) {
+        await ac.resume();
+        listening = true;
+        listenBtn.setAttribute('aria-pressed', 'true');
+        listenBtn.textContent = 'Sound on';
+        setLevelNow();
+        setNote('Hold the field, or use the arrow keys. Left to right is pitch. Higher is brighter.');
+      } else {
+        listening = false;
+        listenBtn.setAttribute('aria-pressed', 'false');
+        listenBtn.textContent = 'Listen';
+        setLevelNow();
+        setNote('Sound off. The lattice is blank while it is silent.');
+        setTimeout(() => { if (!listening && ac) ac.suspend(); }, 400);
+      }
+    } catch (err) {
+      setNote('Sound could not start in this browser. Nothing will sound, and nothing will be drawn.');
+    }
+  });
+
+  vol.addEventListener('input', () => {
+    volOut.textContent = Math.round(vol.value * 100) + '%';
+    vol.setAttribute('aria-valuetext', Math.round(vol.value * 100) + ' percent');
+    setLevelNow();
+  });
+  volOut.textContent = Math.round(vol.value * 100) + '%';
+
+  document.addEventListener('visibilitychange', () => {
+    if (!ac) return;
+    if (document.hidden) ac.suspend();
+    else if (listening) ac.resume();
+  });
+
+  // ---------- pointer ----------
+  function idxOf(x) { return Math.min(N - 1, Math.floor(clamp(x / W) * N)); }
+  function panOf(x) { return clamp(x / W) * 2 - 1; }
+
+  canvas.addEventListener('pointerdown', e => {
+    canvas.focus({ preventScroll: true });
+    if (!live()) { setNote('Tap Listen first. Nothing is drawn while the sound is off.'); return; }
+    canvas.setPointerCapture(e.pointerId);
+    const p = { x: e.clientX, y: e.clientY, last: performance.now() };
+    pointers.set(e.pointerId, p);
+    cursor = idxOf(p.x);
+    strike(idxOf(p.x), clamp(1 - p.y / H), panOf(p.x));
+  });
+  canvas.addEventListener('pointermove', e => {
+    const p = pointers.get(e.pointerId);
+    if (p) { p.x = e.clientX; p.y = e.clientY; }
+  });
+  const release = e => { pointers.delete(e.pointerId); };
+  canvas.addEventListener('pointerup', release);
+  canvas.addEventListener('pointercancel', release);
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  // ---------- keyboard ----------
+  canvas.addEventListener('keydown', e => {
+    let handled = true;
+    if (e.key === 'ArrowLeft') cursor = (cursor + N - 1) % N;
+    else if (e.key === 'ArrowRight') cursor = (cursor + 1) % N;
+    else if (e.key === 'ArrowUp') kbY = Math.min(1, kbY + 0.1);
+    else if (e.key === 'ArrowDown') kbY = Math.max(0, kbY - 0.1);
+    else if (e.key === ' ' || e.key === 'Enter') { /* play the current note */ }
+    else handled = false;
+    if (!handled) return;
+    e.preventDefault();
+    if (!live()) { setNote('Tap Listen first. Keys still move the cursor, but nothing sounds or is drawn.'); return; }
+    strike(cursor, kbY, (cursor / (N - 1)) * 2 - 1);
+  });
+
+  // ---------- frame loop ----------
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const on = live();
+    if (on) analyser.getByteFrequencyData(freqData);
+
+    // held pointers re-strike; height sets the pulse rate, as in the sound field
+    if (on) {
+      for (const p of pointers.values()) {
+        const yn = clamp(1 - p.y / H);
+        if (now - p.last > 1000 - 850 * yn) {
+          p.last = now;
+          strike(idxOf(p.x), yn, panOf(p.x));
+        }
+      }
+    }
+
+    // retire voices that have ended naturally
+    if (ac) {
+      for (let i = voices.length - 1; i >= 0; i--) {
+        if (voices[i].end < ac.currentTime) {
+          disconnectAll(voices[i]);
+          voices.splice(i, 1);
+        }
+      }
+    }
+
+    // trails: a translucent veil over the last frame
+    g.globalCompositeOperation = 'source-over';
+    g.fillStyle = reduce ? 'rgba(11, 9, 18, 0.5)' : 'rgba(11, 9, 18, 0.2)';
+    g.fillRect(0, 0, W, H);
+    g.globalCompositeOperation = 'lighter';
+
+    // the ring itself, faint
+    g.lineWidth = 1;
+    g.strokeStyle = 'rgba(180, 170, 220, 0.14)';
+    g.beginPath();
+    g.arc(cx, cy, R, 0, TAU);
+    g.stroke();
+
+    // spectrum of the actual output, radiating from inside the ring
+    for (let i = 0; i < BARS; i++) {
+      const target = on ? freqData[i] / 255 : 0;
+      smooth[i] += (target - smooth[i]) * (reduce ? 0.15 : 0.4);
+      const len = smooth[i] * R * 0.9;
+      if (len < 0.5) continue;
+      const a = -Math.PI / 2 + (i / BARS) * TAU;
+      const r0 = R * 0.6;
+      g.strokeStyle = `hsla(${(170 + i * 5.6) % 360}, 90%, 65%, ${0.2 + 0.6 * smooth[i]})`;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
+      g.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len));
+      g.stroke();
+    }
+
+    // the twelve notes
+    for (let i = 0; i < N; i++) {
+      flashes[i] *= reduce ? 0.9 : 0.93;
+      const { x, y } = nodeXY(i);
+      const hue = (170 + i * 19) % 360;
+      g.fillStyle = `hsla(${hue}, 80%, 70%, ${0.25 + 0.6 * flashes[i]})`;
+      g.beginPath();
+      g.arc(x, y, 4 + 10 * flashes[i], 0, TAU);
+      g.fill();
+    }
+
+    // ripples from each strike
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const rp = ripples[i];
+      rp.life *= reduce ? 0.93 : 0.96;
+      if (rp.life < 0.03) { ripples.splice(i, 1); continue; }
+      const { x, y } = nodeXY(rp.idx);
+      const hue = (170 + rp.idx * 19) % 360;
+      g.strokeStyle = `hsla(${hue}, 90%, 65%, ${rp.life * 0.7})`;
+      g.lineWidth = 1 + 2 * rp.life;
+      g.beginPath();
+      g.arc(x, y, 6 + (1 - rp.life) * R * 0.35, 0, TAU);
+      g.stroke();
+    }
+
+    // keyboard cursor
+    if (document.activeElement === canvas) {
+      const { x, y } = nodeXY(cursor);
+      g.strokeStyle = 'rgba(255, 210, 122, 0.9)';
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(x, y, 18, 0, TAU);
+      g.stroke();
+    }
+
+    g.globalCompositeOperation = 'source-over';
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
