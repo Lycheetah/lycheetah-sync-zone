@@ -64,7 +64,8 @@
   const SCALE = [0, 2, 5, 7, 9, 10, 12, 14, 17, 19, 21, 24]; // semitones, two octaves
   const VOICE_LIMIT = 30;                           // hard cap on simultaneous voices
   const MASTER_CEILING = 0.5;                       // slider 1.0 maps to this gain, so 0.3 is quiet
-  const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const reduceQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  let reduceMotion = !!(reduceQuery && reduceQuery.matches);   // M5: kept live, see setMotion()
 
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 
@@ -76,6 +77,8 @@
   const rings = [];
   const motes = [];
   let W = 0, H = 0, DPR = 1, idleT = 0;
+  let raf = 0;            // animation frame id; 0 when the loop is stopped
+  let limiter = null;     // M3: output limiter, built with the audio
 
   // ---------- canvas ----------
   function resize() {
@@ -87,9 +90,26 @@
     g.setTransform(DPR, 0, 0, DPR, 0, 0);
     g.fillStyle = '#0d0a14';
     g.fillRect(0, 0, W, H);
+    if (reduceMotion) paintStatic();
   }
   window.addEventListener('resize', resize);
   resize();
+
+  // M4: under reduced motion there is no animation. This paints one still frame,
+  // redrawn only when a pointer moves, lands or lifts.
+  function paintStatic() {
+    g.globalCompositeOperation = 'source-over';
+    g.fillStyle = '#0d0a14';
+    g.fillRect(0, 0, W, H);
+    g.globalCompositeOperation = 'lighter';
+    for (const p of pointers.values()) {
+      g.fillStyle = `hsla(${p.hue}, 100%, 80%, 0.35)`;
+      g.beginPath();
+      g.arc(p.x, p.y, 28, 0, 6.2832);
+      g.fill();
+    }
+    g.globalCompositeOperation = 'source-over';
+  }
 
   // ---------- audio ----------
   function buildAudio() {
@@ -97,7 +117,15 @@
     ac = new AC();
     master = ac.createGain();
     master.gain.value = 0;                          // starts silent; ramped up on tap
-    master.connect(ac.destination);
+    // M3: a compressor set as a fast limiter. Not a lookahead limiter; see README.
+    limiter = ac.createDynamicsCompressor();
+    limiter.threshold.value = -6;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.003;
+    limiter.release.value = 0.1;
+    master.connect(limiter);
+    limiter.connect(ac.destination);
 
     // echo chamber: send -> delay -> damping lowpass -> feedback -> delay; out to master
     const delay = ac.createDelay(2);
@@ -125,11 +153,22 @@
     lfo.start();
   }
 
+  // M2: every voice fades to silence over FADE seconds before it stops, so a cut
+  // never lands mid-envelope. Disconnect happens after the fade has finished.
+  const FADE = 0.02;
   function killVoice(v) {
-    for (const n of v.nodes) {
-      try { n.disconnect(); } catch (e) { /* already gone */ }
-    }
-    try { v.osc.stop(); v.shimmer.stop(); } catch (e) { /* already stopped */ }
+    const t = ac.currentTime;
+    try {
+      v.amp.gain.cancelScheduledValues(t);
+      v.amp.gain.setValueAtTime(v.amp.gain.value, t);
+      v.amp.gain.linearRampToValueAtTime(0, t + FADE);
+    } catch (e) { /* fall through to the stop */ }
+    try { v.osc.stop(t + FADE); v.shimmer.stop(t + FADE); } catch (e) { /* already stopped */ }
+    setTimeout(() => {
+      for (const n of v.nodes) {
+        try { n.disconnect(); } catch (e) { /* already gone */ }
+      }
+    }, (FADE + 0.1) * 1000);
   }
 
   function voice(idx, yn, pan) {
@@ -179,7 +218,7 @@
     osc.stop(end);
     shimmer.stop(end);
 
-    const rec = { osc, shimmer, end, nodes: [osc, shimmer, shimG, amp, lp, panner, sendG] };
+    const rec = { osc, shimmer, end, amp, nodes: [osc, shimmer, shimG, amp, lp, panner, sendG] };
     voices.push(rec);
     while (voices.length > VOICE_LIMIT) killVoice(voices.shift());
   }
@@ -192,6 +231,7 @@
     voice(idx, yn, xn * 2 - 1);
     p.last = now;
     p.hue = (170 + idx * 19) % 360;
+    if (reduceMotion) return;                       // M4: sound only, no ring or spores
     rings.push({ x: p.x, y: p.y, r: 6, hue: p.hue, life: 1, speed: 1.6 + 2.4 * yn });
     for (let i = 0; i < 2; i++) {
       motes.push({
@@ -204,25 +244,35 @@
     if (motes.length > 260) motes.splice(0, motes.length - 260);
   }
 
+  // M1: a tap is a user gesture, so it is the place to bring a paused context back.
   canvas.addEventListener('pointerdown', e => {
-    if (!ac || ac.state !== 'running') return;
+    if (!ac) return;
+    if (ac.state !== 'running') { resumeAudio(); return; }
     canvas.setPointerCapture(e.pointerId);
     const p = { x: e.clientX, y: e.clientY, last: 0, hue: 200, trail: [] };
     pointers.set(e.pointerId, p);
     strike(p, performance.now());
+    if (reduceMotion) paintStatic();
   });
   canvas.addEventListener('pointermove', e => {
     const p = pointers.get(e.pointerId);
-    if (p) { p.x = e.clientX; p.y = e.clientY; }
+    if (p) {
+      p.x = e.clientX; p.y = e.clientY;
+      if (reduceMotion) paintStatic();
+    }
   });
-  const release = e => { pointers.delete(e.pointerId); };
+  const release = e => {
+    pointers.delete(e.pointerId);
+    if (reduceMotion) paintStatic();
+  };
   canvas.addEventListener('pointerup', release);
   canvas.addEventListener('pointercancel', release);
   canvas.addEventListener('contextmenu', e => e.preventDefault());
 
   // ---------- frame loop ----------
   function frame(now) {
-    requestAnimationFrame(frame);
+    if (reduceMotion) { raf = 0; return; }
+    raf = requestAnimationFrame(frame);
     idleT += 0.005;
 
     // trails fade by painting a translucent veil over the last frame
@@ -310,7 +360,28 @@
 
     g.globalCompositeOperation = 'source-over';
   }
-  requestAnimationFrame(frame);
+  function startLoop() {
+    if (!raf && !reduceMotion) raf = requestAnimationFrame(frame);
+  }
+  // M5 + M4: the preference is read live. Turning reduced motion on stops the loop
+  // and clears the moving parts; turning it off starts the loop again.
+  function setMotion(reduce) {
+    reduceMotion = reduce;
+    if (reduceMotion) {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      rings.length = 0;
+      motes.length = 0;
+      paintStatic();
+    } else {
+      startLoop();
+    }
+  }
+  if (reduceQuery) {
+    const onChange = e => setMotion(e.matches);
+    if (reduceQuery.addEventListener) reduceQuery.addEventListener('change', onChange);
+    else if (reduceQuery.addListener) reduceQuery.addListener(onChange);
+  }
 
   // ---------- start and volume ----------
   function setLevel(v, ramp) {
@@ -329,24 +400,55 @@
   });
   volOut.textContent = Math.round(vol.value * 100) + '%';
 
+  // M6: the start dialog takes focus when it opens, keeps Tab inside it, and gives
+  // focus back to the volume slider when it closes.
+  function showStart(msg) {
+    hintEl.textContent = msg || '';
+    startEl.hidden = false;
+    startBtn.focus();
+  }
+  function hideStart() {
+    startEl.hidden = true;
+    hintEl.textContent = '';
+    vol.focus();
+  }
+  startEl.addEventListener('keydown', e => {
+    if (e.key === 'Tab') { e.preventDefault(); startBtn.focus(); }
+  });
+
+  // M1: resume from a gesture. If the browser still refuses (iOS after a call, lock
+  // screen or another app), bring the start dialog back so the tap path is never lost.
+  function resumeAudio() {
+    if (!ac) return;
+    const refused = () => showStart('The phone paused the sound. Tap to wake it again.');
+    ac.resume().then(() => {
+      if (ac.state !== 'running') refused();
+      else if (!startEl.hidden) hideStart();
+    }, refused);
+  }
+
   startBtn.addEventListener('click', async () => {
     try {
       if (!ac) buildAudio();
       await ac.resume();
+      if (ac.state !== 'running') throw new Error('context is ' + ac.state);
       setLevel(Number(vol.value), 1.5);   // fade in from silence over 1.5 s
-      startEl.hidden = true;
-      hintEl.textContent = '';
+      hideStart();
     } catch (err) {
-      hintEl.textContent = 'Sound could not start in this browser. The visuals still run, but nothing will sound.';
-      startEl.hidden = false;
+      showStart('Sound did not start. Tap the button again. If it stays silent, this browser has blocked audio.');
     }
   });
 
   document.addEventListener('visibilitychange', () => {
     if (!ac) return;
-    if (document.hidden) ac.suspend();
-    else ac.resume();
+    if (document.hidden) ac.suspend().catch(() => {});
+    else resumeAudio();
   });
+
+  // Start: focus the dialog's button, then either the still frame or the loop.
+  startBtn.focus();
+  if (reduceMotion) paintStatic();
+  else startLoop();
 })();
 </script>
 </body>

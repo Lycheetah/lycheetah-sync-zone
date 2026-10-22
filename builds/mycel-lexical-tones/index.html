@@ -138,7 +138,8 @@ Tap <strong>Wake the sound</strong> first. Audio never starts on its own.</p>
   var src = $('src'), wake = $('wake'), sing = $('sing'), drone = $('drone'), stop = $('stop');
   var vol = $('vol'), volOut = $('volOut'), statusEl = $('status'), nowEl = $('now'), chipsEl = $('chips');
 
-  var ac = null, master = null;
+  var ac = null, master = null, limiter = null;
+  var awake = false;      // true once the sound has been woken at least once
   var tokens = [];        // { word, p: params }
   var playRecs = [];      // { o, nodes }
   var timers = [];
@@ -244,6 +245,40 @@ Tap <strong>Wake the sound</strong> first. Audio never starts on its own.</p>
     }
   }
 
+  // M1: every action that plays sound first makes sure the context is running.
+  // A tap is a gesture, so resume() here is allowed on iOS. If the phone refuses,
+  // the status line says so and the user taps Wake again.
+  function withAudio(action) {
+    if (!ac) { setStatus('Wake the sound first.'); return; }
+    if (ac.state === 'running') { action(); return; }
+    ac.resume().then(function () {
+      if (ac.state === 'running') action();
+      else setStatus('The phone paused the sound. Tap Wake the sound again.');
+    }, function () {
+      setStatus('The phone paused the sound. Tap Wake the sound again.');
+    });
+  }
+
+  // M2: fade a note to silence, then stop and disconnect it.
+  var FADE = 0.02;
+  function releaseRec(r, t) {
+    try {
+      r.g.gain.cancelScheduledValues(t);
+      r.g.gain.setValueAtTime(r.g.gain.value, t);
+      r.g.gain.linearRampToValueAtTime(0, t + FADE);
+      r.o.stop(t + FADE + 0.01);
+    } catch (e) { /* already stopped */ }
+    setTimeout(function () {
+      r.nodes.forEach(function (n) { try { n.disconnect(); } catch (e) { /* gone */ } });
+    }, (FADE + 0.1) * 1000);
+  }
+
+  // Forget notes that have finished, so the voice cap counts only sounding notes.
+  function pruneRecs() {
+    var now = ac.currentTime;
+    playRecs = playRecs.filter(function (r) { return r.end > now; });
+  }
+
   function setLevel(v, rampSeconds) {
     if (!master) return;
     var now = ac.currentTime;
@@ -272,49 +307,53 @@ Tap <strong>Wake the sound</strong> first. Audio never starts on its own.</p>
     g.connect(master);
     o.start(when);
     o.stop(end + 0.05);
-    return { o: o, nodes: [o, lp, g] };
+    return { o: o, g: g, end: end + 0.05, nodes: [o, lp, g] };
   }
 
   function playOne(t) {
-    if (!ac || ac.state !== 'running') { setStatus('Wake the sound first.'); return; }
-    if (playRecs.length > MAX_VOICES) return;
-    playRecs.push(voiceAt(t.p, ac.currentTime + 0.02));
-    setStatus(t.word + ' sounds as ' + t.p.form + '.');
+    withAudio(function () {
+      pruneRecs();
+      if (playRecs.length >= MAX_VOICES) { setStatus('Too many notes at once. Give it a moment.'); return; }
+      playRecs.push(voiceAt(t.p, ac.currentTime + 0.02));
+      setStatus(t.word + ' sounds as ' + t.p.form + '.');
+    });
   }
 
   function stopPlay() {
     timers.forEach(function (id) { clearTimeout(id); });
     timers = [];
-    playRecs.forEach(function (r) {
-      try { r.o.stop(); } catch (e) { /* already stopped */ }
-      r.nodes.forEach(function (n) { try { n.disconnect(); } catch (e) { /* gone */ } });
-    });
+    var now = ac ? ac.currentTime : 0;
+    playRecs.forEach(function (r) { releaseRec(r, now); });
     playRecs = [];
     highlight(-1);
   }
 
   function singWords() {
-    if (!ac || ac.state !== 'running') { setStatus('Wake the sound first.'); return; }
-    stopPlay();
-    if (!tokens.length) { setStatus('There are no letters to sing. Type some words above.'); return; }
-    if (tokens.length === MAX_WORDS) setStatus('Singing the first ' + MAX_WORDS + ' words.');
-    else setStatus('Singing ' + tokens.length + ' word' + (tokens.length === 1 ? '' : 's') + '.');
-    var t0 = ac.currentTime + 0.12;
-    tokens.forEach(function (t, i) {
-      var when = t0 + i * STEP;
-      playRecs.push(voiceAt(t.p, when));
-      timers.push(setTimeout(function () { highlight(i); }, Math.max(0, (when - ac.currentTime) * 1000)));
+    withAudio(function () {
+      stopPlay();
+      if (!tokens.length) { setStatus('There are no letters to sing. Type some words above.'); return; }
+      if (tokens.length === MAX_WORDS) setStatus('Singing the first ' + MAX_WORDS + ' words.');
+      else setStatus('Singing ' + tokens.length + ' word' + (tokens.length === 1 ? '' : 's') + '.');
+      var t0 = ac.currentTime + 0.12;
+      tokens.forEach(function (t, i) {
+        var when = t0 + i * STEP;
+        playRecs.push(voiceAt(t.p, when));
+        timers.push(setTimeout(function () { highlight(i); }, Math.max(0, (when - ac.currentTime) * 1000)));
+      });
+      var endMs = (t0 - ac.currentTime + tokens.length * STEP + 0.5) * 1000;
+      timers.push(setTimeout(function () {
+        highlight(-1);
+        setStatus('Finished. Tap any word to hear it alone.');
+      }, Math.max(0, endMs)));
     });
-    var endMs = (t0 - ac.currentTime + tokens.length * STEP + 0.5) * 1000;
-    timers.push(setTimeout(function () {
-      highlight(-1);
-      setStatus('Finished. Tap any word to hear it alone.');
-    }, Math.max(0, endMs)));
   }
 
   // Drone: keyed to the whole text at the moment you press it. Two sines, root and a fifth.
   function startDrone() {
-    if (!ac || ac.state !== 'running') { setStatus('Wake the sound first.'); return; }
+    withAudio(startDroneNow);
+  }
+
+  function startDroneNow() {
     if (droneNodes) return;
     var h = hash('drone:' + src.value.toLowerCase());
     var f = (BASE / 2) * Math.pow(2, SCALE[h % SCALE.length] / 12);
@@ -350,6 +389,9 @@ Tap <strong>Wake the sound</strong> first. Audio never starts on its own.</p>
     d.dg.gain.cancelScheduledValues(t);
     d.dg.gain.setValueAtTime(d.dg.gain.value, t);
     d.dg.gain.linearRampToValueAtTime(0, t + 0.6);
+    setTimeout(function () {
+      try { d.dg.disconnect(); } catch (e) { /* gone */ }
+    }, 900);
     try { d.a.stop(t + 0.7); d.b.stop(t + 0.7); } catch (e) { /* already stopped */ }
     drone.setAttribute('aria-pressed', 'false');
     drone.textContent = 'Hold a drone';
@@ -365,26 +407,46 @@ Tap <strong>Wake the sound</strong> first. Audio never starts on its own.</p>
     else setStatus('');
   });
 
-  wake.addEventListener('click', async function () {
-    try {
-      if (!ac) {
+  // M1: Wake stays enabled. After a call or a lock screen the phone can pause the
+  // sound, and this button is the way back.
+  wake.addEventListener('click', function () {
+    if (!ac) {
+      try {
         var AC = window.AudioContext || window.webkitAudioContext;
         ac = new AC();
         master = ac.createGain();
         master.gain.value = 0; // silent until the fade below
-        master.connect(ac.destination);
+        // M3: a compressor set as a fast limiter before the speakers. Not a lookahead limiter.
+        limiter = ac.createDynamicsCompressor();
+        limiter.threshold.value = -6;
+        limiter.knee.value = 0;
+        limiter.ratio.value = 20;
+        limiter.attack.value = 0.003;
+        limiter.release.value = 0.1;
+        master.connect(limiter);
+        limiter.connect(ac.destination);
+      } catch (err) {
+        ac = null;
+        setStatus('Sound could not start in this browser. Nothing will play.');
+        return;
       }
-      await ac.resume();
-      setLevel(Number(vol.value), 1.5);
-      wake.disabled = true;
-      wake.textContent = 'Sound is awake';
-      sing.disabled = false;
-      drone.disabled = false;
-      stop.disabled = false;
-      setStatus('Awake. Volume fades in to your level.');
-    } catch (err) {
-      setStatus('Sound could not start in this browser. Nothing will play.');
     }
+    ac.resume().then(function () {
+      if (ac.state !== 'running') throw new Error('context is ' + ac.state);
+      setLevel(Number(vol.value), awake ? 0.3 : 1.5);
+      if (!awake) {
+        awake = true;
+        sing.disabled = false;
+        drone.disabled = false;
+        stop.disabled = false;
+        setStatus('Awake. Volume fades in to your level.');
+      } else {
+        setStatus('Awake again.');
+      }
+      wake.textContent = 'Sound is awake';
+    }).catch(function () {
+      setStatus('The phone did not wake the sound. Tap Wake the sound again.');
+    });
   });
 
   sing.addEventListener('click', singWords);
@@ -406,8 +468,13 @@ Tap <strong>Wake the sound</strong> first. Audio never starts on its own.</p>
 
   document.addEventListener('visibilitychange', function () {
     if (!ac) return;
-    if (document.hidden) ac.suspend();
-    else ac.resume();
+    if (document.hidden) { ac.suspend().catch(function () {}); return; }
+    // Without a tap, a phone may refuse this resume. Say so; Wake brings it back.
+    ac.resume().then(function () {
+      if (ac.state !== 'running') setStatus('The phone paused the sound. Tap Wake the sound to resume.');
+    }, function () {
+      setStatus('The phone paused the sound. Tap Wake the sound to resume.');
+    });
   });
 
   tokens = tokenize(src.value);
