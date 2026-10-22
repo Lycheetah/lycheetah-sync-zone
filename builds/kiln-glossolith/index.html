@@ -116,7 +116,7 @@
 <label for="src">Your words</label>
 <textarea id="src" spellcheck="false" placeholder="the river remembers what the hand forgot"></textarea>
 
-<div class="out" id="out" aria-live="polite" aria-label="Transmuted text"></div>
+<div class="out" id="out" role="group" aria-label="Transmuted text"></div>
 <p class="gloss" id="gloss" aria-live="polite"></p>
 
 <div class="row">
@@ -189,19 +189,23 @@
 
   function pick(r, arr) { return arr[Math.floor(r() * arr.length) % arr.length]; }
 
-  function transmute(word) {
+  // A form is syllables (consonant + vowel) plus an optional coda. Drift changes only
+  // the vowel of one syllable, so consonants such as "ly" are never touched (K2).
+  function shape(word) {
     var key = word.toLowerCase();
     var r = rng(hash(key));
     var n = Math.min(4, 1 + Math.floor(key.length / 3));
-    var form = "";
+    var syl = [];
     for (var i = 0; i < n; i++) {
-      form += pick(r, CONS) + pick(r, VOW);
+      var c = pick(r, CONS);
+      syl.push({ c: c, v: pick(r, VOW) });
     }
-    form += pick(r, CODA);
-    if (word.charAt(0) !== word.charAt(0).toLowerCase()) {
-      form = form.charAt(0).toUpperCase() + form.slice(1);
-    }
-    return form;
+    return { syl: syl, coda: pick(r, CODA), cap: word.charAt(0) !== word.charAt(0).toLowerCase() };
+  }
+
+  function formOf(s) {
+    var f = s.syl.map(function (x) { return x.c + x.v; }).join("") + s.coda;
+    return s.cap ? f.charAt(0).toUpperCase() + f.slice(1) : f;
   }
 
   function glossOf(word) {
@@ -229,7 +233,7 @@
       var li = document.createElement("li");
       li.textContent = pair[0] + " ";
       var s = document.createElement("span");
-      s.textContent = "(" + pair[1].gloss + (pair[1].count > 1 ? ", heard " + pair[1].count + "x" : "") + ")";
+      s.textContent = "(" + pair[1].gloss + (pair[1].count > 1 ? ", heard in " + pair[1].count + " sentences" : "") + ")";
       li.appendChild(s);
       lexEl.appendChild(li);
     });
@@ -263,31 +267,59 @@
     });
   }
 
-  function tokenize(text) {
+  // Letters in any script count as letters (K3). A word is "closed" once something
+  // follows it (a space or punctuation) or the box is committed; only closed words are heard.
+  function tokenize(text, final) {
     var parts = text.split(/(\s+)/);
     var list = [];
-    parts.forEach(function (p) {
+    parts.forEach(function (p, idx) {
       if (!p) return;
       if (/^\s+$/.test(p)) { list.push({ punct: true, orig: p }); return; }
-      var core = p.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g, "");
+      var core = p.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
       if (!core) { list.push({ punct: true, orig: p }); return; }
-      var lead = p.slice(0, p.indexOf(core));
-      var trail = p.slice(p.indexOf(core) + core.length);
+      var at = p.indexOf(core);
+      var lead = p.slice(0, at);
+      var trail = p.slice(at + core.length);
+      var closed = trail.length > 0 || idx < parts.length - 1 || final;
+      var shp = shape(core);
       list.push({ punct: true, orig: lead });
-      list.push({ orig: core, form: transmute(core), gloss: glossOf(core) });
+      list.push({ orig: core, parts: shp, form: formOf(shp), gloss: glossOf(core), closed: closed });
       list.push({ punct: true, orig: trail });
     });
     return list;
   }
 
+  var commitTimer = null;
+  var committed = "";
+  var committedFinal = false;
+  var committedClosed = 0;
+
+  // Typing only redraws the page. It does not write the lexicon (K1).
   function onType() {
-    var text = src.value;
-    tokens = tokenize(text);
-    tokens.forEach(function (t) {
-      if (!t.punct) remember(t.form, t.gloss);
-    });
+    tokens = tokenize(src.value, false);
     gloss.textContent = "";
     renderOut();
+    clearTimeout(commitTimer);
+    commitTimer = setTimeout(function () { commit(false); }, 1500);
+  }
+
+  // A sentence is heard when typing pauses for 1.5 s or the box loses focus.
+  // The same text is not counted twice. When a pause-commit is later upgraded by blur,
+  // only the words that became closed in the meantime are counted.
+  function commit(final) {
+    var text = src.value;
+    if (text === committed && (committedFinal || !final)) return;
+    var upgrade = text === committed;
+    var closedNow = [];
+    tokenize(text, final).forEach(function (t) {
+      if (!t.punct && t.closed) closedNow.push(t);
+    });
+    closedNow.slice(upgrade ? committedClosed : 0).forEach(function (t) {
+      remember(t.form, t.gloss);
+    });
+    committed = text;
+    committedFinal = final;
+    committedClosed = closedNow.length;
     renderLexicon();
   }
 
@@ -309,30 +341,41 @@
     var idxs = [];
     tokens.forEach(function (t, i) { if (!t.punct) idxs.push(i); });
     if (!idxs.length) return;
-    var r = Math.random;
-    var t = tokens[idxs[Math.floor(r() * idxs.length)]];
-    var vowels = t.form.match(/(ae|ou|ia|eo|a|e|i|o|u|y)/g);
-    if (!vowels) return;
-    var target = vowels[Math.floor(r() * vowels.length)];
-    var swap = VOW[Math.floor(r() * VOW.length)];
-    t.form = t.form.replace(target, swap);
-    renderOut();
+    var idx = idxs[Math.floor(Math.random() * idxs.length)];
+    var t = tokens[idx];
+    var slot = t.parts.syl[Math.floor(Math.random() * t.parts.syl.length)];
+    slot.v = VOW[Math.floor(Math.random() * VOW.length)];
+    t.form = formOf(t.parts);
+    // Update only the one word. Rebuilding the whole output every tick dropped keyboard focus (K7, self-found).
+    var b = out.querySelector('[data-idx="' + idx + '"]');
+    if (b) {
+      b.textContent = t.form;
+      b.setAttribute("aria-label", t.form + ", " + t.gloss);
+    }
     out.classList.add("flicker");
     setTimeout(function () { out.classList.remove("flicker"); }, 500);
   }
 
+  var driftWanted = false;
+
+  function startDrift() { if (!driftTimer) driftTimer = setInterval(driftTick, 1400); }
+  function stopDrift() { if (driftTimer) { clearInterval(driftTimer); driftTimer = null; } }
+
   function setDrift(on) {
-    if (on && !driftTimer) {
-      driftTimer = setInterval(driftTick, 1400);
-    } else if (!on && driftTimer) {
-      clearInterval(driftTimer);
-      driftTimer = null;
-    }
+    driftWanted = on;
+    if (on && !document.hidden) startDrift(); else stopDrift();
     driftBtn.setAttribute("aria-pressed", on ? "true" : "false");
     driftBtn.textContent = on ? "Stop the drift" : "Let it drift";
   }
 
+  // A hidden tab does not tick (K5). The button still shows the reader's choice.
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stopDrift();
+    else if (driftWanted) startDrift();
+  });
+
   src.addEventListener("input", onType);
+  src.addEventListener("change", function () { clearTimeout(commitTimer); commit(true); });
   coinBtn.addEventListener("click", coin);
   driftBtn.addEventListener("click", function () {
     setDrift(driftBtn.getAttribute("aria-pressed") !== "true");

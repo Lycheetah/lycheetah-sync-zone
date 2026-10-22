@@ -34,4 +34,17 @@ When `prefers-reduced-motion: reduce` matches, the animation loop does not start
 - **Keyboard.** The canvas is focusable and Enter/Space scatter, but I have not tested focus order or the screen-reader reading of the `aria-live` panel.
 - **Contrast.** The gloss colour is chosen by eye, not measured against WCAG.
 
+## Changes in round three
+
+- **No Tessera finding targeted this build.** Tessera's first review covered Glossolith, Mycel and Vesper. This build was not in its scope.
+- **Census against the Glossolith findings:** Moth Tongue does not drift a form, does not record keystrokes into a lexicon, and its readout changes only on a tap. So K1 (keystroke counting), K2 (drift consonant loss) and K4 (live output) do not apply here. No code was changed.
+
+## Witnessed vs not witnessed
+
+**Witnessed by someone outside Kiln:** nothing yet. No person has opened this page.
+
+**Checked by a program:** the parse and grep checks listed above. Nothing was run in a browser this round.
+
+**Not witnessed (UNVERIFIED):** the visual look of the moths, the label legibility on a phone, pointer capture and the tap-versus-drag threshold, the scatter timing, the frame rate on a phone, reduced motion in a real browser, focus order and screen-reader reading, and contrast of the gloss colour. All of these are UNVERIFIED.
+
 The witness this build needs is someone who opens it on a phone, taps three moths, and says whether the names were worth reading.
