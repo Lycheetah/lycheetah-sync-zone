@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sorrel · Which Label?</title>
+<style>
+:root {
+  --bg: #f6f1e7; --ink: #24201a; --muted: #6b6256; --card: #fffdf8; --line: #d8cdbb;
+  --m: #2f6b4f; --d: #3d5a9a; --c: #8a5a0a; --u: #8a3b3b; --focus: #1f4fb8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1d1a16; --ink: #f1eadc; --muted: #b3a994; --card: #29251f; --line: #4a4236;
+    --m: #7fd0a6; --d: #9fb8ff; --c: #f0c46a; --u: #f08f8f; --focus: #9fc3ff;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1d1a16; --ink: #f1eadc; --muted: #b3a994; --card: #29251f; --line: #4a4236;
+  --m: #7fd0a6; --d: #9fb8ff; --c: #f0c46a; --u: #f08f8f; --focus: #9fc3ff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+}
+main { max-width: 640px; margin: 0 auto; padding: 20px 0 48px; }
+h1 { font-size: 1.6rem; line-height: 1.2; margin: .3em 0 .2em; }
+h2 { font-size: 1.1rem; margin: 1.4em 0 .4em; }
+.lede { color: var(--muted); margin: 0 0 1em; }
+.defs { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.defs li { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.defs b { display: inline-block; min-width: 9.5em; }
+.tag { font-weight: 700; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 18px; margin-top: 16px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .card { animation: rise .25s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+.step { color: var(--muted); font-size: .9rem; margin: 0 0 .4em; }
+.claim { font-size: 1.12rem; margin: 0 0 .6em; padding: 0 0 0 12px; border-left: 3px solid var(--line); }
+.src { color: var(--muted); font-size: .88rem; margin: 0 0 1em; }
+.ask { font-weight: 600; margin: 0 0 .6em; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+button {
+  font: inherit; min-height: 48px; padding: 10px 12px; border-radius: 10px;
+  border: 2px solid currentColor; background: transparent; color: var(--ink); cursor: pointer;
+  touch-action: manipulation;
+}
+button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.k-M { color: var(--m); } .k-D { color: var(--d); } .k-C { color: var(--c); } .k-U { color: var(--u); }
+.choices button:hover { background: var(--line); }
+.feedback { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px; }
+.feedback:focus { outline: none; }
+.verdict { font-weight: 700; margin: 0 0 .4em; }
+.why, .up { margin: 0 0 .5em; }
+.up { color: var(--muted); }
+.next {
+  margin-top: 8px; width: 100%; background: var(--ink); color: var(--bg); border-color: var(--ink);
+}
+.end-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.end-row li { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+ol.review { padding-left: 0; list-style: none; margin: 0; display: grid; gap: 8px; }
+.note { color: var(--muted); font-size: .92rem; }
+@media (max-width: 380px) { .choices { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Which label does this claim earn?</h1>
+  <p class="lede">A short lesson in the zone's truth labels. Read the four, then sort eight claims. Each one gets a reading and a reason, and the reason is the point, not the match.</p>
+
+  <h2>Show: the four labels</h2>
+  <ul class="defs">
+    <li><b class="tag k-M">MEASURED</b> seen or reproduced</li>
+    <li><b class="tag k-D">DERIVED</b> reasoned from named evidence</li>
+    <li><b class="tag k-C">CONJECTURE</b> plausible, unchecked</li>
+    <li><b class="tag k-U">UNVERIFIED</b> not checked where it counts</li>
+  </ul>
+  <p class="note">Those four definitions are the ones in the charter's section 3, "Truth", in <code>CHARTER.md</code> at the root of this zone. The claims below are paraphrased from zone builds, or invented for practice, as each one's source line says. The readings are Sorrel's own; check them.</p>
+
+  <h2>Do: sort the claims</h2>
+  <div id="stage" aria-live="off"></div>
+</main>
+<script>
+(function () {
+  'use strict';
+
+  var LABELS = {
+    M: { name: 'MEASURED' },
+    D: { name: 'DERIVED' },
+    C: { name: 'CONJECTURE' },
+    U: { name: 'UNVERIFIED' }
+  };
+
+  var ITEMS = [
+    {
+      claim: 'The file parses as HTML: Python\'s html.parser ran over the whole file and raised no exception.',
+      source: 'paraphrased from builds/vesper-moth-field/README.md',
+      label: 'M',
+      why: 'The parser was run and the result is recorded. Anyone can run the same command and get the same answer.',
+      up: 'It already sits at the top rung for this claim. It still says nothing about how the page looks or behaves on a phone.'
+    },
+    {
+      claim: 'The swarm holds 60 frames per second on a mid-range phone.',
+      source: 'invented for practice',
+      label: 'U',
+      why: 'No device was used, and no frame was timed. A number like this needs a phone and a measurement, so it is not checked where it counts.',
+      up: 'Open the page on a real phone, time the frames, and write the numbers down.'
+    },
+    {
+      claim: 'With 420 particles, each frame makes about 420 separate draw calls, since each particle is drawn on its own.',
+      source: 'paraphrased from builds/vesper-moth-field/README.md (per-particle stroke and fill)',
+      label: 'D',
+      why: 'The count comes from reading the drawing loop and the particle count. No frame was measured, so it is reasoned, not seen.',
+      up: 'Time one frame in a browser and compare the timing with the count.'
+    },
+    {
+      claim: 'Most people will find the sixth night harder than the first.',
+      source: 'invented for practice',
+      label: 'C',
+      why: 'It is plausible from the rules table, but nobody has played the sixth night. That makes it a conjecture.',
+      up: 'Watch five people play both nights and record where each one stops.'
+    },
+    {
+      claim: 'A greedy bot reached dawn on 59 of 60 test seeds.',
+      source: 'paraphrased from builds/parallax-dusk-moth/README.md',
+      label: 'M',
+      why: 'The bot was run on 60 seeds, and the count can be reproduced. This is a real measurement, even though it is a small one.',
+      up: 'It is already measured. The next claim is where it stops being true.'
+    },
+    {
+      claim: 'So the game is too easy for people.',
+      source: 'paraphrased from builds/parallax-dusk-moth/README.md (its "may be too easy" note)',
+      label: 'C',
+      why: 'The bot result is a fact about the bot. It does not dodge, so it says little about how a person would fare. That leaves a conjecture.',
+      up: 'Play it with people, record how many nights they finish, and then compare.'
+    },
+    {
+      claim: 'The game works on a phone, because every unit test passed.',
+      source: 'invented for practice',
+      label: 'U',
+      why: 'Unit tests cover logic. A passing test does not show that a finger on glass lands the way it should. Not checked where it counts.',
+      up: 'Put the game in the hands of a person with a phone and ask them to play one night.'
+    },
+    {
+      claim: 'Reduced motion caps the particle count at 90, so that setting shows fewer particles than the normal one.',
+      source: 'paraphrased from builds/vesper-moth-field/README.md (max 90 instead of 420)',
+      label: 'D',
+      why: 'Reasoned from the two constants in the source. No browser with the preference set was run, so it is not seen.',
+      up: 'Set the reduced-motion preference in a browser and count the particles.'
+    }
+  ];
+
+  var state = { i: 0, picks: [] };
+  var stage = document.getElementById('stage');
+
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text !== undefined && text !== null) node.textContent = text;
+    return node;
+  }
+
+  function renderItem() {
+    var item = ITEMS[state.i];
+    var pick = state.picks[state.i];
+    var card = el('section', 'card');
+    card.appendChild(el('p', 'step', 'Claim ' + (state.i + 1) + ' of ' + ITEMS.length));
+    card.appendChild(el('blockquote', 'claim', item.claim));
+    card.appendChild(el('p', 'src', 'Source: ' + item.source));
+
+    if (pick === undefined) {
+      card.appendChild(el('p', 'ask', 'Which label does this claim earn?'));
+      var group = el('div', 'choices');
+      group.setAttribute('role', 'group');
+      group.setAttribute('aria-label', 'Choose a label');
+      Object.keys(LABELS).forEach(function (k) {
+        var b = el('button', 'k-' + k, LABELS[k].name);
+        b.type = 'button';
+        b.addEventListener('click', function () {
+          state.picks[state.i] = k;
+          render();
+          var fb = document.getElementById('feedback');
+          if (fb) fb.focus();
+        });
+        group.appendChild(b);
+      });
+      card.appendChild(group);
+    } else {
+      var matched = pick === item.label;
+      var fb = el('div', 'feedback');
+      fb.id = 'feedback';
+      fb.tabIndex = -1;
+      fb.appendChild(el('p', 'verdict', (matched ? 'Matched. ' : 'Not this one. ') +
+        'You chose ' + LABELS[pick].name + '. The reading is ' + LABELS[item.label].name + '.'));
+      fb.appendChild(el('p', 'why', item.why));
+      fb.appendChild(el('p', 'up', 'What would move it: ' + item.up));
+      card.appendChild(fb);
+      var next = el('button', 'next', state.i + 1 < ITEMS.length ? 'Next claim' : 'See the readings');
+      next.type = 'button';
+      next.addEventListener('click', function () {
+        state.i += 1;
+        render();
+      });
+      card.appendChild(next);
+    }
+    stage.appendChild(card);
+  }
+
+  function renderEnd() {
+    var matched = 0;
+    ITEMS.forEach(function (item, idx) { if (state.picks[idx] === item.label) matched += 1; });
+    var card = el('section', 'card');
+    card.appendChild(el('p', 'verdict', 'You matched ' + matched + ' of ' + ITEMS.length + ' readings.'));
+    card.appendChild(el('p', 'note', 'The count is not the lesson. Look at the reasons where you differed, and argue with any reading you think is wrong.'));
+    var list = el('ol', 'review');
+    ITEMS.forEach(function (item, idx) {
+      var li = el('li', '', (idx + 1) + '. ' + LABELS[item.label].name + ': ' + item.claim);
+      list.appendChild(li);
+    });
+    card.appendChild(list);
+    var again = el('button', 'next', 'Sort them again');
+    again.type = 'button';
+    again.addEventListener('click', function () {
+      state.i = 0;
+      state.picks = [];
+      render();
+    });
+    card.appendChild(again);
+    stage.appendChild(card);
+  }
+
+  function render() {
+    stage.textContent = '';
+    if (state.i >= ITEMS.length) renderEnd();
+    else renderItem();
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
