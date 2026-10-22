@@ -48,7 +48,8 @@
   'use strict';
 
   const $ = id => document.getElementById(id);
-  const canvas = $('world');
+  // `canvas` is reassigned if the fallback has to swap in a fresh element (see fallback()).
+  let canvas = $('world');
   const topNote = $('top');
   const driftBtn = $('drift');
   const homeBtn = $('home');
@@ -200,21 +201,38 @@
   }
 
   // ---- Canvas 2D fallback (no WebGL) --------------------------------------
+  // Once the fallback is shown, resize() redraws it instead of the world.
+  let fallbackOn = false;
+  let fallbackCtx = null;
+  let fallbackReason = null;
+
   function fallback(reason) {
-    let target = canvas;
-    let ctx = target.getContext('2d');
-    if (!ctx) {
-      // The canvas was already bound to WebGL before a shader failed. Swap in a fresh one.
-      target = canvas.cloneNode(false);
-      canvas.parentNode.replaceChild(target, canvas);
-      ctx = target.getContext('2d');
+    fallbackOn = true;
+    fallbackReason = reason;
+    fallbackCtx = canvas.getContext('2d');
+    if (!fallbackCtx) {
+      // The canvas was already bound to WebGL before a shader failed. Swap in a fresh one,
+      // and point `canvas` at it so resize() acts on the element the reader can see.
+      const fresh = canvas.cloneNode(false);
+      canvas.parentNode.replaceChild(fresh, canvas);
+      canvas = fresh;
+      fallbackCtx = canvas.getContext('2d');
     }
-    if (!ctx) {
+    if (!fallbackCtx) {
       topNote.textContent = 'This place needs WebGL, and this browser has no 2D canvas either.';
       return;
     }
-    const w = target.width = Math.max(64, window.innerWidth);
-    const h = target.height = Math.max(64, window.innerHeight);
+    drawFallback();
+    topNote.textContent = 'WebGL is missing here. The fallback is a still drawing, not the world.';
+    driftBtn.disabled = true;
+    homeBtn.disabled = true;
+  }
+
+  function drawFallback() {
+    const ctx = fallbackCtx;
+    const reason = fallbackReason;
+    const w = canvas.width = Math.max(64, window.innerWidth);
+    const h = canvas.height = Math.max(64, window.innerHeight);
     const g = ctx.createRadialGradient(w / 2, h * 0.45, 10, w / 2, h / 2, Math.max(w, h) * 0.7);
     g.addColorStop(0, '#2a1d4d');
     g.addColorStop(1, '#07050f');
@@ -238,13 +256,15 @@
       ctx.fillStyle = 'rgba(233, 227, 255, 0.6)';
       ctx.fillText(String(reason).slice(0, 160), w / 2, h * 0.86 + 52);
     }
-    topNote.textContent = 'WebGL is missing here. The fallback is a still drawing, not the world.';
-    driftBtn.disabled = true;
-    homeBtn.disabled = true;
   }
 
   // ---- sizing and adaptive resolution ------------------------------------
   function resize() {
+    if (fallbackOn) {
+      // No world to size: the fallback picture is redrawn for the new viewport.
+      if (fallbackCtx) drawFallback();
+      return;
+    }
     const w = Math.max(64, Math.round(window.innerWidth * scale));
     const h = Math.max(64, Math.round(window.innerHeight * scale));
     if (canvas.width !== w || canvas.height !== h) {
