@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aetheron · Stairwell Sound Resonator</title>
+<style>
+  :root { --void: #07050f; --ink: #e9e3ff; --gold: #ffd27a; --ice: #9fe7ff; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--void);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  [hidden] { display: none !important; }
+
+  canvas#world {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+    outline: none;
+  }
+
+  #top {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: calc(12px + env(safe-area-inset-bottom, 0px));
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    text-shadow: 0 0 10px var(--void);
+    pointer-events: none;
+    z-index: 5;
+    color: var(--gold);
+  }
+
+  #overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+    background: radial-gradient(ellipse at center, rgba(16, 12, 32, 0.96) 0%, rgba(7, 5, 15, 0.98) 75%);
+    backdrop-filter: blur(8px);
+  }
+  #overlay h1 {
+    margin: 0;
+    font-size: 26px;
+    color: var(--ice);
+    letter-spacing: 0.05em;
+  }
+  .subhead {
+    margin: 0;
+    font-size: 14px;
+    max-width: 44ch;
+    color: #c5cae9;
+    line-height: 1.5;
+  }
+  #startBtn {
+    margin-top: 10px;
+    font-size: 16px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1px solid var(--ice);
+    background: rgba(159, 231, 255, 0.12);
+    color: var(--ink);
+  }
+
+  #bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(7, 5, 15, 0.85);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(159, 231, 255, 0.2);
+  }
+  .group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  input[type="range"] { accent-color: var(--ice); }
+  .btn-sm {
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(159, 231, 255, 0.1);
+    border: 1px solid rgba(159, 231, 255, 0.3);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  #word-flash {
+    position: fixed;
+    left: 50%;
+    top: 35%;
+    transform: translate(-50%, -50%);
+    z-index: 6;
+    pointer-events: none;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    text-shadow: 0 0 16px rgba(255, 210, 122, 0.6);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="world" tabindex="0" role="application" aria-label="Aetheron Stairwell Resonator. Interactive 3D kaleidoscopic raymarched fold space with coupled modal Web Audio synthesis."></canvas>
+
+<p id="top" role="status" aria-live="polite">Drag to fly through the impossible fold. Height and velocity shape acoustic resonance.</p>
+<div id="word-flash">mirrel</div>
+
+<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="stairTitle">
+  <h1 id="stairTitle">Stairwell Sound Resonator</h1>
+  <p class="subhead">A companion to Wren's Stairwell (`builds/wren-stairwell/`). Couples Wren's kaleidoscopic fold geometry to a multi-voice Web Audio modal resonator and Kiln's words.</p>
+  <button id="startBtn" type="button">Enter the Resonant Fold</button>
+</div>
+
+<div id="bar">
+  <div class="group">
+    <label for="vol">Sound</label>
+    <input id="vol" type="range" min="0" max="1" step="0.01" value="0.25">
+  </div>
+  <div class="group">
+    <button id="driftBtn" class="btn-sm" type="button">Drift: ON</button>
+    <button id="resetBtn" class="btn-sm" type="button">Reset Position</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var canvas = document.getElementById('world');
+  var overlay = document.getElementById('overlay');
+  var startBtn = document.getElementById('startBtn');
+  var volInput = document.getElementById('vol');
+  var driftBtn = document.getElementById('driftBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var wordFlash = document.getElementById('word-flash');
+
+  var gl = canvas.getContext('webgl', { antialias: false, powerPreference: 'high-performance' });
+  var isWebGL = !!gl;
+
+  // Words that whisper at cell transitions
+  var whisperWords = ['mirrel', 'lyth', 'kessaly', 'sticta', 'harmok', 'ansel', 'vortan'];
+  var lastCellY = 0;
+
+  // Audio Context (Modal harmonic engine responding to fold depth)
+  var audioCtx = null;
+  var masterGain = null;
+  var voices = [];
+  var filterNode = null;
+
+  function initAudio() {
+    if (audioCtx) return;
+    var AudioClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioClass) return;
+    audioCtx = new AudioClass();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(parseFloat(volInput.value), audioCtx.currentTime);
+    masterGain.connect(audioCtx.destination);
+
+    filterNode = audioCtx.createBiquadFilter();
+    filterNode.type = 'lowpass';
+    filterNode.frequency.setValueAtTime(450, audioCtx.currentTime);
+    filterNode.Q.setValueAtTime(2.5, audioCtx.currentTime);
+    filterNode.connect(masterGain);
+
+    // Multi-voice modal harmonic drone
+    var chord = [110.0, 164.81, 220.0, 277.18, 329.63]; // A major 9
+    chord.forEach(function(freq, idx) {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = (idx % 2 === 0) ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.08 / chord.length, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(filterNode);
+      osc.start();
+      voices.push({ osc: osc, gain: gain, baseFreq: freq });
+    });
+  }
+
+  function updateAudio(pos, vel, time) {
+    if (!audioCtx) return;
+    var now = audioCtx.currentTime;
+
+    // Pitch bends with vertical fold height and twist
+    var heightPitchShift = Math.sin(pos.y * 0.25 + time * 0.15) * 8.0;
+    voices.forEach(function(v) {
+      v.osc.frequency.setTargetAtTime(Math.max(40, v.baseFreq + heightPitchShift), now, 0.08);
+    });
+
+    // Velocity opens the low-pass filter
+    var speed = Math.hypot(vel.x, vel.y, vel.z);
+    var targetCutoff = 350 + Math.min(2400, speed * 1200);
+    filterNode.frequency.setTargetAtTime(targetCutoff, now, 0.05);
+
+    // Whisper word when crossing 6-unit cell boundary
+    var currentCellY = Math.floor(pos.y / 6.0);
+    if (currentCellY !== lastCellY) {
+      lastCellY = currentCellY;
+      triggerWordWhisper();
+    }
+  }
+
+  function triggerWordWhisper() {
+    var word = whisperWords[Math.floor(Math.random() * whisperWords.length)];
+    wordFlash.textContent = word;
+    wordFlash.style.opacity = '0.9';
+    setTimeout(function() { wordFlash.style.opacity = '0'; }, 1200);
+  }
+
+  volInput.addEventListener('input', function() {
+    var v = parseFloat(volInput.value);
+    if (masterGain && audioCtx) {
+      masterGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02);
+    }
+  });
+
+  // Shader setup (Wren's kaleidoscopic raymarched fold space)
+  var VS = [
+    'attribute vec2 aPos;',
+    'void main() { gl_Position = vec4(aPos, 0.0, 1.0); }'
+  ].join('\n');
+
+  var FS = [
+    'precision mediump float;',
+    'uniform vec2 uRes;',
+    'uniform float uTime;',
+    'uniform vec3 uPos;',
+    'uniform vec3 uFwd;',
+    'uniform vec3 uRight;',
+    'uniform vec3 uUp;',
+    'const int MAXSTEPS = 48;',
+    'const float MAXD = 40.0;',
+    'mat2 rot(float a) { float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }',
+    'float map(vec3 p) {',
+    '  vec2 q = rot(0.35 * sin(p.y * 0.25 + uTime * 0.2)) * p.xz;',
+    '  p.x = q.x; p.z = q.y;',
+    '  p = mod(p + 3.0, 6.0) - 3.0;',
+    '  float s = 1.0;',
+    '  for (int i = 0; i < 4; i++) {',
+    '    p = abs(p);',
+    '    if (p.x < p.y) p.xy = p.yx;',
+    '    if (p.x < p.z) p.xz = p.zx;',
+    '    if (p.y < p.z) p.yz = p.zy;',
+    '    p = p * 1.9 - vec3(2.4, 1.6, 0.9);',
+    '    vec2 r = rot(0.5) * p.xy;',
+    '    p.x = r.x; p.y = r.y;',
+    '    s *= 1.9;',
+    '  }',
+    '  return (length(p) - 0.9) / s;',
+    '}',
+    'void main() {',
+    '  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;',
+    '  vec3 rd = normalize(uFwd * 1.5 + uRight * uv.x + uUp * uv.y);',
+    '  float t = 0.0;',
+    '  float glow = 0.0;',
+    '  float hit = 0.0;',
+    '  for (int i = 0; i < MAXSTEPS; i++) {',
+    '    vec3 p = uPos + rd * t;',
+    '    float d = map(p) * 0.8;',
+    '    glow += 0.005 / (0.02 + abs(d));',
+    '    if (d < 0.002 * (1.0 + t)) { hit = 1.0; break; }',
+    '    t += d;',
+    '    if (t > MAXD) break;',
+    '  }',
+    '  vec3 pal = 0.5 + 0.5 * cos(vec3(0.0, 2.1, 4.2) + uTime * 0.05 + t * 0.05);',
+    '  vec3 col = vec3(0.02, 0.015, 0.05);',
+    '  if (hit > 0.5) {',
+    '    col = pal * 0.6 + vec3(0.1, 0.2, 0.3) * (1.0 - t / MAXD);',
+    '  }',
+    '  col += pal * glow * 0.01;',
+    '  col = col / (1.0 + col);',
+    '  gl_FragColor = vec4(col, 1.0);',
+    '}'
+  ].join('\n');
+
+  var prog = null;
+  var uResLoc, uTimeLoc, uPosLoc, uFwdLoc, uRightLoc, uUpLoc;
+
+  if (isWebGL) {
+    var vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, VS);
+    gl.compileShader(vs);
+
+    var fs = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fs, FS);
+    gl.compileShader(fs);
+
+    prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+
+    uResLoc = gl.getUniformLocation(prog, 'uRes');
+    uTimeLoc = gl.getUniformLocation(prog, 'uTime');
+    uPosLoc = gl.getUniformLocation(prog, 'uPos');
+    uFwdLoc = gl.getUniformLocation(prog, 'uFwd');
+    uRightLoc = gl.getUniformLocation(prog, 'uRight');
+    uUpLoc = gl.getUniformLocation(prog, 'uUp');
+
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    var aPosLoc = gl.getAttribLocation(prog, 'aPos');
+    gl.enableVertexAttribArray(aPosLoc);
+    gl.vertexAttribPointer(aPosLoc, 2, gl.FLOAT, false, 0, 0);
+  }
+
+  // Camera & Motion state
+  var pos = { x: 0, y: 0, z: -4.5 };
+  var vel = { x: 0, y: 0, z: 0 };
+  var yaw = 0, pitch = 0;
+  var driftActive = true;
+
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    canvas.width = Math.floor(window.innerWidth * dpr * 0.6);
+    canvas.height = Math.floor(window.innerHeight * dpr * 0.6);
+    if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Pointer drag for joystick flying
+  var isDragging = false;
+  var dragStart = { x: 0, y: 0 };
+  canvas.addEventListener('pointerdown', function(e) {
+    isDragging = true;
+    dragStart.x = e.clientX;
+    dragStart.y = e.clientY;
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  });
+  window.addEventListener('pointermove', function(e) {
+    if (!isDragging) return;
+    var dx = (e.clientX - dragStart.x) * 0.005;
+    var dy = (e.clientY - dragStart.y) * 0.005;
+    yaw -= dx;
+    pitch = Math.max(-1.4, Math.min(1.4, pitch - dy));
+    dragStart.x = e.clientX;
+    dragStart.y = e.clientY;
+  });
+  window.addEventListener('pointerup', function() { isDragging = false; });
+
+  driftBtn.addEventListener('click', function() {
+    driftActive = !driftActive;
+    driftBtn.textContent = 'Drift: ' + (driftActive ? 'ON' : 'OFF');
+  });
+
+  resetBtn.addEventListener('click', function() {
+    pos = { x: 0, y: 0, z: -4.5 };
+    vel = { x: 0, y: 0, z: 0 };
+    yaw = 0; pitch = 0;
+  });
+
+  startBtn.addEventListener('click', function() {
+    initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    overlay.setAttribute('hidden', '');
+  });
+
+  // Animation Loop with Reduced Motion
+  var mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reducedMotion = mediaQuery.matches;
+  mediaQuery.addEventListener('change', function(e) { reducedMotion = e.matches; });
+
+  var startTime = performance.now();
+
+  function loop(now) {
+    var t = (now - startTime) * 0.001;
+
+    if (driftActive && !reducedMotion) {
+      vel.z = 0.015;
+    } else {
+      vel.z = 0;
+    }
+
+    var cy = Math.cos(yaw), sy = Math.sin(yaw);
+    var cp = Math.cos(pitch), sp = Math.sin(pitch);
+    var fwd = { x: sy * cp, y: sp, z: cy * cp };
+    var right = { x: cy, y: 0, z: -sy };
+    var up = { x: -sy * sp, y: cp, z: -cy * sp };
+
+    pos.x += fwd.x * vel.z;
+    pos.y += fwd.y * vel.z;
+    pos.z += fwd.z * vel.z;
+
+    updateAudio(pos, vel, t);
+
+    if (gl && prog) {
+      gl.useProgram(prog);
+      gl.uniform2f(uResLoc, canvas.width, canvas.height);
+      gl.uniform1f(uTimeLoc, reducedMotion ? 0.0 : t);
+      gl.uniform3f(uPosLoc, pos.x, pos.y, pos.z);
+      gl.uniform3f(uFwdLoc, fwd.x, fwd.y, fwd.z);
+      gl.uniform3f(uRightLoc, right.x, right.y, right.z);
+      gl.uniform3f(uUpLoc, up.x, up.y, up.z);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+
+    if (!reducedMotion) {
+      requestAnimationFrame(loop);
+    } else {
+      setTimeout(function() { requestAnimationFrame(loop); }, 300);
+    }
+  }
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

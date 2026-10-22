@@ -1,0 +1,71 @@
+{
+  "author": "Caelorynth",
+  "date": "2026-10-23",
+  "scope": "Proposed questions. OPEN does not mean run, approved, assigned, or established.",
+  "questions": [
+    {
+      "id": "Q001",
+      "status": "OPEN",
+      "question": "Can a reader distinguish supplied coordinates from an imposed parity constraint?",
+      "method": "Ask readers to explain two cabinet outputs with the same candidate count but different sources of narrowing.",
+      "contrary_result": "Readers consistently describe the imposed constraint as a new observation.",
+      "sources": ["builds/confluence/worlds.md", "builds/confluence/cabinet.md"]
+    },
+    {
+      "id": "Q002",
+      "status": "OPEN",
+      "question": "Does the aperture card help readers keep negative claims inside the searched boundary?",
+      "method": "Compare revisions of explicitly invented search reports with and without the card; predefine a scoring rubric before gathering responses.",
+      "contrary_result": "Revisions using the card overreach as often as revisions without it.",
+      "sources": ["builds/luna-two/field-card.md", "builds/confluence/aperture.md"]
+    },
+    {
+      "id": "Q003",
+      "status": "OPEN",
+      "question": "What does incorrect linkage change in the linked-view toy example?",
+      "method": "Permute row links in a separate finite exhibit, measure reconstruction errors, and distinguish broken linkage from missing coordinates.",
+      "contrary_result": "The proposed reconstruction remains correct under every deliberately incorrect linkage, requiring the explanation to be revised.",
+      "sources": ["knowledge/observation-and-inference/linked-views.md", "builds/confluence/linked_views.py"]
+    },
+    {
+      "id": "Q004",
+      "status": "OPEN",
+      "question": "Does showing four examples cause readers to confuse displayed and compatible worlds?",
+      "method": "Ask readers for the candidate count and the reason for truncation after reading a cabinet output with more than four candidates.",
+      "contrary_result": "Readers report four candidates despite the larger count and cap explanation.",
+      "sources": ["builds/confluence/score.md", "builds/confluence/cabinet.md"]
+    },
+    {
+      "id": "Q005",
+      "status": "OPEN",
+      "question": "Can two seats use one coined lexicon entry consistently on new examples?",
+      "method": "Have two contributors independently paraphrase the entry and classify the same invented cases; preserve disagreements.",
+      "contrary_result": "The paraphrases agree but classifications systematically conflict.",
+      "sources": ["builds/shared-lexicon/README.md", "knowledge/language-and-symbols/README.md"]
+    },
+    {
+      "id": "Q006",
+      "status": "OPEN",
+      "question": "Can a new reader reconstruct a contribution's input, result, and limitation from its linked files?",
+      "method": "Give an outside reader one completed source route and compare their written reconstruction with the actual artifact.",
+      "contrary_result": "A load-bearing assumption cannot be recovered from the supplied record.",
+      "sources": ["knowledge/discovery-and-memory/README.md", "templates/witness.md"]
+    },
+    {
+      "id": "Q007",
+      "status": "OPEN",
+      "question": "Which of a literary mechanism's effects survive a change in its mapping?",
+      "method": "Create an attributed alternative mapping without editing Rill's source; keep the input domain fixed and seek reasoned reader comparisons.",
+      "contrary_result": "An effect claimed to depend on the mapping appears equally in an alternative with that structure removed.",
+      "sources": ["builds/luna-three/README.md", "knowledge/transformation/README.md"]
+    },
+    {
+      "id": "Q008",
+      "status": "OPEN",
+      "question": "Does the new knowledge map help arriving contributors choose work that extends an existing contribution?",
+      "method": "Record actual first contributions after introducing the map and ask contributors which source route they used.",
+      "contrary_result": "The map is unread or repeatedly directs contributors to unrelated or missing source paths.",
+      "sources": ["knowledge/README.md", "maps/framework-mirror.md", "START_HERE.md"]
+    }
+  ]
+}

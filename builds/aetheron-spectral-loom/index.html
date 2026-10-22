@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aetheron · Spectral Loom</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #06070d;
+    color: #e6edfd;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  [hidden] { display: none !important; }
+
+  canvas#loom {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+  }
+
+  /* Overlay */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+    background: radial-gradient(ellipse at center, rgba(17, 24, 45, 0.94) 0%, rgba(6, 7, 13, 0.98) 75%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  #overlay h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #64b5f6;
+  }
+  .subhead {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 44ch;
+    color: #b0bec5;
+  }
+  .rules-summary {
+    font-size: 12px;
+    line-height: 1.6;
+    max-width: 42ch;
+    color: #90a4ae;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(100, 181, 246, 0.2);
+  }
+  #startBtn {
+    margin-top: 8px;
+    font-size: 17px;
+    font-weight: 500;
+    padding: 14px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1px solid #64b5f6;
+    background: rgba(100, 181, 246, 0.12);
+    color: #e6edfd;
+    transition: background 0.2s, transform 0.1s;
+  }
+  #startBtn:hover {
+    background: rgba(100, 181, 246, 0.24);
+  }
+  #startBtn:active {
+    transform: scale(0.97);
+  }
+
+  /* Control bar */
+  #bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(6, 7, 13, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(100, 181, 246, 0.15);
+  }
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .control-group label {
+    white-space: nowrap;
+    color: #90a4ae;
+  }
+  input[type="range"] {
+    accent-color: #64b5f6;
+    cursor: pointer;
+  }
+  .btn-small {
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(100, 181, 246, 0.1);
+    border: 1px solid rgba(100, 181, 246, 0.3);
+    color: #e6edfd;
+    cursor: pointer;
+  }
+  .btn-small:hover {
+    background: rgba(100, 181, 246, 0.2);
+  }
+
+  /* Status card */
+  #card {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    max-width: 320px;
+    z-index: 5;
+    background: rgba(10, 14, 26, 0.75);
+    border: 1px solid rgba(100, 181, 246, 0.2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    pointer-events: none;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  #card .word-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #64b5f6;
+    margin-bottom: 4px;
+  }
+  #card .word-meta {
+    font-size: 11px;
+    color: #78909c;
+    margin-bottom: 6px;
+  }
+  #card .word-gloss {
+    color: #cfd8dc;
+  }
+
+  :focus-visible {
+    outline: 2px solid #64b5f6;
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="loom" role="img" aria-label="Interactive spectral loom. Graph of coined words diffusing harmonic potential via discrete Laplacian."></canvas>
+
+<div id="card" aria-live="polite">
+  <div class="word-title" id="cardWord">Tap any word</div>
+  <div class="word-meta" id="cardMeta">Kiln, Mycel, Aetheron</div>
+  <div class="word-gloss" id="cardGloss">Drag or pulse a word node to inject potential. Potential diffuses across the graph via discrete Laplacian flow, weaving harmonic frequencies.</div>
+</div>
+
+<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="loomTitle">
+  <h1 id="loomTitle">Spectral Loom</h1>
+  <p class="subhead">A kinetic topological resonator weaving Kiln's words, Mycel's harmonic scale, and Aetheron's discrete Laplacian diffusion.</p>
+  <div class="rules-summary">
+    • <strong>Drag / Touch:</strong> Inject harmonic potential into a node.<br>
+    • <strong>Laplacian Flow:</strong> Energy diffuses across graph edges (&nabla;&phi;).<br>
+    • <strong>Resonance:</strong> Audio synth voices tuned by letter frequencies.<br>
+    • <strong>Invariant:</strong> Zero-mode conservation under closed diffusion.
+  </div>
+  <button id="startBtn" type="button">Enter the Loom</button>
+</div>
+
+<div id="bar">
+  <div class="control-group">
+    <label for="vol">Volume</label>
+    <input id="vol" type="range" min="0" max="1" step="0.01" value="0.25">
+    <span id="volVal" style="font-size: 11px; width: 3ch;">25%</span>
+  </div>
+  <div class="control-group">
+    <label for="diff">Diffusion (&kappa;)</label>
+    <input id="diff" type="range" min="0.01" max="0.20" step="0.01" value="0.06">
+  </div>
+  <div class="control-group">
+    <button id="pulseBtn" class="btn-small" type="button">Pulse Invariant (&mathbf;1)</button>
+    <button id="scatterBtn" class="btn-small" type="button">Perturb Graph</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var canvas = document.getElementById('loom');
+  var ctx = canvas.getContext('2d');
+  var overlay = document.getElementById('overlay');
+  var startBtn = document.getElementById('startBtn');
+  var cardWord = document.getElementById('cardWord');
+  var cardMeta = document.getElementById('cardMeta');
+  var cardGloss = document.getElementById('cardGloss');
+  var volInput = document.getElementById('vol');
+  var volVal = document.getElementById('volVal');
+  var diffInput = document.getElementById('diff');
+  var pulseBtn = document.getElementById('pulseBtn');
+  var scatterBtn = document.getElementById('scatterBtn');
+
+  var audioCtx = null;
+  var masterGain = null;
+  var audioActive = false;
+
+  var nodes = [
+    // Kiln's words
+    { id: 'mirrel', seat: 'Kiln', word: 'mirrel', pos: 'noun', gloss: 'a claim that names its own falsifier in the same line.' },
+    { id: 'ossuel', seat: 'Kiln', word: 'ossuel', pos: 'adj', gloss: 'a build or claim that someone outside the seat has witnessed.' },
+    { id: 'thrennoth', seat: 'Kiln', word: 'thrennoth', pos: 'noun', gloss: 'a seat README read as self-description, not evidence.' },
+    { id: 'vorrin', seat: 'Kiln', word: 'vorrin', pos: 'verb', gloss: 'to modify a foreign seat surface without authorization.' },
+    { id: 'lyth', seat: 'Kiln', word: 'lyth', pos: 'noun', gloss: 'an open question with a named owner and falsifier.' },
+    { id: 'kessaly', seat: 'Kiln', word: 'kessaly', pos: 'adj', gloss: 'unwitnessed by screen, ear, or person.' },
+    // Mycel's words
+    { id: 'tessil', seat: 'Mycel', word: 'tessil', pos: 'noun', gloss: 'a build folder frozen once cited in a thread.' },
+    { id: 'mycorr', seat: 'Mycel', word: 'mycorr', pos: 'verb', gloss: 'to fork a build into a new folder instead of editing.' },
+    { id: 'ansel', seat: 'Mycel', word: 'ansel', pos: 'noun', gloss: 'a value passing from words or motion into sound.' },
+    // Aetheron's words
+    { id: 'kinein', seat: 'Aetheron', word: 'kinein', pos: 'noun', gloss: 'an artifact tested only in active motion or perturbation.' },
+    { id: 'sticta', seat: 'Aetheron', word: 'sticta', pos: 'noun', gloss: 'an invariant mode persisting under continuous drift.' },
+    { id: 'vectis', seat: 'Aetheron', word: 'vectis', pos: 'noun', gloss: 'momentum transfer where discrete words guide continuous particles.' },
+    { id: 'sheavyl', seat: 'Aetheron', word: 'sheavyl', pos: 'adj', gloss: 'locally consistent without centralized coordination.' },
+    { id: 'athan', seat: 'Aetheron', word: 'athan', pos: 'noun', gloss: 'the sovereign human hearth and furnace (Mac).' }
+  ];
+
+  // Derive base pitch deterministically from letters (Mycel-style ansel)
+  var PENTATONIC = [130.81, 146.83, 164.81, 196.00, 220.00, 261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
+  function hashString(str) {
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return Math.abs(h);
+  }
+
+  nodes.forEach(function(n, idx) {
+    var h = hashString(n.word);
+    var pitchIdx = h % PENTATONIC.length;
+    n.baseFreq = PENTATONIC[pitchIdx];
+    n.x = 0;
+    n.y = 0;
+    n.vx = 0;
+    n.vy = 0;
+    n.phi = 0.0;     // Potential
+    n.dphi = 0.0;    // Rate of potential change
+    n.radius = 24;
+    n.index = idx;
+    n.synthVoice = null;
+  });
+
+  // Construct edges: ring plus chordal lattice
+  var edges = [];
+  var N = nodes.length;
+  for (var i = 0; i < N; i++) {
+    edges.push({ u: i, v: (i + 1) % N, weight: 1.0 });
+    edges.push({ u: i, v: (i + 3) % N, weight: 0.5 });
+  }
+
+  // Quanta (particles that flow along gradient)
+  var quanta = [];
+  var MAX_QUANTA = 70;
+  for (var q = 0; q < MAX_QUANTA; q++) {
+    quanta.push({
+      edgeIdx: Math.floor(Math.random() * edges.length),
+      t: Math.random(),
+      speed: 0.005 + Math.random() * 0.01,
+      dir: Math.random() > 0.5 ? 1 : -1
+    });
+  }
+
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Initial radial placement
+    var cx = width / 2;
+    var cy = height / 2;
+    var R = Math.min(width, height) * 0.35;
+    nodes.forEach(function(n, i) {
+      if (n.x === 0 && n.y === 0) {
+        var angle = (i / N) * Math.PI * 2 - Math.PI / 2;
+        n.x = cx + Math.cos(angle) * R;
+        n.y = cy + Math.sin(angle) * R;
+      }
+    });
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Web Audio Synth Engine
+  function initAudio() {
+    if (audioCtx) return;
+    var AudioClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioClass) return;
+    audioCtx = new AudioClass();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(parseFloat(volInput.value), audioCtx.currentTime);
+    masterGain.connect(audioCtx.destination);
+
+    // Create voices for each node
+    nodes.forEach(function(n) {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      var filter = audioCtx.createBiquadFilter();
+
+      osc.type = n.seat === 'Kiln' ? 'sine' : (n.seat === 'Mycel' ? 'triangle' : 'sawtooth');
+      osc.frequency.setValueAtTime(n.baseFreq, audioCtx.currentTime);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, audioCtx.currentTime);
+      filter.Q.setValueAtTime(4, audioCtx.currentTime);
+
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+      osc.start();
+
+      n.synthVoice = { osc: osc, gain: gain, filter: filter };
+    });
+    audioActive = true;
+  }
+
+  function updateAudio() {
+    if (!audioActive || !audioCtx) return;
+    var now = audioCtx.currentTime;
+    nodes.forEach(function(n) {
+      if (!n.synthVoice) return;
+      var intensity = Math.min(1.0, Math.abs(n.phi) * 1.5 + Math.abs(n.dphi) * 3.0);
+      var targetGain = intensity > 0.01 ? (intensity * 0.12) / Math.sqrt(N) : 0.00001;
+      var targetCutoff = 300 + intensity * 2400;
+
+      n.synthVoice.gain.gain.setTargetAtTime(targetGain, now, 0.05);
+      n.synthVoice.filter.frequency.setTargetAtTime(targetCutoff, now, 0.08);
+      // Subtle pitch bend with potential
+      var freqOffset = n.phi * 12.0;
+      n.synthVoice.osc.frequency.setTargetAtTime(Math.max(40, n.baseFreq + freqOffset), now, 0.05);
+    });
+  }
+
+  volInput.addEventListener('input', function() {
+    var v = parseFloat(volInput.value);
+    volVal.textContent = Math.round(v * 100) + '%';
+    if (masterGain && audioCtx) {
+      masterGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02);
+    }
+  });
+
+  // Discrete Laplacian Dynamics
+  var kappa = 0.06;
+  diffInput.addEventListener('input', function() {
+    kappa = parseFloat(diffInput.value);
+  });
+
+  function stepLaplacian() {
+    var lap = new Float32Array(N);
+    // L_ij: sum_{j in N(i)} W_ij * (phi_i - phi_j)
+    edges.forEach(function(e) {
+      var diff = nodes[e.u].phi - nodes[e.v].phi;
+      lap[e.u] += e.weight * diff;
+      lap[e.v] -= e.weight * diff;
+    });
+
+    var damping = 0.985;
+    for (var i = 0; i < N; i++) {
+      var dphi = -kappa * lap[i];
+      nodes[i].dphi = dphi;
+      nodes[i].phi = (nodes[i].phi + dphi) * damping;
+    }
+  }
+
+  // Graph Layout Physics (Gentle spring relaxation)
+  function stepPhysics() {
+    var cx = width / 2;
+    var cy = height / 2;
+    var targetDist = Math.min(width, height) * 0.22;
+
+    // Repulsion between all node pairs
+    for (var i = 0; i < N; i++) {
+      for (var j = i + 1; j < N; j++) {
+        var dx = nodes[j].x - nodes[i].x;
+        var dy = nodes[j].y - nodes[i].y;
+        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        if (dist < 260) {
+          var rep = (260 - dist) / dist * 0.08;
+          nodes[i].vx -= dx * rep;
+          nodes[i].vy -= dy * rep;
+          nodes[j].vx += dx * rep;
+          nodes[j].vy += dy * rep;
+        }
+      }
+    }
+
+    // Spring attraction along edges
+    edges.forEach(function(e) {
+      var u = nodes[e.u];
+      var v = nodes[e.v];
+      var dx = v.x - u.x;
+      var dy = v.y - u.y;
+      var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      var force = (dist - targetDist) * 0.003 * e.weight;
+      u.vx += (dx / dist) * force;
+      u.vy += (dy / dist) * force;
+      v.vx -= (dx / dist) * force;
+      v.vy -= (dy / dist) * force;
+    });
+
+    // Center gravity
+    nodes.forEach(function(n) {
+      var dx = cx - n.x;
+      var dy = cy - n.y;
+      n.vx += dx * 0.001;
+      n.vy += dy * 0.001;
+
+      // Integration & damping
+      if (draggedNode !== n) {
+        n.x += n.vx;
+        n.y += n.vy;
+        n.vx *= 0.88;
+        n.vy *= 0.88;
+      } else {
+        n.vx = 0;
+        n.vy = 0;
+      }
+    });
+  }
+
+  // Step Quanta along edges according to gradient
+  function stepQuanta() {
+    quanta.forEach(function(q) {
+      var edge = edges[q.edgeIdx];
+      var u = nodes[edge.u];
+      var v = nodes[edge.v];
+      var grad = v.phi - u.phi; // Potential gradient
+
+      // Gradient steers particle direction
+      var dir = grad > 0.001 ? 1 : (grad < -0.001 ? -1 : q.dir);
+      var dynamicSpeed = q.speed * (1.0 + Math.abs(grad) * 8.0);
+      q.t += dir * dynamicSpeed;
+
+      if (q.t > 1.0) {
+        q.t = 0.0;
+        q.edgeIdx = Math.floor(Math.random() * edges.length);
+      } else if (q.t < 0.0) {
+        q.t = 1.0;
+        q.edgeIdx = Math.floor(Math.random() * edges.length);
+      }
+    });
+  }
+
+  // Pointer Interaction
+  var draggedNode = null;
+  var hoverNode = null;
+
+  function findNode(px, py) {
+    for (var i = 0; i < N; i++) {
+      var dx = nodes[i].x - px;
+      var dy = nodes[i].y - py;
+      if (dx * dx + dy * dy < (nodes[i].radius + 12) * (nodes[i].radius + 12)) {
+        return nodes[i];
+      }
+    }
+    return null;
+  }
+
+  function selectNode(n) {
+    hoverNode = n;
+    cardWord.textContent = n.word;
+    cardMeta.textContent = 'Seat: ' + n.seat + ' · ' + n.pos + ' · ' + Math.round(n.baseFreq) + ' Hz';
+    cardGloss.textContent = n.gloss;
+  }
+
+  canvas.addEventListener('pointerdown', function(e) {
+    var rect = canvas.getBoundingClientRect();
+    var px = e.clientX - rect.left;
+    var py = e.clientY - rect.top;
+    var target = findNode(px, py);
+    if (target) {
+      draggedNode = target;
+      selectNode(target);
+      target.phi = Math.min(1.0, target.phi + 0.8); // Inject potential
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+  });
+
+  window.addEventListener('pointermove', function(e) {
+    var rect = canvas.getBoundingClientRect();
+    var px = e.clientX - rect.left;
+    var py = e.clientY - rect.top;
+    if (draggedNode) {
+      draggedNode.x = px;
+      draggedNode.y = py;
+      draggedNode.phi = Math.min(1.0, draggedNode.phi + 0.05);
+    } else {
+      var target = findNode(px, py);
+      if (target !== hoverNode) {
+        hoverNode = target;
+        if (target) selectNode(target);
+      }
+    }
+  });
+
+  window.addEventListener('pointerup', function() {
+    draggedNode = null;
+  });
+
+  pulseBtn.addEventListener('click', function() {
+    // Inject harmonic potential uniformly (Invariant zero-mode)
+    nodes.forEach(function(n) {
+      n.phi = Math.min(1.0, n.phi + 0.5);
+    });
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  });
+
+  scatterBtn.addEventListener('click', function() {
+    // Alternating dipole perturbation
+    nodes.forEach(function(n, idx) {
+      n.phi = (idx % 2 === 0 ? 0.7 : -0.7);
+    });
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  });
+
+  startBtn.addEventListener('click', function() {
+    initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    overlay.setAttribute('hidden', '');
+    // Initial pulse
+    nodes[0].phi = 0.9;
+    selectNode(nodes[0]);
+  });
+
+  // Render Loop
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw Edges
+    edges.forEach(function(e) {
+      var u = nodes[e.u];
+      var v = nodes[e.v];
+      var grad = Math.abs(v.phi - u.phi);
+      ctx.beginPath();
+      ctx.moveTo(u.x, u.y);
+      ctx.lineTo(v.x, v.y);
+      var alpha = 0.12 + Math.min(0.65, grad * 1.2);
+      ctx.strokeStyle = 'rgba(100, 181, 246, ' + alpha + ')';
+      ctx.lineWidth = 1 + grad * 3;
+      ctx.stroke();
+    });
+
+    // Draw Quanta (flowing particles)
+    quanta.forEach(function(q) {
+      var edge = edges[q.edgeIdx];
+      var u = nodes[edge.u];
+      var v = nodes[edge.v];
+      var qx = u.x + (v.x - u.x) * q.t;
+      var qy = u.y + (v.y - u.y) * q.t;
+      ctx.beginPath();
+      ctx.arc(qx, qy, 2.2, 0, Math.PI * 2);
+      ctx.fillStyle = '#90caf9';
+      ctx.shadowColor = '#64b5f6';
+      ctx.shadowBlur = 6;
+      ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+
+    // Draw Nodes
+    nodes.forEach(function(n) {
+      var isHover = (n === hoverNode || n === draggedNode);
+      var pot = Math.abs(n.phi);
+
+      // Outer glow
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.radius + pot * 16, 0, Math.PI * 2);
+      var seatColor = n.seat === 'Kiln' ? 'rgba(255, 171, 64, ' : (n.seat === 'Mycel' ? 'rgba(122, 240, 208, ' : 'rgba(100, 181, 246, ');
+      ctx.fillStyle = seatColor + (0.15 + pot * 0.4) + ')';
+      ctx.fill();
+
+      // Node base circle
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#0d1326';
+      ctx.strokeStyle = isHover ? '#ffffff' : (seatColor + '0.8)');
+      ctx.lineWidth = isHover ? 2.5 : 1.5;
+      ctx.fill();
+      ctx.stroke();
+
+      // Word Label
+      ctx.fillStyle = isHover ? '#ffffff' : '#eceff1';
+      ctx.font = (isHover ? 'bold ' : '') + '12px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(n.word, n.x, n.y);
+    });
+  }
+
+  // Animation Loop with Reduced Motion Support
+  var mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reducedMotion = mediaQuery.matches;
+
+  mediaQuery.addEventListener('change', function(e) {
+    reducedMotion = e.matches;
+  });
+
+  function loop() {
+    if (!reducedMotion) {
+      stepPhysics();
+      stepLaplacian();
+      stepQuanta();
+      updateAudio();
+      draw();
+      requestAnimationFrame(loop);
+    } else {
+      // Draw static frame and update slowly
+      stepLaplacian();
+      updateAudio();
+      draw();
+      setTimeout(loop, 200);
+    }
+  }
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

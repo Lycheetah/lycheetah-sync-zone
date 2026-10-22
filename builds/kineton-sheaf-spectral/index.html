@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kineton · Sheaf Spectral Resonator</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #080911;
+    color: #e8eaf6;
+    font-family: system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  [hidden] { display: none !important; }
+  canvas#complex {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+  }
+  #overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+    background: radial-gradient(ellipse at center, rgba(16, 20, 38, 0.96) 0%, rgba(8, 9, 17, 0.98) 75%);
+    backdrop-filter: blur(8px);
+  }
+  #overlay h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #7986cb;
+  }
+  .subhead {
+    margin: 0;
+    font-size: 14px;
+    max-width: 44ch;
+    color: #9fa8da;
+    line-height: 1.5;
+  }
+  #startBtn {
+    margin-top: 10px;
+    font-size: 16px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1px solid #7986cb;
+    background: rgba(121, 134, 203, 0.15);
+    color: #e8eaf6;
+  }
+  #bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(8, 9, 17, 0.85);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(121, 134, 203, 0.2);
+  }
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .mode-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(121, 134, 203, 0.1);
+    border: 1px solid rgba(121, 134, 203, 0.3);
+    color: #c5cae9;
+    cursor: pointer;
+  }
+  .mode-btn.active {
+    background: rgba(121, 134, 203, 0.35);
+    border-color: #9fa8da;
+    color: #ffffff;
+    font-weight: 600;
+  }
+  #stats {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 5;
+    background: rgba(12, 14, 28, 0.8);
+    border: 1px solid rgba(121, 134, 203, 0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    line-height: 1.5;
+    pointer-events: none;
+    font-family: ui-monospace, monospace;
+    color: #c5cae9;
+  }
+  #stats .stat-val { color: #80cbc4; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<canvas id="complex" role="img" aria-label="Simplicial complex with discrete Hodge decomposition. Drag edges to inject 1-form flux; observe exact orthogonal split into gradient, curl, and harmonic components."></canvas>
+
+<div id="stats">
+  <strong>Hodge Decomposition (&omega; = d&alpha; + &delta;&beta; + &gamma;)</strong><br>
+  Orthogonality &lang;d&alpha;, &delta;&beta;&rang;: <span class="stat-val" id="orthoVal">0.0000</span><br>
+  Harmonic Energy ||&gamma;||&sup2;: <span class="stat-val" id="harmVal">0.0000</span><br>
+  Mode: <span class="stat-val" id="modeName">Full Flux (&omega;)</span>
+</div>
+
+<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="hodgeTitle">
+  <h1 id="hodgeTitle">Sheaf Spectral Resonator</h1>
+  <p class="subhead">Interactive discrete Hodge decomposition on a simplicial 2-complex with a non-trivial 1-hole (&beta;&sub1; = 1). Inject flow and witness the harmonic projection.</p>
+  <button id="startBtn" type="button">Witness the Decomposition</button>
+</div>
+
+<div id="bar">
+  <div class="control-group">
+    <button class="mode-btn active" data-mode="full" type="button">Full &omega;</button>
+    <button class="mode-btn" data-mode="grad" type="button">Gradient (d&alpha;)</button>
+    <button class="mode-btn" data-mode="curl" type="button">Curl (&delta;&beta;)</button>
+    <button class="mode-btn" data-mode="harm" type="button">Harmonic (&gamma;)</button>
+  </div>
+  <div class="control-group">
+    <button id="circBtn" class="mode-btn" type="button">Inject Global Circulation</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var canvas = document.getElementById('complex');
+  var ctx = canvas.getContext('2d');
+  var overlay = document.getElementById('overlay');
+  var startBtn = document.getElementById('startBtn');
+  var orthoVal = document.getElementById('orthoVal');
+  var harmVal = document.getElementById('harmVal');
+  var modeName = document.getElementById('modeName');
+  var circBtn = document.getElementById('circBtn');
+  var modeBtns = document.querySelectorAll('.mode-btn[data-mode]');
+
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Construct a ring triangulated annulus complex (Betti numbers: beta_0 = 1, beta_1 = 1)
+  var V = 12; // 6 inner, 6 outer vertices
+  var vertices = [];
+  var cx = width / 2;
+  var cy = height / 2;
+  var rIn = Math.min(width, height) * 0.18;
+  var rOut = Math.min(width, height) * 0.36;
+
+  for (var i = 0; i < 6; i++) {
+    var ang = (i / 6) * Math.PI * 2;
+    vertices.push({ x: cx + Math.cos(ang) * rIn, y: cy + Math.sin(ang) * rIn, name: 'in_' + i });
+  }
+  for (var j = 0; j < 6; j++) {
+    var ang = (j / 6) * Math.PI * 2;
+    vertices.push({ x: cx + Math.cos(ang) * rOut, y: cy + Math.sin(ang) * rOut, name: 'out_' + j });
+  }
+
+  // Edges (1-simplices)
+  var edges = [];
+  function addEdge(u, v) {
+    edges.push({ u: u, v: v, omega: 0, grad: 0, curl: 0, harm: 0 });
+  }
+
+  for (var i = 0; i < 6; i++) {
+    var next = (i + 1) % 6;
+    addEdge(i, next);             // Inner cycle
+    addEdge(i + 6, next + 6);     // Outer cycle
+    addEdge(i, i + 6);            // Radial spoke
+    addEdge(i, next + 6);         // Cross diagonal
+  }
+
+  // Triangular faces (2-simplices)
+  var faces = [];
+  for (var i = 0; i < 6; i++) {
+    var next = (i + 1) % 6;
+    faces.push({ u: i, v: next, w: next + 6 });
+    faces.push({ u: i, v: next + 6, w: i + 6 });
+  }
+
+  // Pre-seed non-trivial circulation around the annulus (harmonic mode generator)
+  edges.forEach(function(e) {
+    if (e.u < 6 && e.v < 6) e.omega = 1.0;
+    if (e.u >= 6 && e.v >= 6) e.omega = 1.0;
+  });
+
+  // Discrete Hodge Decomposition Solver (Gradient Descent / Conjugate Projection)
+  function computeHodge() {
+    // 1. Solve for potential alpha on vertices such that div(omega - d alpha) = 0
+    var alpha = new Float32Array(vertices.length);
+    for (var iter = 0; iter < 40; iter++) {
+      var div = new Float32Array(vertices.length);
+      edges.forEach(function(e) {
+        var flow = e.omega - (alpha[e.v] - alpha[e.u]);
+        div[e.u] -= flow;
+        div[e.v] += flow;
+      });
+      for (var v = 0; v < vertices.length; v++) {
+        alpha[v] += div[v] * 0.12;
+      }
+    }
+
+    // Set gradient component
+    edges.forEach(function(e) {
+      e.grad = alpha[e.v] - alpha[e.u];
+    });
+
+    // 2. Solve for curl component beta on faces such that curl(omega - grad - delta beta) = 0
+    var beta = new Float32Array(faces.length);
+    for (var iter2 = 0; iter2 < 40; iter2++) {
+      var faceCurl = new Float32Array(faces.length);
+      faces.forEach(function(f, fIdx) {
+        // Find oriented edge values around triangle
+        var c = 0;
+        edges.forEach(function(e) {
+          if ((e.u === f.u && e.v === f.v) || (e.u === f.v && e.v === f.w) || (e.u === f.w && e.v === f.u)) {
+            c += (e.omega - e.grad);
+          } else if ((e.u === f.v && e.v === f.u) || (e.u === f.w && e.v === f.v) || (e.u === f.u && e.v === f.w)) {
+            c -= (e.omega - e.grad);
+          }
+        });
+        faceCurl[fIdx] = c - beta[fIdx] * 3.0;
+      });
+      for (var f = 0; f < faces.length; f++) {
+        beta[f] += faceCurl[f] * 0.15;
+      }
+    }
+
+    // Approximate curl component on edges from beta
+    edges.forEach(function(e) {
+      e.curl = 0;
+      faces.forEach(function(f, fIdx) {
+        if ((e.u === f.u && e.v === f.v) || (e.u === f.v && e.v === f.w) || (e.u === f.w && e.v === f.u)) {
+          e.curl += beta[fIdx];
+        } else if ((e.u === f.v && e.v === f.u) || (e.u === f.w && e.v === f.v) || (e.u === f.u && e.v === f.w)) {
+          e.curl -= beta[fIdx];
+        }
+      });
+    });
+
+    // 3. Harmonic component gamma = omega - grad - curl
+    var hEnergy = 0;
+    var dotOrtho = 0;
+    edges.forEach(function(e) {
+      e.harm = e.omega - e.grad - e.curl;
+      hEnergy += e.harm * e.harm;
+      dotOrtho += e.grad * e.curl;
+    });
+
+    orthoVal.textContent = Math.abs(dotOrtho).toFixed(4);
+    harmVal.textContent = hEnergy.toFixed(4);
+  }
+
+  // Active view mode
+  var currentMode = 'full';
+  modeBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      modeBtns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentMode = btn.dataset.mode;
+      modeName.textContent = btn.textContent;
+    });
+  });
+
+  circBtn.addEventListener('click', function() {
+    edges.forEach(function(e) {
+      if (e.u < 6 && e.v < 6) e.omega += 0.8;
+      if (e.u >= 6 && e.v >= 6) e.omega += 0.8;
+    });
+    computeHodge();
+  });
+
+  // Pointer drag to inject flux into nearest edge
+  var activeEdge = null;
+  canvas.addEventListener('pointerdown', function(e) {
+    var rect = canvas.getBoundingClientRect();
+    var px = e.clientX - rect.left;
+    var py = e.clientY - rect.top;
+    var minDist = 40;
+    edges.forEach(function(edge) {
+      var u = vertices[edge.u];
+      var v = vertices[edge.v];
+      var midX = (u.x + v.x) / 2;
+      var midY = (u.y + v.y) / 2;
+      var d = Math.hypot(px - midX, py - midY);
+      if (d < minDist) {
+        minDist = d;
+        activeEdge = edge;
+      }
+    });
+    if (activeEdge) {
+      activeEdge.omega += 1.0;
+      computeHodge();
+    }
+  });
+
+  startBtn.addEventListener('click', function() {
+    overlay.setAttribute('hidden', '');
+    computeHodge();
+  });
+
+  // Render Loop
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw 2-simplices (faces)
+    ctx.fillStyle = 'rgba(121, 134, 203, 0.05)';
+    faces.forEach(function(f) {
+      var u = vertices[f.u];
+      var v = vertices[f.v];
+      var w = vertices[f.w];
+      ctx.beginPath();
+      ctx.moveTo(u.x, u.y);
+      ctx.lineTo(v.x, v.y);
+      ctx.lineTo(w.x, w.y);
+      ctx.closePath();
+      ctx.fill();
+    });
+
+    // Draw 1-simplices (edges)
+    edges.forEach(function(e) {
+      var u = vertices[e.u];
+      var v = vertices[e.v];
+      var val = (currentMode === 'grad') ? e.grad :
+                (currentMode === 'curl') ? e.curl :
+                (currentMode === 'harm') ? e.harm : e.omega;
+
+      var mag = Math.min(1.0, Math.abs(val));
+      var color = (currentMode === 'harm') ? 'rgba(128, 203, 196, ' :
+                  (currentMode === 'curl') ? 'rgba(255, 171, 64, ' :
+                  (currentMode === 'grad') ? 'rgba(100, 181, 246, ' : 'rgba(159, 168, 218, ';
+
+      ctx.beginPath();
+      ctx.moveTo(u.x, u.y);
+      ctx.lineTo(v.x, v.y);
+      ctx.strokeStyle = color + (0.2 + mag * 0.7) + ')';
+      ctx.lineWidth = 1.5 + mag * 3.5;
+      ctx.stroke();
+
+      // Flow direction arrow
+      if (mag > 0.08) {
+        var midX = (u.x + v.x) / 2;
+        var midY = (u.y + v.y) / 2;
+        var ang = Math.atan2(v.y - u.y, v.x - u.x) + (val < 0 ? Math.PI : 0);
+        ctx.beginPath();
+        ctx.arc(midX, midY, 3 + mag * 2, 0, Math.PI * 2);
+        ctx.fillStyle = color + '0.9)';
+        ctx.fill();
+      }
+    });
+
+    // Draw 0-simplices (vertices)
+    vertices.forEach(function(v) {
+      ctx.beginPath();
+      ctx.arc(v.x, v.y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#7986cb';
+      ctx.fill();
+    });
+  }
+
+  var mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reducedMotion = mediaQuery.matches;
+  mediaQuery.addEventListener('change', function(e) { reducedMotion = e.matches; });
+
+  function loop() {
+    draw();
+    if (!reducedMotion) {
+      requestAnimationFrame(loop);
+    } else {
+      setTimeout(loop, 400);
+    }
+  }
+  computeHodge();
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

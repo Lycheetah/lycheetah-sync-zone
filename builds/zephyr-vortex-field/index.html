@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zephyr · Vortex Field</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #04090e;
+    color: #e0f2f1;
+    font-family: system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  [hidden] { display: none !important; }
+  canvas#field {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+  }
+  #overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+    background: radial-gradient(ellipse at center, rgba(4, 28, 38, 0.95) 0%, rgba(4, 9, 14, 0.98) 75%);
+    backdrop-filter: blur(8px);
+  }
+  #overlay h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #4dd0e1;
+  }
+  .subhead {
+    margin: 0;
+    font-size: 14px;
+    max-width: 42ch;
+    color: #80cbc4;
+    line-height: 1.5;
+  }
+  #startBtn {
+    margin-top: 10px;
+    font-size: 16px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1px solid #4dd0e1;
+    background: rgba(77, 208, 225, 0.12);
+    color: #e0f2f1;
+  }
+  #bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(4, 9, 14, 0.85);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(77, 208, 225, 0.2);
+  }
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  input[type="range"] { accent-color: #4dd0e1; }
+  .btn-small {
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(77, 208, 225, 0.1);
+    border: 1px solid rgba(77, 208, 225, 0.3);
+    color: #e0f2f1;
+    cursor: pointer;
+  }
+  #info {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 5;
+    background: rgba(4, 20, 28, 0.75);
+    border: 1px solid rgba(77, 208, 225, 0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    pointer-events: none;
+    line-height: 1.4;
+    color: #b2dfdb;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="field" role="img" aria-label="Interactive fluid vortex field. Drag to stir circulation; watch tracer particles and buoyant words advect along streamlines."></canvas>
+
+<div id="info">
+  <strong style="color: #4dd0e1;">Zephyr · Vortex Lattice</strong><br>
+  Drag to inject circulation (&Gamma;). Buoyant words float along streamlines.<br>
+  Invariant: Kelvin circulation conservation in unforced flow.
+</div>
+
+<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="vortexTitle">
+  <h1 id="vortexTitle">Vortex Field</h1>
+  <p class="subhead">A continuous fluid velocity field computed from Lamb-Oseen vortex cores. Tracers and Kiln's words advect through ambient currents.</p>
+  <button id="startBtn" type="button">Enter the Field</button>
+</div>
+
+<div id="bar">
+  <div class="control-group">
+    <label for="vol">Sound</label>
+    <input id="vol" type="range" min="0" max="1" step="0.01" value="0.2">
+  </div>
+  <div class="control-group">
+    <button id="dipoleBtn" class="btn-small" type="button">Spawn Dipole</button>
+    <button id="clearBtn" class="btn-small" type="button">Settle Eddies</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var canvas = document.getElementById('field');
+  var ctx = canvas.getContext('2d');
+  var overlay = document.getElementById('overlay');
+  var startBtn = document.getElementById('startBtn');
+  var volInput = document.getElementById('vol');
+  var dipoleBtn = document.getElementById('dipoleBtn');
+  var clearBtn = document.getElementById('clearBtn');
+
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Vortex cores (Biot-Savart with Lamb-Oseen viscous core)
+  var vortices = [
+    { x: width * 0.4, y: height * 0.5, gamma: 28.0, core: 35.0 },
+    { x: width * 0.6, y: height * 0.5, gamma: -28.0, core: 35.0 }
+  ];
+
+  // Buoyant word tokens that advect in the flow
+  var buoyantWords = [
+    { word: 'mirrel', x: width * 0.35, y: height * 0.4, vx: 0, vy: 0 },
+    { word: 'vortan', x: width * 0.5, y: height * 0.3, vx: 0, vy: 0 },
+    { word: 'lyth', x: width * 0.65, y: height * 0.6, vx: 0, vy: 0 },
+    { word: 'chora', x: width * 0.45, y: height * 0.7, vx: 0, vy: 0 },
+    { word: 'kessaly', x: width * 0.55, y: height * 0.5, vx: 0, vy: 0 }
+  ];
+
+  // Tracer particles
+  var TRACERS = 180;
+  var tracers = [];
+  for (var i = 0; i < TRACERS; i++) {
+    tracers.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      age: Math.random() * 200,
+      maxAge: 150 + Math.random() * 100
+    });
+  }
+
+  function getVelocity(px, py) {
+    var u = 0;
+    var v = 0;
+    for (var i = 0; i < vortices.length; i++) {
+      var vortex = vortices[i];
+      var dx = px - vortex.x;
+      var dy = py - vortex.y;
+      var r2 = dx * dx + dy * dy;
+      var r = Math.sqrt(r2) + 0.1;
+      // Lamb-Oseen tangential velocity profile
+      var factor = (vortex.gamma / (2 * Math.PI * r)) * (1 - Math.exp(-r2 / (vortex.core * vortex.core)));
+      u += -factor * (dy / r);
+      v += factor * (dx / r);
+    }
+    return { u: u, v: v };
+  }
+
+  // Audio Context (Aerodynamic wind & resonant filter)
+  var audioCtx = null;
+  var masterGain = null;
+  var windFilter = null;
+  var noiseNode = null;
+
+  function initAudio() {
+    if (audioCtx) return;
+    var AudioClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioClass) return;
+    audioCtx = new AudioClass();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(parseFloat(volInput.value), audioCtx.currentTime);
+    masterGain.connect(audioCtx.destination);
+
+    // Generate brown/pink noise buffer
+    var bufferSize = audioCtx.sampleRate * 2;
+    var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    var data = buffer.getChannelData(0);
+    var lastOut = 0.0;
+    for (var i = 0; i < bufferSize; i++) {
+      var white = Math.random() * 2 - 1;
+      lastOut = (lastOut + (0.02 * white)) / 1.02;
+      data[i] = lastOut * 3.5;
+    }
+
+    noiseNode = audioCtx.createBufferSource();
+    noiseNode.buffer = buffer;
+    noiseNode.loop = true;
+
+    windFilter = audioCtx.createBiquadFilter();
+    windFilter.type = 'bandpass';
+    windFilter.frequency.setValueAtTime(320, audioCtx.currentTime);
+    windFilter.Q.setValueAtTime(3.5, audioCtx.currentTime);
+
+    noiseNode.connect(windFilter);
+    windFilter.connect(masterGain);
+    noiseNode.start();
+  }
+
+  function updateAudio() {
+    if (!audioCtx || !windFilter) return;
+    var totalCirc = 0;
+    for (var i = 0; i < vortices.length; i++) {
+      totalCirc += Math.abs(vortices[i].gamma);
+    }
+    var targetFreq = Math.min(1800, 220 + totalCirc * 18);
+    windFilter.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.08);
+  }
+
+  volInput.addEventListener('input', function() {
+    var v = parseFloat(volInput.value);
+    if (masterGain && audioCtx) {
+      masterGain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.02);
+    }
+  });
+
+  // Pointer interaction
+  var isPointerDown = false;
+  var lastX = 0, lastY = 0;
+
+  canvas.addEventListener('pointerdown', function(e) {
+    isPointerDown = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  });
+
+  window.addEventListener('pointermove', function(e) {
+    if (!isPointerDown) return;
+    var dx = e.clientX - lastX;
+    var dy = e.clientY - lastY;
+    var speed = Math.sqrt(dx * dx + dy * dy);
+    if (speed > 4) {
+      // Spawn or perturb vortex at pointer
+      var sign = (dx * dy >= 0) ? 1 : -1;
+      vortices.push({
+        x: e.clientX,
+        y: e.clientY,
+        gamma: sign * Math.min(45, speed * 1.5),
+        core: 28.0
+      });
+      if (vortices.length > 8) vortices.shift();
+      lastX = e.clientX;
+      lastY = e.clientY;
+    }
+  });
+
+  window.addEventListener('pointerup', function() {
+    isPointerDown = false;
+  });
+
+  dipoleBtn.addEventListener('click', function() {
+    var cx = width / 2;
+    var cy = height / 2;
+    vortices.push({ x: cx - 40, y: cy, gamma: 32.0, core: 30.0 });
+    vortices.push({ x: cx + 40, y: cy, gamma: -32.0, core: 30.0 });
+    if (vortices.length > 8) vortices.splice(0, 2);
+  });
+
+  clearBtn.addEventListener('click', function() {
+    vortices.forEach(function(v) { v.gamma *= 0.2; });
+  });
+
+  startBtn.addEventListener('click', function() {
+    initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    overlay.setAttribute('hidden', '');
+  });
+
+  // Reduced motion support
+  var mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reducedMotion = mediaQuery.matches;
+  mediaQuery.addEventListener('change', function(e) { reducedMotion = e.matches; });
+
+  function step() {
+    // Advect tracers
+    for (var i = 0; i < tracers.length; i++) {
+      var t = tracers[i];
+      var vel = getVelocity(t.x, t.y);
+      t.x += vel.u;
+      t.y += vel.v;
+      t.age++;
+      if (t.age > t.maxAge || t.x < 0 || t.x > width || t.y < 0 || t.y > height) {
+        t.x = Math.random() * width;
+        t.y = Math.random() * height;
+        t.age = 0;
+      }
+    }
+
+    // Advect buoyant words
+    for (var w = 0; w < buoyantWords.length; w++) {
+      var bw = buoyantWords[w];
+      var vWord = getVelocity(bw.x, bw.y);
+      bw.vx = bw.vx * 0.92 + vWord.u * 0.08;
+      bw.vy = bw.vy * 0.92 + vWord.v * 0.08;
+      bw.x += bw.vx;
+      bw.y += bw.vy;
+      // Soft wrap
+      if (bw.x < 20) bw.x = width - 20;
+      if (bw.x > width - 20) bw.x = 20;
+      if (bw.y < 20) bw.y = height - 20;
+      if (bw.y > height - 20) bw.y = 20;
+    }
+
+    // Viscous decay of vortex circulation
+    for (var v = 0; v < vortices.length; v++) {
+      vortices[v].gamma *= 0.9995;
+    }
+
+    updateAudio();
+  }
+
+  function render() {
+    ctx.fillStyle = 'rgba(4, 9, 14, 0.18)';
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw Tracers
+    ctx.fillStyle = '#4dd0e1';
+    for (var i = 0; i < tracers.length; i++) {
+      var t = tracers[i];
+      var alpha = Math.sin((t.age / t.maxAge) * Math.PI) * 0.6;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, 1.3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(77, 208, 225, ' + alpha + ')';
+      ctx.fill();
+    }
+
+    // Draw Vortex Cores
+    for (var v = 0; v < vortices.length; v++) {
+      var vx = vortices[v];
+      var r = Math.min(40, Math.abs(vx.gamma) * 0.8);
+      ctx.beginPath();
+      ctx.arc(vx.x, vx.y, r, 0, Math.PI * 2);
+      var color = vx.gamma > 0 ? 'rgba(77, 208, 225, 0.15)' : 'rgba(128, 203, 196, 0.15)';
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = vx.gamma > 0 ? '#4dd0e1' : '#80cbc4';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Draw Buoyant Words
+    ctx.font = '13px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (var w = 0; w < buoyantWords.length; w++) {
+      var bw = buoyantWords[w];
+      ctx.fillStyle = 'rgba(4, 28, 38, 0.85)';
+      ctx.beginPath();
+      ctx.arc(bw.x, bw.y, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#4dd0e1';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#e0f2f1';
+      ctx.fillText(bw.word, bw.x, bw.y);
+    }
+  }
+
+  function loop() {
+    if (!reducedMotion) {
+      step();
+      render();
+      requestAnimationFrame(loop);
+    } else {
+      render();
+      setTimeout(loop, 250);
+    }
+  }
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

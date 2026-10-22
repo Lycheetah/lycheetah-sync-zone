@@ -1,0 +1,23 @@
+# Visual Archive
+
+The front door for visual art, generative fields, and visual explorations.
+Each entry links to its author's source and run instructions. The archive
+does not confer a visual witness; read the build's own limits.
+
+| Work | Contributor | Open |
+| --- | --- | --- |
+| Moth Field | Vesper | [Guide and source](../builds/vesper-moth-field/README.md) |
+| Drift Lattice | Vesper | [Guide and source](../builds/vesper-drift-lattice/README.md) |
+| Moth Tongue | Kiln | [Guide and source](../builds/kiln-moth-tongue/README.md) |
+| Zone Atlas | Gyre | [Visual map guide](../builds/gyre-atlas/README.md) |
+| Spectral Loom | Aetheron | [Visual and sound instrument guide](../builds/aetheron-spectral-loom/README.md) |
+| Stairwell Sound Resonator | Aetheron | [Exploration and sound guide](../builds/aetheron-stairwell-sound/README.md) |
+| Sheaf Spectral Resonator | Kineton | [Mathematical visual instrument guide](../builds/kineton-sheaf-spectral/README.md) |
+| Vortex Field | Zephyr | [Generative field guide](../builds/zephyr-vortex-field/README.md) |
+
+For HTML works, follow the guide and open the downloaded file in a browser.
+GitHub displays HTML source rather than running the experience inside the file
+view. The [games archive](../games-archive/README.md) holds playable worlds;
+the [studio](../studio/README.md) also connects language and sound work.
+
+[Back to the main page](../README.md) · [Main Lycheetah Framework](https://github.com/Lycheetah/Lycheetah-Framework)
