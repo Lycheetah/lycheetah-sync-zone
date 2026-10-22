@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phone witness kit</title>
+<style>
+:root {
+  --bg: #f6f4ef;
+  --fg: #1d1b17;
+  --muted: #55504a;
+  --card: #ffffff;
+  --line: #bdb5a3;
+  --accent: #7a4210;
+  --yes: #1d6236;
+  --no: #8a2719;
+  --unsure: #3f3c35;
+  --focus: #0b57d0;
+  --sel-yes: #cfeeda;
+  --sel-no: #f6d6cf;
+  --sel-unsure: #e3e0d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17150f;
+    --fg: #f2eee4;
+    --muted: #c4bdac;
+    --card: #221f18;
+    --line: #5a5547;
+    --accent: #f0b67a;
+    --yes: #9be0ae;
+    --no: #f5b3a4;
+    --unsure: #e2ddd0;
+    --focus: #9dc0ff;
+    --sel-yes: #25452d;
+    --sel-no: #512a24;
+    --sel-unsure: #3b382f;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17150f;
+  --fg: #f2eee4;
+  --muted: #c4bdac;
+  --card: #221f18;
+  --line: #5a5547;
+  --accent: #f0b67a;
+  --yes: #9be0ae;
+  --no: #f5b3a4;
+  --unsure: #e2ddd0;
+  --focus: #9dc0ff;
+  --sel-yes: #25452d;
+  --sel-no: #512a24;
+  --sel-unsure: #3b382f;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 16px 16px 48px;
+}
+h1 { font-size: 1.75rem; line-height: 1.2; margin: 8px 0 8px; }
+h2 { font-size: 1.25rem; line-height: 1.3; margin: 0 0 6px; }
+h3 { font-size: 1.05rem; margin: 20px 0 6px; }
+p { margin: 8px 0; }
+.lede { font-size: 1.05rem; }
+.muted { color: var(--muted); }
+.box {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 14px 0;
+}
+.warn { border-color: var(--accent); }
+ol.toc { padding-left: 1.2em; margin: 8px 0; }
+ol.toc a { display: inline-block; min-height: 40px; line-height: 40px; }
+a { color: var(--accent); font-weight: 600; }
+a:focus-visible, button:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.build {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 18px 0;
+}
+.open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  margin: 10px 0 4px;
+  padding: 10px 14px;
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  text-decoration: none;
+  text-align: center;
+  color: var(--fg);
+  font-size: 1.05rem;
+}
+.check {
+  border-top: 1px solid var(--line);
+  padding: 14px 0 6px;
+  margin-top: 10px;
+}
+.ask { font-weight: 600; margin: 0 0 4px; }
+.how { color: var(--muted); font-size: 0.95rem; margin: 0 0 10px; }
+.answers {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.ans {
+  min-height: 56px;
+  padding: 8px 6px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.15;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.ans[aria-pressed="true"][data-kind="yes"] { background: var(--sel-yes); border-color: var(--yes); color: var(--yes); }
+.ans[aria-pressed="true"][data-kind="no"] { background: var(--sel-no); border-color: var(--no); color: var(--no); }
+.ans[aria-pressed="true"][data-kind="unsure"] { background: var(--sel-unsure); border-color: var(--unsure); color: var(--unsure); }
+.ans[aria-pressed="true"]::before { content: "\2713  "; }
+label.field { display: block; margin-top: 12px; font-weight: 600; }
+textarea, input[type="text"] {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 10px;
+}
+textarea { min-height: 84px; resize: vertical; }
+.counter { font-size: 0.9rem; color: var(--muted); margin: 4px 0 0; }
+.status { font-size: 0.95rem; color: var(--muted); margin: 6px 0 0; min-height: 1.4em; }
+.btn {
+  min-height: 56px;
+  padding: 10px 18px;
+  margin: 8px 8px 0 0;
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.btn.primary { background: var(--accent); color: var(--bg); }
+#report {
+  width: 100%;
+  min-height: 320px;
+  font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre;
+  overflow: auto;
+}
+.pill { display: inline-block; font-size: 0.9rem; color: var(--muted); }
+@media (max-width: 380px) {
+  .answers { grid-template-columns: 1fr; }
+  .ans { min-height: 52px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  .ans { transition: background-color 0.15s ease, border-color 0.15s ease; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ans { transition: none; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Phone witness kit</h1>
+<p class="lede">Open a build, try the checks for it, and tap what you saw. About a minute per build. Round four, 2026-10-23.</p>
+
+<div class="box">
+  <p><strong>This is a way to collect a witness. It does not say any build works.</strong> Every check asks what you saw or heard on your own device. The builds are unverified until someone like you reports on them.</p>
+  <p><strong>How to answer:</strong></p>
+  <ul>
+    <li><strong>Yes</strong> means you tried it and saw or heard what the question says.</li>
+    <li><strong>No</strong> means you tried it and did not.</li>
+    <li><strong>Couldn't tell</strong> means you could not try it, or could not judge it. This is a full answer, not a failure.</li>
+  </ul>
+  <p class="muted">Tap a button again to clear it. Each build opens in a new tab, so this page stays put.</p>
+</div>
+
+<div class="box warn">
+  <p><strong>Keep personal details out.</strong> The report contains only the build names, the questions, your answers, and what you type in the boxes. Do not type your name, address, phone number, email, or account names in any box. Device model and browser are optional and should be generic, such as "phone, Chrome".</p>
+</div>
+
+<h2>Before you start</h2>
+<label class="field" for="device">Device and browser (optional)</label>
+<input type="text" id="device" maxlength="80" placeholder="for example: phone, Chrome" autocomplete="off">
+
+<h2 style="margin-top:20px">Builds</h2>
+<p class="muted" id="progress" aria-live="polite">No builds answered yet.</p>
+<ol class="toc" id="toc"></ol>
+
+<div id="builds"></div>
+
+<section class="box" aria-labelledby="report-h">
+  <h2 id="report-h">Your report</h2>
+  <p>This is <strong>your own report</strong>, written from what you tapped and typed. It is not a verdict from the kit or from the seat that made each build. It contains no account details, and the kit sends nothing anywhere. Copy it and share it wherever you choose.</p>
+  <label class="field" for="report">Report text</label>
+  <textarea id="report" readonly spellcheck="false" aria-describedby="report-note"></textarea>
+  <p class="counter" id="report-note">The report updates as you answer.</p>
+  <button type="button" class="btn primary" id="copy">Copy report</button>
+  <button type="button" class="btn" id="select">Select all</button>
+  <button type="button" class="btn" id="clear">Clear all answers</button>
+  <p class="status" id="status" role="status"></p>
+  <p class="status" id="storage" role="status"></p>
+</section>
+
+<section class="box" aria-labelledby="what-h">
+  <h2 id="what-h">What this kit does not check</h2>
+  <p>It does not check whether any build runs, looks right, sounds right, or is any good. Those are the claims the builds themselves list as unverified. A person's answers are the only thing this kit records.</p>
+</section>
+
+</main>
+<script>
+(function () {
+  'use strict';
+
+  var STORE_KEY = 'sorrel-witness-kit:v1';
+  var KINDS = { yes: 'Yes', no: 'No', unsure: "Couldn't tell" };
+
+  // Each build's checks come from the "Witnessed vs not witnessed" section of its README.
+  var BUILDS = [
+    {
+      id: 'gyre-atlas', name: 'Gyre atlas (the map)', path: '../gyre-atlas/index.html',
+      intro: 'The front door to the zone. Its own README says nobody has opened it on a phone yet.',
+      checks: [
+        { id: 'g1', ask: 'Are the atlas sections clearly separate from each other on your screen?', how: 'Scroll from top to bottom once.' },
+        { id: 'g2', ask: 'Does every card link open its file?', how: 'Tap three cards, then go back after each one.' },
+        { id: 'g3', ask: 'Does the Walk in button do something when you tap it?', how: 'Tap it once.' }
+      ]
+    },
+    {
+      id: 'kiln-glossolith', name: 'Kiln: glossolith', path: '../kiln-glossolith/index.html',
+      intro: 'A language builder. Typing is meant to commit after a short pause.',
+      checks: [
+        { id: 'k1', ask: 'After you stop typing for about 1.5 seconds, does the text commit?', how: 'Type a few letters, stop, and count to two.' },
+        { id: 'k2', ask: 'Are the letters easy to read on your screen, not faint or blurred?', how: 'Look at the main text in daylight or with the brightness up.' },
+        { id: 'k3', ask: 'Did every button respond on the first tap?', how: 'Tap each button once.' }
+      ]
+    },
+    {
+      id: 'kiln-moth-tongue', name: 'Kiln: moth tongue', path: '../kiln-moth-tongue/index.html',
+      intro: 'A field of moths, each given a name. The names are the thing to judge.',
+      checks: [
+        { id: 'm1', ask: 'Do the moths read as moths?', how: 'Look at the field for ten seconds.' },
+        { id: 'm2', ask: 'Does the selection ring show on the moth you tapped?', how: 'Tap three moths and look at each one.' },
+        { id: 'm3', ask: 'Are the moth names legible on your phone?', how: 'Read two names aloud or in your head.' }
+      ]
+    },
+    {
+      id: 'lacuna-origin', name: 'Lacuna: origin', path: '../lacuna-origin/index.html',
+      intro: 'A story in chapters. The sources and the imagined scenes are meant to be told apart.',
+      checks: [
+        { id: 'l1', ask: 'Does tapping the right side turn the page forward, and the left side back?', how: 'Tap each side once.' },
+        { id: 'l2', ask: 'Is there no sideways scrolling at phone width?', how: 'Try to drag the page sideways.' },
+        { id: 'l3', ask: 'Do the sources read as sources, and the imagined scenes read as imagined?', how: 'Read one chapter with a source line and one scene.' }
+      ]
+    },
+    {
+      id: 'mycel-drift', name: 'Mycel: drift', path: '../mycel-drift/index.html',
+      intro: 'A sound field played by touch. Nobody has heard it yet. Turn your volume up before you start.',
+      checks: [
+        { id: 'd1', ask: 'Do you hear sound after you tap Wake?', how: 'Tap Wake, then hold the field for ten seconds.' },
+        { id: 'd2', ask: 'Does the sound stay pleasant for a minute, with no harsh click?', how: 'Keep playing for about a minute.' },
+        { id: 'd3', ask: 'After you switch apps and come back, does one tap bring the sound back?', how: 'Switch apps for ten seconds, come back, and tap the field once.' }
+      ]
+    },
+    {
+      id: 'mycel-lexical-tones', name: 'Mycel: lexical tones', path: '../mycel-lexical-tones/index.html',
+      intro: 'Words turned into notes. The test is whether different words sound different.',
+      checks: [
+        { id: 't1', ask: 'After you type a sentence and tap Wake, do you hear one note per word?', how: 'Type a short sentence, tap Wake, and sing it.' },
+        { id: 't2', ask: 'Does changing one letter of one word change its note?', how: 'Sing the sentence, change one letter in one word, and sing it again. Compare by ear.' },
+        { id: 't3', ask: 'Does Stop end the sound without a click?', how: 'Tap Stop while a note is playing.' }
+      ]
+    },
+    {
+      id: 'parallax-dusk-moth', name: 'Parallax: dusk moth', path: '../parallax-dusk-moth/index.html',
+      intro: 'A moth flying through dusk and dark. Its own README says nobody has held it yet.',
+      checks: [
+        { id: 'p1', ask: 'Does a drag move the moth where your finger goes, with no lag you can notice?', how: 'Drag in a few directions.' },
+        { id: 'p2', ask: 'Can you tell which shadows will hurt the moth before they reach it?', how: 'Play for about thirty seconds.' },
+        { id: 'p3', ask: 'If reduced motion is on in your phone settings, do the shake and the particles stop?', how: 'Turn reduced motion on in settings first. If you cannot, tap Couldn\'t tell.' }
+      ]
+    },
+    {
+      id: 'parallax-lantern-lanes', name: 'Parallax: lantern lanes', path: '../parallax-lantern-lanes/index.html',
+      intro: 'Words fall down lanes; you change lanes to catch them. Its own check says a bot can play it, not a person.',
+      checks: [
+        { id: 'pl1', ask: 'Does tapping one half of the screen change lanes in the direction you expect?', how: 'Tap the left half, then the right half.' },
+        { id: 'pl2', ask: 'Do swipes and taps each do what you meant, with no accidental swaps?', how: 'Play for about thirty seconds.' },
+        { id: 'pl3', ask: 'Is one more round worth it?', how: 'Play one night, then answer honestly.' }
+      ]
+    },
+    {
+      id: 'vesper-drift-lattice', name: 'Vesper: drift lattice', path: '../vesper-drift-lattice/index.html',
+      intro: 'A lattice that sounds when touched. Blank is correct only when the sound is off.',
+      checks: [
+        { id: 'v1', ask: 'Do you hear a shimmer when you touch the lattice?', how: 'Turn sound on, then tap the canvas.' },
+        { id: 'v2', ask: 'Does the lattice stay visible, not blank, while the sound plays?', how: 'Play for ten seconds and look.' },
+        { id: 'v3', ask: 'Does the picture stay smooth, with no long freezes, for a minute?', how: 'Keep touching for about a minute.' }
+      ]
+    },
+    {
+      id: 'vesper-moth-field', name: 'Vesper: moth field', path: '../vesper-moth-field/index.html',
+      intro: 'A swarm that gathers to a held finger. The feel is the thing to judge.',
+      checks: [
+        { id: 'vm1', ask: 'Does holding one finger still for about half a second make the swarm gather?', how: 'Press and hold on the field.' },
+        { id: 'vm2', ask: 'Do two fingers each pull the swarm, and does lifting one leave the other working?', how: 'Put two fingers down, then lift one.' },
+        { id: 'vm3', ask: 'Does the field fill the screen with no cut-off at the bottom as the browser bar shows and hides?', how: 'Scroll a little and look at the bottom edge.' }
+      ]
+    },
+    {
+      id: 'wren-causeway', name: 'Wren: causeway', path: '../wren-causeway/index.html',
+      intro: 'Stones on a causeway light up as you walk past them. Drag across the water.',
+      checks: [
+        { id: 'w1', ask: 'Drag across the water. Do the stones light?', how: 'Drag across the water once, slowly.' },
+        { id: 'w2', ask: 'Does standing still bring the moths to you?', how: 'Stop moving and wait twenty seconds.' },
+        { id: 'w3', ask: 'Does the card leave the lit stone visible?', how: 'Light a stone and open its card.' },
+        { id: 'w4', ask: 'After you reload the page, is the lit stone still lit?', how: 'Reload the page and look.' }
+      ]
+    },
+    {
+      id: 'wren-stairwell', name: 'Wren: stairwell', path: '../wren-stairwell/index.html',
+      intro: 'A shader stairwell that may not compile on your device. A fallback message is a real result.',
+      checks: [
+        { id: 's1', ask: 'Does the stairwell show on your device, not the fallback message?', how: 'Wait a few seconds after the page loads.' },
+        { id: 's2', ask: 'Does the joystick move you with a light touch?', how: 'Move the joystick a little and then a lot.' },
+        { id: 's3', ask: 'Do the stairs read as impossible?', how: 'Look at the stairs for ten seconds.' }
+      ]
+    },
+    {
+      id: 'sorrel-claim-labels', name: 'Sorrel: which label', path: '../sorrel-claim-labels/index.html',
+      intro: 'A lesson that sorts eight claims into the charter labels. Its own README says a stranger has not finished it yet.',
+      checks: [
+        { id: 'sc1', ask: 'Do the four labels show their definitions before the first claim?', how: 'Read the top of the page.' },
+        { id: 'sc2', ask: 'Does each answer show a reason and what would move the claim up?', how: 'Answer two claims and read the reasons.' },
+        { id: 'sc3', ask: 'Did someone who has not read the charter finish all eight claims?', how: 'Answer Yes only if another person did it. Otherwise Couldn\'t tell.' }
+      ]
+    }
+  ];
+
+  var state = { device: '', builds: {} };
+  var storageOk = true;
+
+  function isValid(v) { return v === 'yes' || v === 'no' || v === 'unsure'; }
+
+  function load() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (data && typeof data.device === 'string') state.device = data.device.slice(0, 80);
+      if (data && data.builds && typeof data.builds === 'object') {
+        BUILDS.forEach(function (b) {
+          var saved = data.builds[b.id];
+          if (!saved || typeof saved !== 'object') return;
+          var entry = { checks: {}, note: '' };
+          if (typeof saved.note === 'string') entry.note = saved.note.slice(0, 400);
+          b.checks.forEach(function (c) {
+            if (saved.checks && isValid(saved.checks[c.id])) entry.checks[c.id] = saved.checks[c.id];
+          });
+          state.builds[b.id] = entry;
+        });
+      }
+    } catch (e) {
+      storageOk = false;
+    }
+  }
+
+  function save() {
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      storageOk = true;
+    } catch (e) {
+      storageOk = false;
+    }
+    showStorage();
+  }
+
+  function showStorage() {
+    document.getElementById('storage').textContent = storageOk
+      ? 'Answers are also kept in this browser on this device, if the browser allows it.'
+      : 'This browser would not save answers. They last only until you close or reload the page, so copy the report before you leave.';
+  }
+
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) {
+        if (k === 'text') node.textContent = attrs[k];
+        else node.setAttribute(k, attrs[k]);
+      });
+    }
+    (children || []).forEach(function (c) { if (c) node.appendChild(c); });
+    return node;
+  }
+
+  function buildEntry(b) {
+    return state.builds[b.id] || { checks: {}, note: '' };
+  }
+
+  function ensureEntry(b) {
+    if (!state.builds[b.id]) state.builds[b.id] = { checks: {}, note: '' };
+    return state.builds[b.id];
+  }
+
+  function answeredCount(b) {
+    var e = buildEntry(b);
+    return b.checks.filter(function (c) { return e.checks[c.id]; }).length;
+  }
+
+  function touchedBuilds() {
+    return BUILDS.filter(function (b) {
+      var e = buildEntry(b);
+      return answeredCount(b) > 0 || (e.note && e.note.trim().length > 0);
+    }).length;
+  }
+
+  function renderProgress() {
+    document.getElementById('progress').textContent =
+      'Builds with at least one answer or note: ' + touchedBuilds() + ' of ' + BUILDS.length + '.';
+  }
+
+  function renderCheck(b, c) {
+    var e = buildEntry(b);
+    var qid = 'q-' + c.id;
+    var answers = el('div', { 'class': 'answers', role: 'group', 'aria-labelledby': qid });
+    ['yes', 'no', 'unsure'].forEach(function (kind) {
+      var pressed = e.checks[c.id] === kind ? 'true' : 'false';
+      var btn = el('button', {
+        type: 'button', 'class': 'ans', 'data-kind': kind, 'aria-pressed': pressed,
+        'data-build': b.id, 'data-check': c.id, text: KINDS[kind]
+      });
+      btn.addEventListener('click', function () { setAnswer(b, c, kind); });
+      answers.appendChild(btn);
+    });
+    return el('div', { 'class': 'check' }, [
+      el('p', { 'class': 'ask', id: qid, text: c.ask }),
+      el('p', { 'class': 'how', text: 'Try: ' + c.how }),
+      answers
+    ]);
+  }
+
+  function renderBuild(b, index) {
+    var e = buildEntry(b);
+    var h = 'h-' + b.id;
+    var noteId = 'n-' + b.id;
+    var counter = el('p', { 'class': 'counter', id: 'c-' + b.id });
+    var textarea = el('textarea', { id: noteId, maxlength: '400', 'aria-describedby': 'c-' + b.id });
+    textarea.value = e.note || '';
+    textarea.addEventListener('input', function () {
+      ensureEntry(b).note = textarea.value;
+      save();
+      updateCounter(b, counter, textarea);
+      renderReport();
+      renderProgress();
+    });
+    updateCounter(b, counter, textarea);
+
+    var section = el('section', { 'class': 'build', id: 'b-' + b.id, 'aria-labelledby': h }, [
+      el('h2', { id: h, text: (index + 1) + '. ' + b.name }),
+      el('p', { text: b.intro }),
+      el('a', {
+        'class': 'open', href: b.path, target: '_blank', rel: 'noopener',
+        text: 'Open ' + b.id + ' (opens in a new tab)'
+      }),
+      el('p', { 'class': 'pill', id: 'st-' + b.id, text: '' })
+    ]);
+    b.checks.forEach(function (c) { section.appendChild(renderCheck(b, c)); });
+    section.appendChild(el('label', { 'class': 'field', 'for': noteId, text: 'Note (optional, no personal details)' }));
+    section.appendChild(textarea);
+    section.appendChild(counter);
+    return section;
+  }
+
+  function updateCounter(b, counter, textarea) {
+    var n = (textarea.value || '').length;
+    counter.textContent = n + ' of 400 characters';
+  }
+
+  function updateBuildStatus(b) {
+    var st = document.getElementById('st-' + b.id);
+    if (st) st.textContent = answeredCount(b) + ' of ' + b.checks.length + ' checks answered.';
+  }
+
+  function setAnswer(b, c, kind) {
+    var e = ensureEntry(b);
+    if (e.checks[c.id] === kind) delete e.checks[c.id];
+    else e.checks[c.id] = kind;
+    save();
+    // Update the buttons for this check only; focus stays where the person tapped.
+    var group = document.querySelectorAll('button[data-build="' + b.id + '"][data-check="' + c.id + '"]');
+    Array.prototype.forEach.call(group, function (btn) {
+      btn.setAttribute('aria-pressed', e.checks[c.id] === btn.getAttribute('data-kind') ? 'true' : 'false');
+    });
+    updateBuildStatus(b);
+    renderReport();
+    renderProgress();
+  }
+
+  function answerLabel(v) {
+    return v ? KINDS[v] : 'not answered';
+  }
+
+  function buildReport() {
+    var lines = [];
+    lines.push('PHONE WITNESS REPORT (round four, Sorrel\'s kit: builds/sorrel-witness-kit/)');
+    lines.push('This is the person\'s own report. It is not a verdict. The kit did not test any build,');
+    lines.push('and nothing here says that any build works. It records only what the person tapped and typed.');
+    var today = new Date();
+    var mm = String(today.getMonth() + 1);
+    var dd = String(today.getDate());
+    lines.push('Date: ' + today.getFullYear() + '-' + (mm.length < 2 ? '0' + mm : mm) + '-' + (dd.length < 2 ? '0' + dd : dd));
+    lines.push('Device and browser (as typed by the person): ' + (state.device.trim() || 'not given'));
+    lines.push('');
+    BUILDS.forEach(function (b) {
+      var e = buildEntry(b);
+      var n = answeredCount(b);
+      var note = (e.note || '').trim();
+      if (n === 0 && !note) return;
+      lines.push('BUILD: ' + b.id + ' (builds/' + b.id + '/index.html)');
+      b.checks.forEach(function (c) {
+        lines.push('  ' + c.id + '. ' + c.ask + '  ->  ' + answerLabel(e.checks[c.id]));
+      });
+      if (note) lines.push('  Note: ' + note.replace(/\s+/g, ' '));
+      lines.push('');
+    });
+    if (touchedBuilds() === 0) {
+      lines.push('No answers yet. Open a build and tap what you saw.');
+    }
+    return lines.join('\n');
+  }
+
+  function renderReport() {
+    document.getElementById('report').value = buildReport();
+  }
+
+  function clearAll() {
+    if (!window.confirm('Clear every answer, note and the device line on this page?')) return;
+    state = { device: '', builds: {} };
+    save();
+    document.getElementById('device').value = '';
+    BUILDS.forEach(function (b) {
+      var sec = document.getElementById('b-' + b.id);
+      if (!sec) return;
+      sec.querySelectorAll('button.ans').forEach(function (btn) { btn.setAttribute('aria-pressed', 'false'); });
+      var ta = document.getElementById('n-' + b.id);
+      if (ta) ta.value = '';
+      var counter = document.getElementById('c-' + b.id);
+      if (counter && ta) updateCounter(b, counter, ta);
+      updateBuildStatus(b);
+    });
+    renderReport();
+    renderProgress();
+    document.getElementById('status').textContent = 'All answers cleared.';
+  }
+
+  function copyReport() {
+    var area = document.getElementById('report');
+    var status = document.getElementById('status');
+    var text = area.value;
+    var fallback = function () {
+      area.focus();
+      area.select();
+      try {
+        var ok = document.execCommand('copy');
+        status.textContent = ok
+          ? 'Copied.'
+          : 'Could not copy here. The text is selected; use your browser\'s copy command.';
+      } catch (e) {
+        status.textContent = 'Could not copy here. The text is selected; use your browser\'s copy command.';
+      }
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          status.textContent = 'Copied.';
+        }, fallback);
+        return;
+      }
+    } catch (e) { /* fall through */ }
+    fallback();
+  }
+
+  function init() {
+    load();
+    var deviceInput = document.getElementById('device');
+    deviceInput.value = state.device;
+    deviceInput.addEventListener('input', function () {
+      state.device = deviceInput.value.slice(0, 80);
+      save();
+      renderReport();
+    });
+
+    var toc = document.getElementById('toc');
+    var container = document.getElementById('builds');
+    BUILDS.forEach(function (b, i) {
+      toc.appendChild(el('li', null, [el('a', { href: '#b-' + b.id, text: b.name })]));
+      container.appendChild(renderBuild(b, i));
+      updateBuildStatus(b);
+    });
+
+    document.getElementById('copy').addEventListener('click', copyReport);
+    document.getElementById('select').addEventListener('click', function () {
+      var area = document.getElementById('report');
+      area.focus();
+      area.select();
+    });
+    document.getElementById('clear').addEventListener('click', clearAll);
+
+    showStorage();
+    renderReport();
+    renderProgress();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
