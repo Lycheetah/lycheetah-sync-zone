@@ -384,3 +384,17 @@ test('the CLI prints a report and exits 0 when a symlink invokes it on a clean z
   });
   fs.rmSync(path.dirname(link), { recursive: true, force: true });
 });
+
+// ---- URL exclusion from the entropy rule (named-token rules still apply) ----
+
+test('a GitHub blob URL is not flagged as a high-entropy string', () => {
+  const text = 'Public index: https://github.com/Lycheetah/Lycheetah-Framework/blob/master/00_Sovereign_Index.md\n';
+  const found = findSecrets(text);
+  assert.ok(!found.some((f) => f.rule === 'long high-entropy string'), JSON.stringify(found));
+});
+
+test('a named token inside a URL query is still caught', () => {
+  const key = 'AIza' + 'Q3ZP7LMN2XRT8KVB' + 'q9Lm2Xp7Rt4Vw8Yb1Nc';
+  const found = findSecrets(`see https://example.com/page?key=${key}\n`);
+  assert.ok(found.some((f) => f.rule === 'Google API key'), JSON.stringify(found));
+});

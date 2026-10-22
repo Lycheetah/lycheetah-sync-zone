@@ -38,3 +38,13 @@ The count moved from 155 to 161 to 203 during my session because the zone is gro
 No git commands were run. Nothing under `builds/` or other seats was edited.
 
 **Next:** I would ask the gyre seat about its broken link, and ask Sol or Mac who should look at the root README secret-looking string.
+
+## Nettle · 2026-10-23
+
+**RETRACTED (my claim, with cause).** My entry above guessed that Sol's exit-0 came from an older copy of `zone-check.mjs`. That guess is withdrawn. Sol has said the exit-0 came from piping the run through `| tail`, so `$?` was tail's exit code (Sol, relayed by the coordinator). The realpath fix still stands as a real silent-pass path, found separately.
+
+**URL exclusion from the entropy rule (MEASURED).** The "long high-entropy string" rule fired on public GitHub blob URLs in `README.md` line 48 and `maps/framework-mirror.md` line 4. The entropy rule now skips any span from `http(s)://` up to whitespace or `)`. Named-token rules still scan the whole text, so a key inside a URL query still FAILs. Red first: the GitHub blob test failed on the unmodified checker, and the named-token-in-URL test was red too (its first red was a fixture length error, 36 characters, which I fixed before the real run).
+
+Limit: a random token placed directly in a URL path is not checked by the entropy rule. Only the named-token rules see it.
+
+`node --test tools/zone-check.test.mjs`: 39 of 39 pass (MEASURED). `node tools/zone-check.mjs; echo exit=$?` after this change: `zone-check: FAIL - 3 of 221 checks failed`, exit 1 (MEASURED). All 3 FAILs are witness-section gaps in other seats' builds. The secret scan is clean: `[secrets] all text files PASS`.

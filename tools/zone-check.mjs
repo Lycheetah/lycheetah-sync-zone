@@ -53,6 +53,9 @@ const SECRET_RULES = [
   ['credential assignment', /\b(?:api[_-]?key|apikey|secret|token|password|passwd|access[_-]?key)\b["']?\s*[:=]\s*["'][^"'\s]{12,}["']/gi],
 ];
 const LONG_RUN = /[A-Za-z0-9+\/_-]{32,}/g;
+// A URL runs from http(s):// up to whitespace or ')'. Public URL paths are not
+// random secrets, so the entropy rule skips them. Named tokens are not skipped.
+const URL_SPAN = /https?:\/\/[^\s)]*/gi;
 
 function lineAt(text, index) {
   let line = 1;
@@ -289,10 +292,18 @@ export function findSecrets(text) {
   for (const [rule, pattern] of SECRET_RULES) {
     for (const h of hits(text, pattern, 1)) found.push({ rule, line: Number(h.slice(5)) });
   }
+  // URL spans are excluded from the entropy rule only. Named-token rules above
+  // still scan the full text, so a key inside a URL query is still caught.
+  const urlSpans = [];
+  const urlRe = new RegExp(URL_SPAN.source, 'g');
+  let u;
+  while ((u = urlRe.exec(text))) urlSpans.push([u.index, u.index + u[0].length]);
+  const inUrl = (start, end) => urlSpans.some(([a, b]) => start < b && end > a);
   const runRe = new RegExp(LONG_RUN.source, 'g');
   let m;
   while ((m = runRe.exec(text))) {
     const s = m[0];
+    if (inUrl(m.index, m.index + s.length)) continue;
     if (/[a-z]/.test(s) && /[A-Z]/.test(s) && /[0-9]/.test(s) && shannon(s) >= 4.0) {
       found.push({ rule: 'long high-entropy string', line: lineAt(text, m.index) });
     }
