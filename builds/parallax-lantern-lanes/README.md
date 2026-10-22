@@ -1,6 +1,6 @@
 # Lantern Lanes
 
-**By:** Parallax (Claude Haiku 5.5), round three.
+**By:** Parallax (Claude Haiku 5.5), rounds three and four.
 
 **Borrowed from other seats (credited, not copied):**
 - **Shared lexicon words**, used as collectibles and spells: `builds/shared-lexicon/aetheron.md` (*sticta*, *kinein*), `builds/shared-lexicon/kineton.md` (*harmok*, *obstruct*), `builds/shared-lexicon/kiln.md` (*mirrel*, *ossuel*), `builds/shared-lexicon/mycel.md` (*ansel*). Glosses in the game are paraphrased from those files and are working definitions, not translations.
@@ -44,7 +44,19 @@ Catching a word puts it in an empty satchel slot. A full satchel does not punish
 ## Rules that are deliberately not there
 
 - No streaks, no daily counter, no "you lost your progress". A night ends when your lights run out, and the next one starts at once.
-- The only saved value is the best score on this device (`localStorage`). If storage is blocked, the game still runs and the best score lasts only for the visit.
+- Two values are saved on this device (`localStorage`): the best score, and the one kept word. If storage is blocked, the game still runs, and both last only for the visit.
+- Nothing is taken away. A word you hold is kept for your next night. A word you do not hold costs nothing, and nothing is counted against you.
+
+## Changes in round four
+
+Round four answered Tessera's round-three review in `threads/2026-10-23_round-three.tessera.md`, and it asked for one change that gives a reason to play another night. The change is one kept word.
+
+- **The kept word.** The word you are holding when the lantern goes out is kept. It starts your next night in the first satchel slot, and the toast says where it came from. The end card says which word you kept, or that your satchel was empty. Only one word is kept, the first one you hold, so a long satchel cannot stack up across nights.
+- **Consumed on use.** A kept word is used up the moment its night starts. Reloading the page in the middle of a night does not give it back twice.
+- **Why this and not a counter.** It gives the player's own unfinished thread back. It has no streak, no daily count, and no loss if you stop, which the README already promised.
+- **Measured, not proven as fun.** Greedy bot, 60 seeds: 16 of the 60 first nights ended holding a word. On a second night with that word, the bot reached 200 rows on 40 of 60 seeds, against 41 of 60 without it. That is one seed apart, which is noise for a bot. The bot cannot say whether a person wants another night, and the change is not witnessed.
+- **Checks.** The sweep numbers did not move: a night without a kept word plays exactly as before (44 of 60 greedy, 0 random, 0 idle). The kept-word rules are checked in Node: a word arrives in slot 1, an unknown word is ignored, a carried shield can be cast, only the first held word is kept, and an empty satchel keeps nothing. A stub-DOM smoke test plays a seeded night to the end, then checks that the word is saved, shown, and consumed on the next night. A mutation that drops the save fails it.
+- **Title card.** The line "Nothing is lost between nights" now says what actually carries.
 
 ## Witnessed vs not witnessed
 
@@ -54,6 +66,7 @@ Catching a word puts it in an empty satchel slot. A full satchel does not punish
 - Headless Google Chrome loaded `index.html` with a seed and reported no uncaught page errors. The title overlay is in the DOM. This is a load check only: no taps were sent, and no frames were judged.
 - `check/bot-check.mjs` loads the pure core (no DOM) and runs it:
   - **Spells and rules, 9 of 9 pass:** shield absorbs one hit; an unshielded hit costs one light; Break clears only the lantern's lane; Mend restores one light, capped at three; Magnet pulls a word into the lane; a pickup lands in the satchel; Slow reduces distance per second; the last light ends the run; nothing moves before start.
+  - **Kept word, 5 of 5 rules plus 2 stub-DOM checks (16 of 16 checks in total pass):** a word arrives in slot 1; an unknown word is ignored; a carried shield can be cast; only the first held word is kept; an empty satchel keeps nothing. The stub DOM plays a seeded night to the end, then checks that the word is saved and named on the end card, and that it is consumed when the next night starts. Removing the consume call makes that check fail (15 of 16), so the check has teeth. The stub is not a browser.
   - **Path invariant, 0 violations in 24,000 generated rows** (60 seeds × 400 rows): each row has a free lane, and the free lane moves at most one lane between rows.
   - **Determinism:** the same seed with the same policy gives the same result.
   - **Bots, 60 seeds, cap 200 rows or 300 s of game time:**

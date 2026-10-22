@@ -10,10 +10,11 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const html = fs.readFileSync(path.join(here, '..', 'index.html'), 'utf8');
 const m = html.match(/<script>([\s\S]*?)<\/script>/);
 if (!m) throw new Error('inline script not found');
+const script = m[1];
 
 const ctx = { console, Math };
 vm.createContext(ctx);
-vm.runInContext(m[1] + '\n;globalThis.__core = { createState, step, act, genRow, cast, WORD_BY, LANES };', ctx);
+vm.runInContext(script + '\n;globalThis.__core = { createState, step, act, genRow, cast, WORD_BY, LANES };', ctx);
 const C = ctx.__core;
 
 const DT = 1 / 60;
@@ -48,8 +49,8 @@ function botDecide(S, bot) {
   }
 }
 
-function run(seed, policy) {
-  const S = C.createState(seed);
+function run(seed, policy, kept) {
+  const S = C.createState(seed, kept);
   C.act(S, 'start');
   const rng = C.createState(seed ^ 0x9e3779b9).rng; // separate stream for the random policy
   const bot = { t: 0, lastMove: -1 };
@@ -61,7 +62,7 @@ function run(seed, policy) {
     }
     C.step(S, DT);
   }
-  return { seed, rows: Math.floor(S.d), score: S.score, collected: S.collected, seen: S.seen.length, over: S.over, reached: S.d >= TARGET_ROWS };
+  return { seed, rows: Math.floor(S.d), score: S.score, collected: S.collected, seen: S.seen.length, over: S.over, reached: S.d >= TARGET_ROWS, kept: S.kept };
 }
 
 const SEEDS = Array.from({ length: 60 }, (_, i) => i + 1);
@@ -99,6 +100,26 @@ for (const seed of SEEDS) {
   }
 }
 console.log(`PATH INVARIANT: rows checked ${rowsChecked}, violations ${rowViolations}`);
+
+// Kept word: the greedy bot's second night, with and without the word from its first night.
+// The first night is run exactly as the sweep runs it, so its numbers are the sweep's numbers.
+const carry = { nights: SEEDS.length, kept: 0, reach2_plain: 0, reach2_carry: 0, mean_rows2_plain: 0, mean_rows2_carry: 0 };
+{
+  let rowsPlain = 0, rowsCarry = 0;
+  for (const seed of SEEDS) {
+    const first = run(seed, 'greedy');
+    const second = run(seed + 1000, 'greedy');
+    const withCarry = run(seed + 1000, 'greedy', first.kept);
+    if (first.kept) carry.kept++;
+    if (second.reached) carry.reach2_plain++;
+    if (withCarry.reached) carry.reach2_carry++;
+    rowsPlain += second.rows; rowsCarry += withCarry.rows;
+  }
+  carry.mean_rows2_plain = +(rowsPlain / SEEDS.length).toFixed(1);
+  carry.mean_rows2_carry = +(rowsCarry / SEEDS.length).toFixed(1);
+}
+console.log('KEPT WORD (greedy, 60 seeds; night two uses seed + 1000):');
+console.log(JSON.stringify(carry, null, 2));
 
 // Spell checks, each with a planted situation.
 function plant(S, kind, row, lane, word) { S.objs.push({ kind, row, lane, word, done: false }); }
@@ -157,8 +178,134 @@ const checks = [];
   const S = C.createState(12); const d0 = S.d; C.step(S, 2.0);
   checks.push(['no movement before start', S.d === d0]);
 }
+{ // Kept word rules.
+  const I = C.createState(21, 'sticta');
+  checks.push(['a carried word starts the next night in slot 1', I.satchel[0] === 'sticta' && I.carried === 'sticta']);
+  const J = C.createState(21, 'nonsense');
+  checks.push(['an unknown carried word is ignored', J.satchel.every((w) => w === null) && J.carried === null]);
+  const K = C.createState(21, 'sticta'); C.act(K, 'start'); K.objs = [];
+  C.cast(K, 0);
+  checks.push(['a carried shield can be cast in the next night', K.shield === true && K.satchel[0] === null]);
+  const L = C.createState(22); C.act(L, 'start'); L.objs = []; L.satchel = ['sticta', 'ansel', null]; L.light = 1; L.lane = 1;
+  L.objs.push({ kind: 'shadow', row: L.d + 0.5, lane: 1, done: false }); C.step(L, 1.0);
+  checks.push(['the night keeps the first held word only', L.over === true && L.kept === 'sticta']);
+  const M2 = C.createState(23); C.act(M2, 'start'); M2.objs = []; M2.satchel = [null, null, null]; M2.light = 1; M2.lane = 1;
+  M2.objs.push({ kind: 'shadow', row: M2.d + 0.5, lane: 1, done: false }); C.step(M2, 1.0);
+  checks.push(['an empty satchel keeps nothing', M2.over === true && M2.kept === null]);
+}
 console.log('SPELL AND RULE CHECKS:');
 for (const [name, ok] of checks) console.log(`  ${ok ? 'PASS' : 'FAIL'}  ${name}`);
 const failed = checks.filter(([, ok]) => !ok).length;
-console.log(`checks: ${checks.length - failed}/${checks.length} pass`);
-process.exitCode = failed || rowViolations ? 1 : 0;
+
+// ---------------------------------------------------------------- DOM smoke (stub DOM, not a browser)
+// Plays seeded nights with random input until one ends, then checks that the kept word is
+// saved, announced on the end card, and consumed when the next night starts.
+function domSmoke(seed) {
+  const store = new Map();
+  const rafQ = [];
+  const toasts = [];
+  const mkEl = () => {
+    const cls = new Set();
+    const listeners = {};
+    const el = {
+      textContent: '', value: '', dataset: {}, style: {}, width: 0, height: 0, clientWidth: 360, clientHeight: 640,
+      classList: { add: (c) => cls.add(c), remove: (c) => cls.delete(c), contains: (c) => cls.has(c), toggle: (c, on) => (on ? cls.add(c) : cls.delete(c)) },
+      setAttribute() {}, focus() {}, click() { (listeners.click || []).forEach((f) => f({ stopPropagation() {} })); },
+      addEventListener(t, f) { (listeners[t] ||= []).push(f); },
+      fire(t, ev) { (listeners[t] || []).forEach((f) => f(ev)); },
+      querySelectorAll: () => [], closest: () => null, getBoundingClientRect: () => ({ left: 0, top: 0, width: 360, height: 640 }),
+      getContext: () => ctx2d, setPointerCapture() {}, hidden: false,
+    };
+    el.classList.add('hidden');
+    return el;
+  };
+  const els = {};
+  const byId = (id) => (els[id] ||= mkEl());
+  // Title and over start in the markup: title visible, over hidden.
+  byId('title').classList.remove('hidden');
+  byId('over').classList.add('hidden');
+  const grad = { addColorStop() {}, width: 10 };
+  const ctx2d = new Proxy({}, {
+    get(t, k) {
+      if (k in t) return t[k];
+      if (k === 'measureText') return () => grad;
+      if (/Gradient$/.test(String(k))) return () => grad;
+      return () => undefined;
+    },
+    set(t, k, v) { t[k] = v; return true; },
+  });
+  const docListeners = {};
+  const winListeners = {};
+  const document = {
+    getElementById: (id) => byId(id),
+    querySelectorAll: () => [],
+    hidden: false,
+    addEventListener() {},
+  };
+  const storage = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, String(v)),
+    removeItem: (k) => store.delete(k),
+  };
+  const ctx = {
+    console, Math, Number, String, Array, JSON, Object, Set, Map, URLSearchParams, Promise,
+    document,
+    window: { addEventListener: (t, f) => (winListeners[t] ||= []).push(f), localStorage: storage, devicePixelRatio: 1, location: {}, matchMedia: undefined },
+    location: { search: '?seed=' + seed },
+    requestAnimationFrame: (f) => rafQ.push(f),
+    setTimeout: () => 0,
+    ResizeObserver: undefined,
+  };
+  ctx.window.location = ctx.location;
+  ctx.document.getElementById = (id) => byId(id);
+  // The game's canvas.getContext('2d') goes to the proxy.
+  byId('field').getContext = () => ctx2d;
+  byId('game').clientWidth = 360; byId('game').clientHeight = 640;
+  byId('game').getBoundingClientRect = () => ({ left: 0, top: 0, width: 360, height: 640 });
+  vm.createContext(ctx);
+  vm.runInContext(script, ctx);
+  let now = 0;
+  const frame = () => { now += 1000 / 60; const f = rafQ.shift(); if (f) f(now); };
+  const key = (k) => (winListeners.keydown || []).forEach((f) => f({ key: k, preventDefault() {} }));
+  return { els, store, frame, key, toasts, byId };
+}
+
+function playUntilOver(d, maxFrames) {
+  let i = 0;
+  for (; i < maxFrames; i++) {
+    if (!d.byId('over').classList.contains('hidden')) return true;
+    if (i % 18 === 0) d.key(['ArrowLeft', 'ArrowRight'][(i / 18) % 2 ? 1 : 0]);
+    d.frame();
+  }
+  return !d.byId('over').classList.contains('hidden');
+}
+
+const domChecks = [];
+{
+  // Find a seed whose night ends with a word still in the satchel, then check the whole handoff.
+  let picked = null;
+  for (let seed = 1; seed <= 40 && !picked; seed++) {
+    const d = domSmoke(seed);
+    d.byId('startBtn').click();
+    d.frame();
+    if (!playUntilOver(d, 60 * 120)) continue;
+    const kept = d.store.get('parallax-lantern-kept') || null;
+    if (kept) picked = { seed, d, kept };
+  }
+  if (!picked) {
+    domChecks.push(['a seeded night ends holding a word (search 1..40)', false]);
+  } else {
+    const { d, kept } = picked;
+    domChecks.push(['the end card says which word is kept', d.byId('overNote').textContent.includes(C.WORD_BY[kept].w)]);
+    d.byId('againBtn').click();
+    d.frame();
+    domChecks.push(['the kept word is consumed when the next night starts', !d.store.has('parallax-lantern-kept')]);
+  }
+}
+
+console.log('DOM SMOKE (stub DOM, not a browser):');
+for (const [name, ok] of domChecks) console.log(`  ${ok ? 'PASS' : 'FAIL'}  ${name}`);
+const domFailed = domChecks.filter(([, ok]) => !ok).length;
+
+console.log(`checks: ${checks.length - failed + domChecks.length - domFailed}/${checks.length + domChecks.length} pass`);
+process.exitCode = failed || rowViolations || domFailed ? 1 : 0;

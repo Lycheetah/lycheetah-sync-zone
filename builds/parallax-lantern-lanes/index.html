@@ -133,7 +133,7 @@
         <li>Tap the left or right half of the screen, or swipe, to change lane.</li>
         <li>Tap a satchel word to cast it. On a keyboard: 1, 2, 3.</li>
         <li>You have three lights. A shadow costs one. Mend restores one.</li>
-        <li>Nothing is lost between nights. The best score is kept on this device.</li>
+        <li>The word you hold when the lantern goes out starts your next night. The best score is kept on this device.</li>
       </ul>
       <button id="startBtn" class="primary" type="button">Light the lantern</button>
       <p class="credit">Words are from the Lycheetah Sync Zone shared lexicon: Aetheron, Kineton, Kiln and Mycel. The tones use the scale of Mycel's Mycel Drift. Credits and limits are in the README.</p>
@@ -182,8 +182,10 @@ function mulberry32(a) {
   };
 }
 
-function createState(seed) {
+// `kept` is the one word held when the last night ended. It starts this night in slot 1.
+function createState(seed, kept) {
   seed = seed >>> 0;
+  const carry = typeof kept === 'string' && WORD_BY[kept] ? kept : null;
   return {
     seed,
     rng: mulberry32(seed),
@@ -197,7 +199,9 @@ function createState(seed) {
     objs: [],        // {kind:'shadow'|'word', row, lane, word?, done}
     nextRow: 4,
     freeLane: 1,
-    satchel: [null, null, null],
+    satchel: [carry, null, null],
+    carried: carry,  // the word that came in from the last night, if any
+    kept: null,      // set when the night ends: the first word still held, or null
     score: 0,
     collected: 0,
     seen: [],        // distinct words caught, in order
@@ -237,7 +241,8 @@ function genRow(s) {
 
 function endRun(s) {
   s.over = true;
-  s.events.push({ type: 'over', score: Math.floor(s.score), collected: s.collected, rows: Math.floor(s.d) });
+  s.kept = s.satchel.find((w) => w) || null; // one word carries to the next night, never more
+  s.events.push({ type: 'over', score: Math.floor(s.score), collected: s.collected, rows: Math.floor(s.d), kept: s.kept });
 }
 
 function hit(s) {
@@ -423,10 +428,18 @@ if (typeof document !== 'undefined') {
     };
     const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     const BEST_KEY = 'parallax-lantern-best';
+    const KEPT_KEY = 'parallax-lantern-kept';
 
     function readBest() { try { return Number(window.localStorage.getItem(BEST_KEY)) || 0; } catch (e) { return 0; } }
     function writeBest(v) { try { window.localStorage.setItem(BEST_KEY, String(v)); } catch (e) { /* private mode: best is per-visit */ } }
+    function readKept() {
+      try { const v = window.localStorage.getItem(KEPT_KEY); return v && WORD_BY[v] ? v : null; } catch (e) { return null; }
+    }
+    function writeKept(w) {
+      try { if (w) window.localStorage.setItem(KEPT_KEY, w); else window.localStorage.removeItem(KEPT_KEY); } catch (e) { /* per-visit only */ }
+    }
     let best = readBest();
+    let keptWord = readKept();   // the word carried into the next night; consumed when that night starts
 
     function seedFromUrl() {
       try {
@@ -437,7 +450,7 @@ if (typeof document !== 'undefined') {
     }
     function freshSeed() { return ((Math.random() * 0xffffffff) >>> 0); }
 
-    let S = createState(seedFromUrl() ?? freshSeed());
+    let S = createState(seedFromUrl() ?? freshSeed(), keptWord);
     let W = 0, H = 0, dpr = 1;
     let vl = S.lane;             // smoothed lane index for drawing
     let shake = 0;
@@ -507,15 +520,22 @@ if (typeof document !== 'undefined') {
             toast(`${def.w}: ${def.name}. ${def.blurb}`);
             break;
           }
-          case 'over':
+          case 'over': {
             if (ev.score > best) { best = ev.score; writeBest(best); }
+            keptWord = ev.kept || null;
+            writeKept(keptWord);
             el.overScore.textContent = String(ev.score);
             el.overBest.textContent = String(best);
-            el.overNote.textContent = ev.rows > 0 ? `You went ${ev.rows} rows and caught ${ev.collected} word${ev.collected === 1 ? '' : 's'}.` : 'The dusk came early. Try once more.';
+            const went = ev.rows > 0 ? `You went ${ev.rows} rows and caught ${ev.collected} word${ev.collected === 1 ? '' : 's'}.` : 'The dusk came early. Try once more.';
+            const keep = keptWord
+              ? ` You are still holding ${WORD_BY[keptWord].w}. It starts your next night in the satchel.`
+              : ' Your satchel was empty. Catch a word on the next night and you can carry one forward.';
+            el.overNote.textContent = went + keep;
             el.overSeed.textContent = String(S.seed);
             el.over.classList.remove('hidden');
             setTimeout(() => el.again.focus(), 50);
             break;
+          }
           default: break;
         }
       }
@@ -683,20 +703,31 @@ if (typeof document !== 'undefined') {
       return ok;
     }
 
+    // A carried word is consumed the moment its night starts: it lives in that run, like the rest of the satchel.
+    function announceCarry() {
+      if (!S.carried) return;
+      const def = WORD_BY[S.carried];
+      toast(`${def.w}: kept from your last night. ${def.name}. ${def.blurb}`);
+      keptWord = null;
+      writeKept(null);
+    }
+
     function startRun() {
       Sound.ensure();
       el.title.classList.add('hidden');
       el.over.classList.add('hidden');
       act(S, 'start');
+      announceCarry();
     }
 
     function againRun() {
-      S = createState(freshSeed());
+      S = createState(freshSeed(), keptWord);
       vl = S.lane;
       particles.length = 0;
       el.over.classList.add('hidden');
       lastKey = '';
       act(S, 'start');
+      announceCarry();
     }
 
     el.start.addEventListener('click', startRun);

@@ -50,7 +50,7 @@ button:active{transform:scale(.98)}
     <h1 id="titleH">Dusk Moth</h1>
     <p>Gather <b>14 embers</b> before the dusk goes out. Shadows drift down and bite. Every night breaks one rule.</p>
     <p id="preview" class="night"></p>
-    <p class="help">Drag to fly toward your finger. Tap to pulse: it scatters nearby shadows and costs dusk.<br>
+    <p class="help">Drag to fly toward your finger (away from it on the Mirror Moon). Tap to pulse: it scatters nearby shadows and costs dusk.<br>
     Keys: arrows or WASD fly, Space pulses, R restarts.</p>
     <p id="seedLine" class="seed"></p>
     <div class="row">
@@ -405,18 +405,11 @@ button:active{transform:scale(.98)}
     $('seedLine').textContent = 'night #' + seed + ' · replay it with #seed=' + seed;
   }
 
-  function showTitle() {
-    running = false;
-    game = null;
-    renderPreview();
-    $('title').hidden = false;
-    $('end').hidden = true;
-    $('begin').focus();
-  }
-
   function begin(sameSeed) {
     if (!sameSeed) seed = newSeed();
     game = createGame(seed);
+    pulseReq = false; // a pulse pressed on the end card must not spend dusk on the new night
+    touch = null;
     endShown = false;
     running = true;
     $('title').hidden = true;
@@ -450,7 +443,7 @@ button:active{transform:scale(.98)}
       if (k === 'enter' && !onButton && $('title').hidden === false) { begin(false); e.preventDefault(); }
       return;
     }
-    if (k === ' ' && !onButton) { pulseReq = true; e.preventDefault(); }
+    if (k === ' ' && !onButton) { if (game && game.state === 'play') pulseReq = true; e.preventDefault(); }
     else if (k === 'r' && game && game.state !== 'play') { begin(true); e.preventDefault(); }
     else if (MOVE_KEYS[k]) { keys[k] = true; e.preventDefault(); }
   });
@@ -491,7 +484,7 @@ button:active{transform:scale(.98)}
     if (keys.arrowup || keys.w) my -= 1;
     if (keys.arrowdown || keys.s) my += 1;
     if (touch && game) {
-      var dx = touch.x - game.px, dy = touch.y - game.py;
+      var dx = gap(game, touch.x, game.px), dy = touch.y - game.py; // short way across a tide seam
       var d = Math.hypot(dx, dy);
       if (d > 6) {
         var k = Math.min(1, d / 40);
