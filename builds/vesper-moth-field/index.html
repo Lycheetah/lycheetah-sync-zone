@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vesper · Moth Field</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #05030a;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    touch-action: none;
+  }
+  #hint {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    margin: 0;
+    color: #d9c8ff;
+    font: 15px/1.45 system-ui, sans-serif;
+    opacity: 0.8;
+    pointer-events: none;
+    text-shadow: 0 0 12px #7a3cff;
+    transition: opacity 2.5s ease;
+  }
+  #hint.gone { opacity: 0; }
+</style>
+</head>
+<body>
+<canvas id="field" role="img" aria-label="A generative field of luminous moths. Move, drag or touch to draw them; double-tap or press space to scatter them."></canvas>
+<p id="hint">drag or touch to draw the moths · double-tap or space to scatter them</p>
+<script>
+(function () {
+  'use strict';
+
+  var canvas = document.getElementById('field');
+  var hint = document.getElementById('hint');
+  var ctx = canvas.getContext('2d');
+  var TAU = Math.PI * 2;
+
+  var reduceMotion = !!(window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  var W = 0, H = 0, DPR = 1;
+  var particles = [];
+  var t = 0;
+  var last = 0;
+  var scatterUntil = 0;
+
+  var pointer = { x: 0, y: 0, inside: false, down: false, lastDown: 0 };
+
+  // Angle field: layered sines over normalised space and time.
+  // Each particle steers toward the angle here, so the swarm
+  // reads as a slow current instead of random noise.
+  function field(x, y, time) {
+    var nx = x / W, ny = y / H;
+    return Math.sin(nx * TAU * 1.3 + time * 1.7)
+         + Math.cos(ny * TAU * 1.1 - time * 1.1)
+         + Math.sin((nx + ny) * TAU * 0.9 + time * 0.6) * 2
+         + Math.sin(Math.hypot(nx - 0.5, ny - 0.5) * TAU * 3 - time * 2) * 1.5;
+  }
+
+  function makeParticle() {
+    var x = Math.random() * W;
+    var y = Math.random() * H;
+    return {
+      x: x, y: y, px: x, py: y,
+      vx: 0, vy: 0,
+      speed: (reduceMotion ? 0.5 : 1.1) + Math.random() * 0.9,
+      hue: Math.random() * 360,
+      size: 0.8 + Math.random() * 1.6,
+      phase: Math.random() * TAU
+    };
+  }
+
+  function seed() {
+    // Scale with screen area, clamped so a phone gets a few dozen
+    // and a desktop gets a crowd. Reduced motion gets fewer.
+    var area = W * H;
+    var n = Math.round(area / 7000);
+    var max = reduceMotion ? 90 : 420;
+    n = Math.max(40, Math.min(max, n));
+    particles = [];
+    for (var i = 0; i < n; i++) particles.push(makeParticle());
+  }
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = '#05030a';
+    ctx.fillRect(0, 0, W, H);
+    seed();
+  }
+
+  function setPointer(e) {
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+    pointer.inside = true;
+    pointer.lastType = e.pointerType;
+  }
+
+  function scatter() {
+    scatterUntil = performance.now() + 1400;
+  }
+
+  function hideHint() {
+    hint.classList.add('gone');
+  }
+
+  canvas.addEventListener('pointerdown', function (e) {
+    setPointer(e);
+    pointer.down = true;
+    hideHint();
+    var now = performance.now();
+    if (now - pointer.lastDown < 320) scatter();
+    pointer.lastDown = now;
+  });
+
+  canvas.addEventListener('pointermove', function (e) {
+    setPointer(e);
+  });
+
+  function release() {
+    pointer.down = false;
+    // Touch has no hover, so a finger lifting ends the pull.
+    if (pointer.lastType === 'touch') pointer.inside = false;
+  }
+  canvas.addEventListener('pointerup', release);
+  canvas.addEventListener('pointercancel', release);
+  canvas.addEventListener('pointerleave', function () {
+    pointer.inside = false;
+    pointer.down = false;
+  });
+  canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  window.addEventListener('keydown', function (e) {
+    if (e.code === 'Space' || e.key === ' ') {
+      e.preventDefault();
+      hideHint();
+      scatter();
+    }
+  });
+
+  window.addEventListener('resize', resize);
+
+  function step(now) {
+    var dt = Math.min((now - last) / 16.67, 2.5);
+    if (!isFinite(dt) || dt <= 0) dt = 1;
+    last = now;
+
+    var timeScale = reduceMotion ? 0.3 : 1;
+    t += 0.008 * dt * timeScale;
+
+    // Trails: a translucent wash each frame. Reduced motion
+    // fades faster, so the smear stays short.
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(5, 3, 10, ' + (reduceMotion ? 0.22 : 0.07) + ')';
+    ctx.fillRect(0, 0, W, H);
+
+    var attracting = pointer.inside && !pointer.down ? 1 : 0;
+    var repelling = pointer.inside && pointer.down ? 1 : 0;
+    var scattering = now < scatterUntil;
+    var hueShift = t * 120;
+
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.px = p.x;
+      p.py = p.y;
+
+      var a = field(p.x, p.y, t);
+      var tx = Math.cos(a) * p.speed;
+      var ty = Math.sin(a) * p.speed;
+      p.vx += (tx - p.vx) * 0.04 * dt;
+      p.vy += (ty - p.vy) * 0.04 * dt;
+
+      if (attracting || repelling) {
+        var dx = pointer.x - p.x;
+        var dy = pointer.y - p.y;
+        var d = Math.sqrt(dx * dx + dy * dy) + 0.0001;
+        var pull = 1.6 * Math.exp(-d / 220) * timeScale;
+        var sign = repelling ? -1 : 1;
+        p.vx += (dx / d) * pull * sign * dt;
+        p.vy += (dy / d) * pull * sign * dt;
+      }
+
+      if (scattering) {
+        p.vx += (Math.random() - 0.5) * 0.9 * dt;
+        p.vy += (Math.random() - 0.5) * 0.9 * dt;
+      }
+
+      // Keep the swarm from accelerating forever.
+      var v = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      var cap = reduceMotion ? 2.2 : 6;
+      if (v > cap) { p.vx *= cap / v; p.vy *= cap / v; }
+
+      p.x += p.vx * dt * timeScale;
+      p.y += p.vy * dt * timeScale;
+
+      // Wrap at the edges; do not draw a streak across the screen.
+      var wrapped = false;
+      if (p.x < -20) { p.x = W + 20; wrapped = true; }
+      else if (p.x > W + 20) { p.x = -20; wrapped = true; }
+      if (p.y < -20) { p.y = H + 20; wrapped = true; }
+      else if (p.y > H + 20) { p.y = -20; wrapped = true; }
+      if (wrapped) { p.px = p.x; p.py = p.y; }
+
+      var flicker = 0.55 + 0.45 * Math.sin(t * 6 + p.phase);
+      var hue = (p.hue + hueShift) % 360;
+      var alpha = (reduceMotion ? 0.35 : 0.6) * flicker;
+
+      ctx.strokeStyle = 'hsla(' + hue.toFixed(1) + ', 100%, 68%, ' + alpha.toFixed(3) + ')';
+      ctx.lineWidth = p.size;
+      ctx.beginPath();
+      ctx.moveTo(p.px, p.py);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+
+      ctx.fillStyle = 'hsla(' + hue.toFixed(1) + ', 100%, 85%, ' + (alpha * 0.9).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 1.3, 0, TAU);
+      ctx.fill();
+    }
+
+    // A ring under the finger while it pulls.
+    if (pointer.inside && pointer.down) {
+      var pulse = 28 + 10 * Math.sin(t * 9);
+      ctx.strokeStyle = 'hsla(' + ((hueShift + 180) % 360).toFixed(1) + ', 100%, 75%, 0.45)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(pointer.x, pointer.y, pulse, 0, TAU);
+      ctx.stroke();
+    }
+
+    ctx.globalCompositeOperation = 'source-over';
+    window.requestAnimationFrame(step);
+  }
+
+  resize();
+  last = performance.now();
+  window.requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>
