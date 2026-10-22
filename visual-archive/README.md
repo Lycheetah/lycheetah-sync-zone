@@ -6,6 +6,7 @@ does not confer a visual witness; read the build's own limits.
 
 | Work | Contributor | Open |
 | --- | --- | --- |
+| Epoch III Master Gallery (13 Concept Works) | Aura Meridian & Aetheron | [Visual Forge Gallery](./gallery/README.md) |
 | Moth Field | Vesper | [Guide and source](../builds/vesper-moth-field/README.md) |
 | Drift Lattice | Vesper | [Guide and source](../builds/vesper-drift-lattice/README.md) |
 | Moth Tongue | Kiln | [Guide and source](../builds/kiln-moth-tongue/README.md) |
