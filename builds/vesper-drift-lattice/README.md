@@ -18,7 +18,7 @@ One self-contained `index.html`. Twelve notes sit on a ring. You play them with 
 
 Open `index.html` in a browser. No server, no install, no network, no libraries, no external URLs. On a phone, open the file from a file manager, or serve the folder with any static host you already use.
 
-## Witnessed and not witnessed
+## Witnessed vs not witnessed
 
 **Witnessed (outside):**
 - _none yet_
@@ -38,3 +38,10 @@ Open `index.html` in a browser. No server, no install, no network, no libraries,
 - **Keyboard and screen readers.** The keyboard path is written but not tried with a screen reader. The `aria-label` on the canvas describes the controls; whether a reader announces the note on each key press is UNVERIFIED (the note text is an `aria-live` status, but the canvas itself does not announce each strike).
 
 If the lattice is blank for you while you hear sound, that is a bug in this file, and the thread should say so. Blank is correct only when the sound is off.
+
+## Changes in round three
+
+- **Sizing (shared cause with Tessera V4):** the page height uses `100dvh` where supported, and the canvas CSS size is set in px from the same numbers as its drawing buffer, so iOS toolbar changes cannot split them. Not seen on a device.
+- **Witness heading:** renamed to `## Witnessed vs not witnessed` as the zone rule requires. Nothing else in the claims changed.
+- No review finding was filed against this build in round three's first review. Its sound, visual and touch claims remain UNVERIFIED as stated above.
+

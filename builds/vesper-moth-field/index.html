@@ -8,6 +8,7 @@
   html, body {
     margin: 0;
     height: 100%;
+    height: 100dvh;
     background: #05030a;
     overflow: hidden;
     overscroll-behavior: none;
@@ -16,9 +17,12 @@
     user-select: none;
   }
   canvas {
+    position: fixed;
+    left: 0;
+    top: 0;
     display: block;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     touch-action: none;
   }
   #hint {
@@ -38,8 +42,8 @@
 </style>
 </head>
 <body>
-<canvas id="field" role="img" aria-label="A generative field of luminous moths. Move, drag or touch to draw them; double-tap or press space to scatter them."></canvas>
-<p id="hint">drag or touch to draw the moths · double-tap or space to scatter them</p>
+<canvas id="field" role="img" aria-label="A generative field of luminous moths. Drag or touch to draw them in; press and hold to push them away; double-tap or press space to scatter them."></canvas>
+<p id="hint">drag or touch to draw the moths · press and hold to push them away · double-tap or space to scatter them</p>
 <script>
 (function () {
   'use strict';
@@ -48,17 +52,32 @@
   var hint = document.getElementById('hint');
   var ctx = canvas.getContext('2d');
   var TAU = Math.PI * 2;
+  var BG = '#05030a';
 
   var reduceMotion = !!(window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  var HOLD_MS = 450;        // a press held still this long switches to push (repel)
+  var MOVE_SLOP = 10;       // px a press may wander and still count as still
+  var MAX_POINTERS = 10;    // more fingers than this are ignored
 
   var W = 0, H = 0, DPR = 1;
   var particles = [];
   var t = 0;
   var last = 0;
+  var running = false;
   var scatterUntil = 0;
+  var lastTap = { t: -1e9, x: 0, y: 0, type: '' };
+  var frameMs = 0;
+  var frames = 0;
 
-  var pointer = { x: 0, y: 0, inside: false, down: false, lastDown: 0 };
+  // One entry per live pointer, keyed by pointerId, so each finger is its own
+  // source of force. A mouse or pen with no button down stays in the map as a
+  // hover pointer, which attracts.
+  var pointers = new Map();
+
+  // Read-only witness for the console: window.vesperStats
+  window.vesperStats = { frames: 0, avgFrameMs: 0, particles: 0, pointers: 0, reduceMotion: reduceMotion };
 
   // Angle field: layered sines over normalised space and time.
   // Each particle steers toward the angle here, so the swarm
@@ -71,9 +90,8 @@
          + Math.sin(Math.hypot(nx - 0.5, ny - 0.5) * TAU * 3 - time * 2) * 1.5;
   }
 
-  function makeParticle() {
-    var x = Math.random() * W;
-    var y = Math.random() * H;
+  function makeParticle(x, y) {
+    if (x === undefined) { x = Math.random() * W; y = Math.random() * H; }
     return {
       x: x, y: y, px: x, py: y,
       vx: 0, vy: 0,
@@ -84,38 +102,76 @@
     };
   }
 
-  function seed() {
+  function targetCount() {
     // Scale with screen area, clamped so a phone gets a few dozen
     // and a desktop gets a crowd. Reduced motion gets fewer.
-    var area = W * H;
-    var n = Math.round(area / 7000);
+    var n = Math.round((W * H) / 7000);
     var max = reduceMotion ? 90 : 420;
-    n = Math.max(40, Math.min(max, n));
+    return Math.max(40, Math.min(max, n));
+  }
+
+  function seed() {
+    var n = targetCount();
     particles = [];
     for (var i = 0; i < n; i++) particles.push(makeParticle());
   }
 
+  // A resize keeps the swarm. Positions are rescaled to the new bounds, and
+  // particles are added or removed only when the target count changes.
+  function rescale(oldW, oldH) {
+    var sx = W / oldW, sy = H / oldH;
+    for (var i = 0; i < particles.length; i++) {
+      var q = particles[i];
+      q.x *= sx; q.y *= sy;
+      q.px = q.x; q.py = q.y;
+    }
+    var n = targetCount();
+    while (particles.length > n) particles.pop();
+    while (particles.length < n) particles.push(makeParticle());
+  }
+
   function resize() {
+    var oldW = W, oldH = H;
+    var snapshot = null;
+    if (oldW > 0 && oldH > 0 && canvas.width > 0) {
+      // Keep the last frame so the trails survive the resize.
+      snapshot = document.createElement('canvas');
+      snapshot.width = canvas.width;
+      snapshot.height = canvas.height;
+      snapshot.getContext('2d').drawImage(canvas, 0, 0);
+    }
+
     DPR = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth;
     H = window.innerHeight;
-    canvas.width = Math.floor(W * DPR);
-    canvas.height = Math.floor(H * DPR);
+    canvas.width = Math.max(1, Math.floor(W * DPR));
+    canvas.height = Math.max(1, Math.floor(H * DPR));
+    // The CSS box uses the same numbers as the drawing buffer, so the two
+    // cannot disagree (iOS 100vh and toolbar changes used to split them).
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    ctx.fillStyle = '#05030a';
+    ctx.fillStyle = BG;
     ctx.fillRect(0, 0, W, H);
-    seed();
+    if (snapshot) ctx.drawImage(snapshot, 0, 0, W, H);
+
+    if (!oldW || !oldH || particles.length === 0) seed();
+    else rescale(oldW, oldH);
+    kick();
   }
 
-  function setPointer(e) {
-    pointer.x = e.clientX;
-    pointer.y = e.clientY;
-    pointer.inside = true;
-    pointer.lastType = e.pointerType;
+  // Start the frame loop if it is idle. Reduced motion lets the loop stop
+  // once the swarm has settled, so the field holds still until touched.
+  function kick() {
+    if (running) return;
+    running = true;
+    last = performance.now();
+    requestAnimationFrame(step);
   }
 
   function scatter() {
     scatterUntil = performance.now() + 1400;
+    kick();
   }
 
   function hideHint() {
@@ -123,28 +179,51 @@
   }
 
   canvas.addEventListener('pointerdown', function (e) {
-    setPointer(e);
-    pointer.down = true;
-    hideHint();
+    if (pointers.size >= MAX_POINTERS) return;
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* still tracked without capture */ }
     var now = performance.now();
-    if (now - pointer.lastDown < 320) scatter();
-    pointer.lastDown = now;
+    var x = e.clientX, y = e.clientY;
+    pointers.set(e.pointerId, {
+      x: x, y: y, sx: x, sy: y, t0: now,
+      down: true, held: false, moved: false, type: e.pointerType
+    });
+    hideHint();
+    // A double-tap is two presses from the same kind of pointer, close in time and place.
+    if (now - lastTap.t < 320 && lastTap.type === e.pointerType &&
+        Math.hypot(x - lastTap.x, y - lastTap.y) < 40) scatter();
+    lastTap = { t: now, x: x, y: y, type: e.pointerType };
+    kick();
   });
 
   canvas.addEventListener('pointermove', function (e) {
-    setPointer(e);
+    var ptr = pointers.get(e.pointerId);
+    if (!ptr) {
+      // Hover: a mouse or pen moving with no button down. Touch never hovers.
+      if (e.pointerType === 'touch' || e.buttons) return;
+      ptr = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t0: performance.now(),
+              down: false, held: false, moved: false, type: e.pointerType };
+      pointers.set(e.pointerId, ptr);
+    }
+    ptr.x = e.clientX;
+    ptr.y = e.clientY;
+    if (!ptr.moved && Math.hypot(ptr.x - ptr.sx, ptr.y - ptr.sy) > MOVE_SLOP) ptr.moved = true;
+    kick();
   });
 
-  function release() {
-    pointer.down = false;
-    // Touch has no hover, so a finger lifting ends the pull.
-    if (pointer.lastType === 'touch') pointer.inside = false;
+  function release(e) {
+    var ptr = pointers.get(e.pointerId);
+    if (!ptr) return;
+    ptr.down = false;
+    ptr.held = false;
+    // A mouse stays as a hover pointer. Touch and pen end with the contact.
+    if (ptr.type !== 'mouse') pointers.delete(e.pointerId);
+    kick();
   }
   canvas.addEventListener('pointerup', release);
   canvas.addEventListener('pointercancel', release);
-  canvas.addEventListener('pointerleave', function () {
-    pointer.inside = false;
-    pointer.down = false;
+  canvas.addEventListener('pointerleave', function (e) {
+    var ptr = pointers.get(e.pointerId);
+    if (ptr && !ptr.down) pointers.delete(e.pointerId);
   });
   canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
@@ -159,10 +238,16 @@
   window.addEventListener('resize', resize);
 
   function step(now) {
-    var dt = Math.min((now - last) / 16.67, 2.5);
+    var dtMs = now - last;
+    var dt = Math.min(dtMs / 16.67, 2.5);
     if (!isFinite(dt) || dt <= 0) dt = 1;
     last = now;
+    if (dtMs > 0 && isFinite(dtMs)) {
+      frameMs = frameMs ? frameMs * 0.9 + Math.min(dtMs, 1000) * 0.1 : Math.min(dtMs, 1000);
+    }
+    frames++;
 
+    var ambient = reduceMotion ? 0 : 1;      // the angle field only moves the swarm when not reduced
     var timeScale = reduceMotion ? 0.3 : 1;
     t += 0.008 * dt * timeScale;
 
@@ -172,33 +257,45 @@
     ctx.fillStyle = 'rgba(5, 3, 10, ' + (reduceMotion ? 0.22 : 0.07) + ')';
     ctx.fillRect(0, 0, W, H);
 
-    var attracting = pointer.inside && !pointer.down ? 1 : 0;
-    var repelling = pointer.inside && pointer.down ? 1 : 0;
     var scattering = now < scatterUntil;
-    var hueShift = t * 120;
+    var hueShift = reduceMotion ? 0 : t * 120;   // no colour cycling under reduced motion
+
+    // Pointers: a press held still past HOLD_MS switches that finger to push.
+    var anyActive = false;
+    pointers.forEach(function (ptr) {
+      if (!ptr.down) return;
+      anyActive = true;
+      if (!ptr.held && !ptr.moved && now - ptr.t0 > HOLD_MS) ptr.held = true;
+    });
+    var forces = [];
+    pointers.forEach(function (ptr) {
+      forces.push({ x: ptr.x, y: ptr.y, sign: ptr.held ? -1 : 1, down: ptr.down });
+    });
 
     ctx.globalCompositeOperation = 'lighter';
     ctx.lineCap = 'round';
 
+    var maxSpeed = 0;
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
       p.px = p.x;
       p.py = p.y;
 
       var a = field(p.x, p.y, t);
-      var tx = Math.cos(a) * p.speed;
-      var ty = Math.sin(a) * p.speed;
+      var tx = Math.cos(a) * p.speed * ambient;
+      var ty = Math.sin(a) * p.speed * ambient;
       p.vx += (tx - p.vx) * 0.04 * dt;
       p.vy += (ty - p.vy) * 0.04 * dt;
 
-      if (attracting || repelling) {
-        var dx = pointer.x - p.x;
-        var dy = pointer.y - p.y;
+      // Each pointer pulls (sign +1) or pushes (sign -1).
+      for (var f = 0; f < forces.length; f++) {
+        var fo = forces[f];
+        var dx = fo.x - p.x;
+        var dy = fo.y - p.y;
         var d = Math.sqrt(dx * dx + dy * dy) + 0.0001;
-        var pull = 1.6 * Math.exp(-d / 220) * timeScale;
-        var sign = repelling ? -1 : 1;
-        p.vx += (dx / d) * pull * sign * dt;
-        p.vy += (dy / d) * pull * sign * dt;
+        var pull = 1.6 * Math.exp(-d / 220) * timeScale * fo.sign * dt;
+        p.vx += (dx / d) * pull;
+        p.vy += (dy / d) * pull;
       }
 
       if (scattering) {
@@ -209,7 +306,8 @@
       // Keep the swarm from accelerating forever.
       var v = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
       var cap = reduceMotion ? 2.2 : 6;
-      if (v > cap) { p.vx *= cap / v; p.vy *= cap / v; }
+      if (v > cap) { p.vx *= cap / v; p.vy *= cap / v; v = cap; }
+      if (v > maxSpeed) maxSpeed = v;
 
       p.x += p.vx * dt * timeScale;
       p.y += p.vy * dt * timeScale;
@@ -222,7 +320,7 @@
       else if (p.y > H + 20) { p.y = -20; wrapped = true; }
       if (wrapped) { p.px = p.x; p.py = p.y; }
 
-      var flicker = 0.55 + 0.45 * Math.sin(t * 6 + p.phase);
+      var flicker = reduceMotion ? 1 : 0.55 + 0.45 * Math.sin(t * 6 + p.phase);
       var hue = (p.hue + hueShift) % 360;
       var alpha = (reduceMotion ? 0.35 : 0.6) * flicker;
 
@@ -239,23 +337,37 @@
       ctx.fill();
     }
 
-    // A ring under the finger while it pulls.
-    if (pointer.inside && pointer.down) {
-      var pulse = 28 + 10 * Math.sin(t * 9);
-      ctx.strokeStyle = 'hsla(' + ((hueShift + 180) % 360).toFixed(1) + ', 100%, 75%, 0.45)';
+    // A ring under each pressed finger: magenta while it pushes, cyan while it pulls.
+    for (var k = 0; k < forces.length; k++) {
+      var rf = forces[k];
+      if (!rf.down) continue;
+      var pulse = reduceMotion ? 30 : 28 + 10 * Math.sin(t * 9);
+      ctx.strokeStyle = rf.sign < 0
+        ? 'hsla(' + ((hueShift + 180) % 360).toFixed(1) + ', 100%, 75%, 0.45)'
+        : 'hsla(190, 100%, 75%, 0.4)';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(pointer.x, pointer.y, pulse, 0, TAU);
+      ctx.arc(rf.x, rf.y, pulse, 0, TAU);
       ctx.stroke();
     }
 
     ctx.globalCompositeOperation = 'source-over';
-    window.requestAnimationFrame(step);
+
+    // Under reduced motion the loop runs only while something is moving the swarm.
+    var keepGoing = !reduceMotion || scattering || anyActive || maxSpeed > 0.02;
+    if (keepGoing) {
+      requestAnimationFrame(step);
+    } else {
+      running = false;
+    }
+
+    window.vesperStats.frames = frames;
+    window.vesperStats.avgFrameMs = Math.round(frameMs * 10) / 10;
+    window.vesperStats.particles = particles.length;
+    window.vesperStats.pointers = pointers.size;
   }
 
   resize();
-  last = performance.now();
-  window.requestAnimationFrame(step);
 })();
 </script>
 </body>

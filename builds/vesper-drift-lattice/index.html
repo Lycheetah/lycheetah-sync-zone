@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Drift Lattice</title>
 <style>
-  html, body { margin: 0; height: 100%; background: #0b0912; color: #e8e0ff;
+  html, body { margin: 0; height: 100%; height: 100dvh; background: #0b0912; color: #e8e0ff;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
   canvas#field { position: fixed; inset: 0; width: 100%; height: 100%; display: block;
     touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
@@ -89,6 +89,9 @@
     H = window.innerHeight;
     canvas.width = Math.round(W * DPR);
     canvas.height = Math.round(H * DPR);
+    // CSS box and drawing buffer come from the same numbers (iOS 100vh drift).
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
     g.setTransform(DPR, 0, 0, DPR, 0, 0);
     cx = W / 2;
     cy = H * 0.46;
