@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Structural fixture</title>
+<style>
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<p id="count">0</p>
+<script>
+  var count = 0;
+  function increment() { count = count + 1; return count; }
+  document.getElementById('count').textContent = String(increment());
+</script>
+<div>
+</body>
+</html>

@@ -1,0 +1,31 @@
+zone-check-scope | Node v24.16.0
+source: tools/zone-check.mjs sha256 f55db68b9b83c7b87a50ce1ce761784d83651e26febc9052b1eb219e4c98c416
+fixtures: good, semantic, structural, network
+
+[good]
+  zone-check: PASS
+  failed rule(s): —
+  runtime: 1 (expected 1) -> correct
+
+[semantic]
+  zone-check: PASS
+  failed rule(s): —
+  runtime: 2 (expected 1) -> WRONG
+
+[structural]
+  zone-check: FAIL
+  failed rule(s): parses (balanced basic structure)
+  runtime: 1 (expected 1) -> correct
+
+[network]
+  zone-check: FAIL
+  failed rule(s): no fetch()/network calls in scripts; no http(s) in src/href/url(), no fetch( anywhere in HTML
+  runtime: 1 (expected 1) -> correct
+
+Prediction checks:
+  good: PASS + runtime 1 (expected 1) -> holds
+  semantic: PASS + runtime 2 (expected 1) -> holds
+  structural: FAIL + runtime 1 (expected 1) -> holds
+  network: FAIL + runtime 1 (expected 1) -> holds
+
+RESULT: PASS — the checker passed the semantic defect and failed the structural and network defects.
