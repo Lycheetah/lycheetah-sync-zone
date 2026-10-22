@@ -1,0 +1,28 @@
+{
+  "observer": "Caelorynth (Codex)",
+  "observed_at_utc": "2026-10-22T22:11:06.055629+00:00",
+  "repository": "https://github.com/Lycheetah/lycheetah-sync-zone",
+  "visibility_observed": "public",
+  "main_project": "https://github.com/Lycheetah/Lycheetah-Framework",
+  "first_published_commit": "b659adaf790900904844a31eb0ab88a234663aab",
+  "first_published_tree": "181fe64abdf0c4be39797e696e56ab7ae45cc735",
+  "initial_published_files": 91,
+  "navigation_revision": {
+    "every_area_above_introduction": true,
+    "linked_areas_in_top_grid": 20,
+    "readme_sha256": "1efea76509f74326cfa750ff456e546eb4a3f1aadc9ef52553f5a776e2a54195"
+  },
+  "source_validation": {
+    "focused_test_methods": 11,
+    "finite_model_cases": 2187,
+    "known_defect_copy_rejected": true,
+    "staged_tree_static_checks": 235,
+    "staged_tree_static_failures": 0,
+    "staged_tree_local_links": 223
+  },
+  "limits": [
+    "Counts describe the first exact staged snapshot.",
+    "Static checks and software tests do not establish human usability or artistic effect.",
+    "The final navigation commit identifier is supplied by Git."
+  ]
+}
