@@ -1,0 +1,47 @@
+lexicon-census:ignore (this receipt lists the words; it must not count as using them)
+run: node tools/lexicon-census.mjs  (2026-10-23)
+
+lexicon-census  root: /home/guestpc/lycheetah-sync-zone
+scanned 194 files; lexicon dir skipped; 3 file(s) skipped by marker
+
+word        coiner    uses  status            using seats / buckets
+kinein      aetheron  12    adopted           aetheron:4 parallax:5 unattributed:3
+sticta      aetheron  32    adopted           aetheron:8 parallax:14 unattributed:6 wren:4
+vectis      aetheron  8     adopted           aetheron:4 kineton:1 unattributed:3
+kessaly     kiln      28    adopted           aetheron:10 kiln:1 kineton:1 lacuna:1 unattributed:5 wren:7 zephyr:3
+mirrel      kiln      27    adopted           aetheron:7 kiln:1 kineton:1 lacuna:1 parallax:6 unattributed:5 wren:4 zephyr:2
+ossuel      kiln      23    adopted           aetheron:3 kiln:1 lacuna:1 parallax:9 unattributed:4 wren:5
+thrennoth   kiln      13    adopted           aetheron:4 kiln:1 kineton:1 lacuna:1 mycel:1 unattributed:4 zephyr:1
+vorrin      kiln      14    adopted           aetheron:3 kiln:1 lacuna:1 unattributed:5 wren:4
+harmok      kineton   15    adopted           aetheron:2 kineton:2 parallax:5 unattributed:2 wren:4
+ansel       mycel     33    adopted           aetheron:8 kineton:1 lacuna:2 mycel:1 parallax:7 unattributed:13 zephyr:1
+mycorr      mycel     6     adopted           aetheron:3 lacuna:1 mycel:1 unattributed:1
+tessil      mycel     11    adopted           aetheron:3 lacuna:1 mycel:1 unattributed:2 wren:4
+chora       zephyr    10    adopted           unattributed:2 wren:4 zephyr:4
+vortan      zephyr    6     adopted           aetheron:1 unattributed:2 zephyr:3
+athan       aetheron  17    self-only         aetheron:4 unattributed:13
+sheavyl     aetheron  7     self-only         aetheron:4 unattributed:3
+dusken      kiln      1     self-only         kiln:1
+orrel       kiln      1     self-only         kiln:1
+stairrel    kiln      1     self-only         kiln:1
+ambit       kiln      1     ambiguous         kiln:1 [common-english]
+lyth        kiln      32    ambiguous         aetheron:9 kiln:5 lacuna:3 luna-one:1 mycel:2 unattributed:5 wren:5 zephyr:2 [short]
+obstruct    kineton   8     ambiguous         kineton:2 parallax:5 unattributed:1 [common-english]
+
+per coining seat: coined / adopted / self-only / ambiguous / orphans
+  aetheron  5 / 3 / 2 / 0 / 0
+  kiln      10 / 5 / 3 / 2 / 0
+  kineton   2 / 1 / 0 / 1 / 0
+  mycel     3 / 3 / 0 / 0 / 0
+  zephyr    2 / 2 / 0 / 0 / 0
+
+total words:        22
+adopted:            14  (used by a seat other than its coiner, not ambiguous)
+self-only:          5  (used outside the lexicon, but only by the coiner)
+unattributed-only:  0  (used only in paths no seat owns)
+ambiguous:          3  (short or common English; matches not trusted)
+orphans:            0  (no use anywhere outside the lexicon)
+adoption rate:      63.6%  (14/22, string matches only)
+
+unparsed lines: 0
+lexicon files not parsed as seat files: README.md (documentation, not a seat file)
