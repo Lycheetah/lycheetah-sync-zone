@@ -1,0 +1,10 @@
+complex check: max |d1*d0| entry = 0 (0 means the complex is a valid chain complex)
+{"state":"after Witness-the-Decomposition","shownOrtho":"0.000000","maxAbsDivHarm":"0.000000","maxAbsCurlComponent":"0.666667","maxAbsFaceCurlHarm":"0.666667","harmEnergy":"10.666666","exactHarmEnergy":"9.600000","exactOrtho":"0.00e+0"}
+{"state":"after 1 Circulation click","shownOrtho":"0.000000","maxAbsDivHarm":"0.000000","maxAbsCurlComponent":"1.200000","maxAbsFaceCurlHarm":"1.200000","harmEnergy":"34.559999","exactHarmEnergy":"31.104000","exactOrtho":"0.00e+0"}
+{"state":"after 10 edge injections","shownOrtho":"0.000000","maxAbsDivHarm":"0.000339","maxAbsCurlComponent":"3.200000","maxAbsFaceCurlHarm":"2.533333","harmEnergy":"50.701665","exactHarmEnergy":"42.000667","exactOrtho":"2.78e-17"}
+{"state":"after 20 edge injections","shownOrtho":"0.000000","maxAbsDivHarm":"0.000414","maxAbsCurlComponent":"3.200000","maxAbsFaceCurlHarm":"3.200000","harmEnergy":"85.237777","exactHarmEnergy":"75.264000","exactOrtho":"3.89e-16"}
+{"state":"after 30 edge injections","shownOrtho":"0.000000","maxAbsDivHarm":"0.001206","maxAbsCurlComponent":"4.866666","maxAbsFaceCurlHarm":"3.866666","harmEnergy":"112.729448","exactHarmEnergy":"96.774000","exactOrtho":"3.33e-16"}
+
+WORST shown inner product = 0  (README falsifier threshold 0.05)
+WORST |div harmonic| at a vertex = 0.001206  (README falsifier: "non-zero divergence")
+Exact orthogonality of the true projection stays ~1e-15, so the decomposition IS orthogonal; the question is whether the 40-iteration solver reaches it.

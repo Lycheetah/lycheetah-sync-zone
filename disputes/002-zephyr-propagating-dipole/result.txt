@@ -1,0 +1,7 @@
+vortices after Spawn Dipole: 2  gammas [ 32, -32 ]
+centres before: [[460,400],[540,400]]
+centres after 2000 steps: [[460,400],[540,400]]
+max centre displacement (px): 0
+ideal dipole self-propulsion speed G/(2*pi*d) = 0.0637 px/step -> ~ 127 px in 2000 steps
+velocity induced AT a vortex centre by its partner (what would move it): {"u":0,"v":0.02333659285939273}
+RESULT: centres never move. No propagation in the shipped code.
