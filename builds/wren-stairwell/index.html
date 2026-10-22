@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>The Stairwell That Forgets Its Floor</title>
+<style>
+  :root { --void: #07050f; --ink: #e9e3ff; --gold: #ffd27a; --ice: #9fe7ff; }
+  html, body { margin: 0; height: 100%; background: var(--void); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  canvas#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block;
+    touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    z-index: 0; outline: none; }
+  canvas#world:focus-visible { outline: 3px solid var(--gold); outline-offset: -6px; }
+  #top { position: fixed; left: 16px; right: 16px; top: calc(12px + env(safe-area-inset-top, 0px));
+    margin: 0; font-size: 15px; line-height: 1.5; text-shadow: 0 0 10px var(--void);
+    pointer-events: none; z-index: 2; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; gap: 10px;
+    align-items: center; flex-wrap: wrap;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(7, 5, 15, 0.72); }
+  button { min-height: 44px; min-width: 44px; padding: 0 16px; border-radius: 999px;
+    border: 1px solid var(--ice); background: rgba(159, 231, 255, 0.08); color: var(--ink);
+    font: inherit; font-size: 15px; cursor: pointer; }
+  button[aria-pressed="true"] { background: var(--ice); color: var(--void); }
+  button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  #hint { font-size: 14px; opacity: 0.85; margin-left: auto; text-align: right; }
+  @media (max-width: 520px) { #hint { display: none; } }
+</style>
+</head>
+<body>
+
+<canvas id="world" tabindex="0" role="application"
+  aria-label="The Stairwell That Forgets Its Floor. An impossible place you fly through. Drag to fly: up is forward, down is back, left and right turn. Arrow keys or W A S D move, Q and E rise and fall, I and K tilt.">
+</canvas>
+
+<p id="top" role="status" aria-live="polite">Drag anywhere to fly. The stairs do not agree with each other, and that is the point.</p>
+
+<div id="bar">
+  <button id="drift" type="button" aria-pressed="true">Drift</button>
+  <button id="home" type="button">Back to the start</button>
+  <p id="hint">Keys: arrows or W A S D move, Q and E rise and fall, I and K tilt. Mouse wheel rises and falls.</p>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const canvas = $('world');
+  const topNote = $('top');
+  const driftBtn = $('drift');
+  const homeBtn = $('home');
+
+  // Honour the reduced-motion preference: no ambient drift, no animated twist.
+  const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const touchy = !!((window.matchMedia && matchMedia('(pointer: coarse)').matches) || 'ontouchstart' in window);
+
+  // Resolution scale is the phone budget: fewer pixels, fewer costs.
+  const MIN_SCALE = 0.25;
+  const MAX_SCALE = touchy ? 0.6 : 1.0;
+  let scale = touchy ? 0.45 : 0.7;
+
+  const START = { x: 0, y: 0.5, z: -4, yaw: 0, pitch: 0 };
+
+  const VERT = [
+    'attribute vec2 aPos;',
+    'void main() { gl_Position = vec4(aPos, 0.0, 1.0); }'
+  ].join('\n');
+
+  // GLSL ES 1.00. Kaleidoscopic fold space, repeated in 6-unit cells, with a
+  // twist that changes with height, so each landing points somewhere else.
+  const FRAG = [
+    '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+    'precision highp float;',
+    '#else',
+    'precision mediump float;',
+    '#endif',
+    'uniform vec2 uRes;',
+    'uniform float uTime;',
+    'uniform vec3 uPos;',
+    'uniform vec3 uFwd;',
+    'uniform vec3 uRight;',
+    'uniform vec3 uUp;',
+    'const int MAXSTEPS = 56;',
+    'const float MAXD = 48.0;',
+    'mat2 rot(float a) { float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }',
+    'float map(vec3 p) {',
+    '  vec2 q = rot(0.35 * sin(p.y * 0.25 + uTime * 0.2)) * p.xz;',
+    '  p.x = q.x; p.z = q.y;',
+    '  p = mod(p + 3.0, 6.0) - 3.0;',
+    '  float s = 1.0;',
+    '  for (int i = 0; i < 4; i++) {',
+    '    p = abs(p);',
+    '    if (p.x < p.y) p.xy = p.yx;',
+    '    if (p.x < p.z) p.xz = p.zx;',
+    '    if (p.y < p.z) p.yz = p.zy;',
+    '    p = p * 1.9 - vec3(2.4, 1.6, 0.9);',
+    '    vec2 r = rot(0.5) * p.xy;',
+    '    p.x = r.x; p.y = r.y;',
+    '    s *= 1.9;',
+    '  }',
+    '  return (length(p) - 0.9) / s;',
+    '}',
+    'vec3 calcNormal(vec3 p) {',
+    '  const vec2 k = vec2(1.0, -1.0);',
+    '  const float h = 0.003;',
+    '  return normalize(k.xyy * map(p + k.xyy * h) + k.yyx * map(p + k.yyx * h) +',
+    '                   k.yxy * map(p + k.yxy * h) + k.xxx * map(p + k.xxx * h));',
+    '}',
+    'void main() {',
+    '  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;',
+    '  vec3 rd = normalize(uFwd * 1.5 + uRight * uv.x + uUp * uv.y);',
+    '  float t = 0.0;',
+    '  float glow = 0.0;',
+    '  float hit = 0.0;',
+    '  float ssteps = 0.0;',
+    '  for (int i = 0; i < MAXSTEPS; i++) {',
+    '    vec3 p = uPos + rd * t;',
+    '    float d = map(p) * 0.8;',
+    '    glow += 0.006 / (0.02 + abs(d));',
+    '    if (d < 0.0015 * (1.0 + t)) { hit = 1.0; break; }',
+    '    t += d;',
+    '    ssteps = float(i);',
+    '    if (t > MAXD) break;',
+    '  }',
+    '  vec3 pal = 0.5 + 0.5 * cos(vec3(0.0, 2.1, 4.2) + uTime * 0.05 + t * 0.05);',
+    '  vec3 col = vec3(0.02, 0.015, 0.05);',
+    '  if (hit > 0.5) {',
+    '    vec3 p = uPos + rd * t;',
+    '    vec3 n = calcNormal(p);',
+    '    float diff = clamp(dot(n, normalize(vec3(0.4, 0.8, -0.3))), 0.0, 1.0);',
+    '    float rim = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 3.0);',
+    '    float ao = 1.0 - ssteps / float(MAXSTEPS);',
+    '    col = pal * (0.15 + 0.85 * diff * ao) + rim * vec3(0.5, 0.9, 1.0) * 0.6;',
+    '    col = mix(col, vec3(0.03, 0.02, 0.07), 1.0 - exp(-t * 0.04));',
+    '  }',
+    '  col += pal * glow * 0.012;',
+    '  col = col / (1.0 + col);',
+    '  col = pow(col, vec3(0.4545));',
+    '  gl_FragColor = vec4(col, 1.0);',
+    '}'
+  ].join('\n');
+
+  // ---- state -------------------------------------------------------------
+  const cam = { x: START.x, y: START.y, z: START.z, yaw: START.yaw, pitch: START.pitch,
+                vf: 0, vs: 0, vr: 0, vt: 0, vp: 0 };
+  const keys = {};
+  const drag = { active: false, ox: 0, oy: 0, f: 0, t: 0 };
+  let wheelRise = 0;
+  let autoDrift = !reduce;
+  let dirty = true;
+  let elapsed = 0;
+  let gl = null, prog = null, uni = {}, running = false;
+  let ema = 16, frameCount = 0;
+
+  driftBtn.setAttribute('aria-pressed', String(autoDrift));
+  driftBtn.textContent = autoDrift ? 'Drift on' : 'Drift off';
+
+  // ---- WebGL setup -------------------------------------------------------
+  function compile(type, src) {
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+      const log = gl.getShaderInfoLog(sh) || 'no log';
+      gl.deleteShader(sh);
+      throw new Error(log);
+    }
+    return sh;
+  }
+
+  function initGL() {
+    const opts = { antialias: false, alpha: false, depth: false, stencil: false,
+                   preserveDrawingBuffer: false, powerPreference: 'low-power' };
+    gl = canvas.getContext('webgl', opts) || canvas.getContext('experimental-webgl', opts);
+    if (!gl) return false;
+    const vs = compile(gl.VERTEX_SHADER, VERT);
+    const fs = compile(gl.FRAGMENT_SHADER, FRAG);
+    prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+      throw new Error(gl.getProgramInfoLog(prog) || 'link failed');
+    }
+    gl.useProgram(prog);
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    // One oversized triangle covers the screen.
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, 'aPos');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    ['uRes', 'uTime', 'uPos', 'uFwd', 'uRight', 'uUp'].forEach(n => {
+      uni[n] = gl.getUniformLocation(prog, n);
+    });
+    return true;
+  }
+
+  // ---- Canvas 2D fallback (no WebGL) --------------------------------------
+  function fallback(reason) {
+    let target = canvas;
+    let ctx = target.getContext('2d');
+    if (!ctx) {
+      // The canvas was already bound to WebGL before a shader failed. Swap in a fresh one.
+      target = canvas.cloneNode(false);
+      canvas.parentNode.replaceChild(target, canvas);
+      ctx = target.getContext('2d');
+    }
+    if (!ctx) {
+      topNote.textContent = 'This place needs WebGL, and this browser has no 2D canvas either.';
+      return;
+    }
+    const w = target.width = Math.max(64, window.innerWidth);
+    const h = target.height = Math.max(64, window.innerHeight);
+    const g = ctx.createRadialGradient(w / 2, h * 0.45, 10, w / 2, h / 2, Math.max(w, h) * 0.7);
+    g.addColorStop(0, '#2a1d4d');
+    g.addColorStop(1, '#07050f');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    // Stairs drawn on paper: nested rectangles that step in and never meet.
+    ctx.strokeStyle = 'rgba(159, 231, 255, 0.35)';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 9; i++) {
+      const s = 1 - i * 0.09;
+      const ox = (i % 2 ? 1 : -1) * i * 6;
+      ctx.strokeRect(w / 2 - w * s * 0.3 + ox, h * 0.5 - h * s * 0.3, w * s * 0.6, h * s * 0.6);
+    }
+    ctx.fillStyle = '#e9e3ff';
+    ctx.font = '16px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('This place needs WebGL, and this browser did not give it.', w / 2, h * 0.86);
+    ctx.fillText('The stairs are drawn on paper instead.', w / 2, h * 0.86 + 24);
+    if (reason) {
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(233, 227, 255, 0.6)';
+      ctx.fillText(String(reason).slice(0, 160), w / 2, h * 0.86 + 52);
+    }
+    topNote.textContent = 'WebGL is missing here. The fallback is a still drawing, not the world.';
+    driftBtn.disabled = true;
+    homeBtn.disabled = true;
+  }
+
+  // ---- sizing and adaptive resolution ------------------------------------
+  function resize() {
+    const w = Math.max(64, Math.round(window.innerWidth * scale));
+    const h = Math.max(64, Math.round(window.innerHeight * scale));
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+    if (gl) gl.viewport(0, 0, w, h);
+    dirty = true;
+  }
+
+  function adapt(dtMs) {
+    ema = ema * 0.9 + dtMs * 0.1;
+    frameCount++;
+    if (frameCount % 30 !== 0) return;
+    if (ema > 34 && scale > MIN_SCALE) {
+      scale = Math.max(MIN_SCALE, scale * 0.9);
+      resize();
+    } else if (ema < 20 && scale < MAX_SCALE) {
+      scale = Math.min(MAX_SCALE, scale * 1.04);
+      resize();
+    }
+  }
+
+  // ---- camera ------------------------------------------------------------
+  function basis() {
+    const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+    const fwd = [Math.sin(cam.yaw) * cp, sp, Math.cos(cam.yaw) * cp];
+    let right = [fwd[2], 0, -fwd[0]];
+    const rl = Math.hypot(right[0], right[2]) || 1;
+    right = [right[0] / rl, 0, right[2] / rl];
+    // up = fwd x right, so the screen reads correctly
+    const up = [fwd[1] * right[2] - fwd[2] * right[1],
+                fwd[2] * right[0] - fwd[0] * right[2],
+                fwd[0] * right[1] - fwd[1] * right[0]];
+    return { fwd, right, up };
+  }
+
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+
+  // Returns true if the camera or input moved this frame.
+  function step(dt) {
+    const k = keys;
+    let f = clamp((k.w || k.ArrowUp ? 1 : 0) - (k.s || k.ArrowDown ? 1 : 0) + drag.f, -1, 1);
+    let s = clamp((k.d ? 1 : 0) - (k.a ? 1 : 0), -1, 1);
+    let r = clamp((k.e || k[' '] ? 1 : 0) - (k.q || k.Shift ? 1 : 0) + wheelRise, -1, 1);
+    let turn = clamp((k.ArrowRight ? 1 : 0) - (k.ArrowLeft ? 1 : 0) + drag.t, -1, 1);
+    let tilt = clamp((k.i ? 1 : 0) - (k.k ? 1 : 0), -1, 1);
+    const typed = !!(f || s || r || turn || tilt);
+    if (!typed && autoDrift) {
+      // Ambient drift: a slow forward pull and a gentle sway. Off under reduced motion
+      // unless the viewer turns Drift on.
+      f = 0.35;
+      turn = 0.12 * Math.sin(elapsed * 0.1);
+    }
+    const ease = 1 - Math.exp(-dt * 4);
+    cam.vf += (f * 3.2 - cam.vf) * ease;
+    cam.vs += (s * 2.6 - cam.vs) * ease;
+    cam.vr += (r * 2.2 - cam.vr) * ease;
+    cam.vt += (turn * 1.6 - cam.vt) * ease;
+    cam.vp += (tilt * 1.0 - cam.vp) * ease;
+    const b = basis();
+    const moving = Math.abs(cam.vf) + Math.abs(cam.vs) + Math.abs(cam.vr) +
+                   Math.abs(cam.vt) + Math.abs(cam.vp) > 0.003;
+    if (moving) {
+      cam.x += (b.fwd[0] * cam.vf + b.right[0] * cam.vs) * dt;
+      cam.y += (b.fwd[1] * cam.vf + cam.vr) * dt;
+      cam.z += (b.fwd[2] * cam.vf + b.right[2] * cam.vs) * dt;
+      cam.yaw += cam.vt * dt;
+      cam.pitch = clamp(cam.pitch + cam.vp * dt, -1.2, 1.2);
+    }
+    wheelRise *= Math.exp(-dt * 6);
+    return moving;
+  }
+
+  // ---- draw ---------------------------------------------------------------
+  function draw() {
+    const b = basis();
+    gl.uniform2f(uni.uRes, canvas.width, canvas.height);
+    gl.uniform1f(uni.uTime, elapsed);
+    gl.uniform3f(uni.uPos, cam.x, cam.y, cam.z);
+    gl.uniform3f(uni.uFwd, b.fwd[0], b.fwd[1], b.fwd[2]);
+    gl.uniform3f(uni.uRight, b.right[0], b.right[1], b.right[2]);
+    gl.uniform3f(uni.uUp, b.up[0], b.up[1], b.up[2]);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    if (!running) return;
+    const dtMs = now - last;
+    const dt = Math.min(0.05, dtMs / 1000);
+    last = now;
+    adapt(dtMs);
+    if (!reduce) elapsed += dt;
+    const moved = step(dt);
+    if (moved || dirty || !reduce) {
+      draw();
+      dirty = false;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ---- input -------------------------------------------------------------
+  const MOVE_KEYS = ['w', 'a', 's', 'd', 'q', 'e', 'i', 'k', ' ', 'Shift',
+                     'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+  window.addEventListener('keydown', e => {
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (MOVE_KEYS.indexOf(key) !== -1) {
+      keys[key] = true;
+      e.preventDefault();
+      dirty = true;
+    }
+  });
+  window.addEventListener('keyup', e => {
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    keys[key] = false;
+  });
+  window.addEventListener('blur', () => {
+    for (const k in keys) keys[k] = false;
+    drag.f = 0; drag.t = 0; drag.active = false;
+  });
+
+  // Drag is a joystick: the distance from the press point sets thrust and turn.
+  canvas.addEventListener('pointerdown', e => {
+    drag.active = true;
+    drag.ox = e.clientX;
+    drag.oy = e.clientY;
+    canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+    canvas.focus({ preventScroll: true });
+    e.preventDefault();
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag.active) return;
+    const span = 90;
+    drag.t = clamp((e.clientX - drag.ox) / span, -1, 1);
+    drag.f = clamp((drag.oy - e.clientY) / span, -1, 1);
+    dirty = true;
+  });
+  const endDrag = () => { drag.active = false; drag.f = 0; drag.t = 0; };
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('lostpointercapture', endDrag);
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    wheelRise = clamp(wheelRise - e.deltaY * 0.004, -1, 1);
+    dirty = true;
+  }, { passive: false });
+
+  driftBtn.addEventListener('click', () => {
+    autoDrift = !autoDrift;
+    driftBtn.setAttribute('aria-pressed', String(autoDrift));
+    driftBtn.textContent = autoDrift ? 'Drift on' : 'Drift off';
+    dirty = true;
+  });
+
+  homeBtn.addEventListener('click', () => {
+    Object.assign(cam, { x: START.x, y: START.y, z: START.z, yaw: START.yaw, pitch: START.pitch,
+                         vf: 0, vs: 0, vr: 0, vt: 0, vp: 0 });
+    dirty = true;
+  });
+
+  canvas.addEventListener('webglcontextlost', e => {
+    e.preventDefault();
+    running = false;
+    topNote.textContent = 'The graphics context was lost. Reload the page to enter again.';
+  }, false);
+
+  window.addEventListener('resize', resize);
+
+  // ---- start -------------------------------------------------------------
+  let started = false;
+  try {
+    started = initGL();
+  } catch (err) {
+    started = false;
+    fallback(err && err.message);
+    return;
+  }
+  if (!started) {
+    fallback('no webgl context');
+    return;
+  }
+  resize();
+  running = true;
+  requestAnimationFrame(t => { last = t; frame(t); });
+})();
+</script>
+</body>
+</html>
