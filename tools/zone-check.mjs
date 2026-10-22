@@ -6,16 +6,23 @@
 //
 // What it checks (static only; nothing is rendered or executed):
 //   builds/*/README.md     exists and mentions "witness" (case-insensitive)
-//   builds/*/index.html    balanced basic structure, no external URLs,
-//                          no fetch()/network calls, viewport meta,
-//                          prefers-reduced-motion, inline scripts compile
+//   builds/**/index.html   balanced basic structure, no external URLs,
+//                          no http(s) in src/href/url(), no fetch( anywhere in
+//                          the file, viewport meta, prefers-reduced-motion,
+//                          every inline script passes a syntax check
+//   builds/gyre-atlas/     every relative link and url() resolves to a file
 //   seats/*/README.md      every seat folder has a README.md
 //   threads/*.md           every "## " entry heading is "## <Name> · YYYY-MM-DD"
 //   whole zone             no secret-looking strings
+//
+// Syntax checks parse only. Classic scripts go through vm.Script; module
+// scripts go through `node --check` on a temp file. Nothing is executed.
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 export const DEFAULT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -67,6 +74,7 @@ export function scanHtml(html) {
   const problems = [];
   const tags = [];
   const scripts = [];
+  const styles = [];
   const stack = [];
   let doctype = false;
   const re = new RegExp(TAG_RE.source, 'gi');
@@ -109,13 +117,14 @@ export function scanHtml(html) {
       }
       const content = html.slice(re.lastIndex, close.index);
       if (name === 'script') scripts.push({ attrs: tag.attrs, content, line: lineAt(html, re.lastIndex) });
+      if (name === 'style') styles.push({ content, line: lineAt(html, re.lastIndex) });
       re.lastIndex = close.index + close[0].length;
       continue;
     }
     stack.push({ name, line });
   }
   for (const open of stack) problems.push(`<${open.name}> on line ${open.line} is never closed`);
-  return { problems, tags, scripts, doctype };
+  return { problems, tags, scripts, styles, doctype };
 }
 
 // Lines where a pattern matches inside a text that starts at baseLine.
@@ -125,6 +134,79 @@ function hits(text, pattern, baseLine) {
   let m;
   while ((m = re.exec(text))) out.push(`line ${baseLine + lineAt(text, m.index) - 1}`);
   return out;
+}
+
+// Whole-file scan for outward links and fetch(. Unlike the tag scan, this also
+// sees comments, onclick="" handlers and style="" attributes.
+const RAW_EXTERNAL = /\b(?:src|href|formaction|action|poster|data)\s*=\s*["']?\s*(?:https?:)?\/\/|url\(\s*["']?\s*(?:https?:)?\/\//gi;
+const RAW_FETCH = /\bfetch\s*\(/g;
+function rawExternalAndFetch(html) {
+  return [
+    ...hits(html, RAW_EXTERNAL, 1).map((h) => `${h} (http(s) in src/href/url)`),
+    ...hits(html, RAW_FETCH, 1).map((h) => `${h} (fetch()`),
+  ];
+}
+
+// Parses an ES module without running it. `node --check` only parses.
+function moduleSyntaxError(source) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zone-check-module-'));
+  const file = path.join(dir, 'inline-module.mjs');
+  try {
+    fs.writeFileSync(file, source);
+    const run = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
+    if (run.status === 0) return null;
+    const line = (run.stderr || '').split('\n').find((l) => /Error/.test(l));
+    return (line || 'syntax error').trim();
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+// Relative references: attribute URLs and CSS url()/@import in <style> text and style="".
+const SAME_DOC_OR_SCHEME = /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i;
+const CSS_REF = /url\(\s*(["']?)([^"')]*?)\1\s*\)|@import\s+["']([^"']+)["']/gi;
+function cssRefs(css) {
+  const out = [];
+  const re = new RegExp(CSS_REF.source, 'gi');
+  let m;
+  while ((m = re.exec(css))) out.push(m[2] ?? m[3]);
+  return out;
+}
+function relativeRefs(html) {
+  const { tags, styles } = scanHtml(html);
+  const refs = [];
+  for (const t of tags) {
+    for (const a of URL_ATTRS) {
+      if (t.attrs[a] !== undefined) refs.push({ where: `<${t.name} ${a}>`, value: t.attrs[a].trim(), line: t.line });
+    }
+    if (t.attrs.style !== undefined) {
+      for (const v of cssRefs(t.attrs.style)) refs.push({ where: `<${t.name} style>`, value: v.trim(), line: t.line });
+    }
+  }
+  for (const s of styles) {
+    for (const v of cssRefs(s.content)) refs.push({ where: '<style>', value: v.trim(), line: s.line });
+  }
+  return refs.filter((r) => r.value !== '' && !SAME_DOC_OR_SCHEME.test(r.value));
+}
+// Returns null when the reference resolves to a file, else the reason it does not.
+function resolveRef(value, dir) {
+  const bare = value.split('#')[0].split('?')[0];
+  if (bare === '') return null;
+  let decoded;
+  try { decoded = decodeURIComponent(bare); } catch { return 'malformed percent-encoding'; }
+  const target = path.resolve(dir, decoded);
+  if (isFile(target)) return null;
+  if (isDir(target)) return 'is a directory, not a file';
+  return 'no such file on disk';
+}
+// Problems for every relative reference in html, resolved from dir.
+export function checkRelativeLinks(html, dir) {
+  const problems = [];
+  for (const r of relativeRefs(html)) {
+    const why = resolveRef(r.value, dir);
+    if (why) problems.push(`line ${r.line} ${r.where} "${r.value}": ${why}`);
+  }
+  return problems;
 }
 
 // Returns the rule results for one build's index.html.
@@ -164,7 +246,8 @@ export function checkBuildHtml(html) {
     const type = (s.attrs.type ?? 'text/javascript').trim().toLowerCase();
     if (!SCRIPT_TYPES.has(type)) return; // data blocks and templates are not code
     if (type === 'module') {
-      compileWarnings.push(`${label} is type=module; not compile-checked (needs --experimental-vm-modules)`);
+      const err = moduleSyntaxError(s.content);
+      if (err) compileProblems.push(`${label}: ${err}`);
       return;
     }
     try {
@@ -178,6 +261,7 @@ export function checkBuildHtml(html) {
     { rule: 'parses (balanced basic structure)', problems: structure, warnings: [] },
     { rule: 'no external URLs', problems: external, warnings: [] },
     { rule: 'no fetch()/network calls in scripts', problems: network, warnings: [] },
+    { rule: 'no http(s) in src/href/url(), no fetch( anywhere in HTML', problems: rawExternalAndFetch(html), warnings: [] },
     { rule: 'has viewport meta tag', problems: viewport ? [] : ['missing <meta name="viewport">'], warnings: [] },
     {
       rule: 'mentions prefers-reduced-motion',
@@ -288,13 +372,24 @@ export function checkZone(root = DEFAULT_ROOT) {
         /witness/i.test(fs.readFileSync(readme, 'utf8')) ? [] : ['no "witness" mention; say what is witnessed and what is not'],
       );
     }
-    const index = path.join(dir, 'index.html');
-    if (isFile(index)) {
+  }
+  // Every builds/**/index.html gets the HTML checks, including nested folders.
+  if (isDir(buildsDir)) {
+    for (const index of walk(buildsDir).filter((p) => path.basename(p) === 'index.html').sort()) {
+      const subject = path.relative(root, index).split(path.sep).join('/');
       for (const r of checkBuildHtml(fs.readFileSync(index, 'utf8'))) {
-        add('builds', `${subject}/index.html`, r.rule, r.problems, r.warnings);
+        add('builds', subject, r.rule, r.problems, r.warnings);
       }
     }
   }
+  // gyre-atlas: every relative link must resolve to a file. A missing page is a FAIL, not a skip.
+  const atlas = path.join(buildsDir, 'gyre-atlas', 'index.html');
+  add(
+    'builds',
+    'builds/gyre-atlas/index.html',
+    'relative links resolve to files on disk',
+    isFile(atlas) ? checkRelativeLinks(fs.readFileSync(atlas, 'utf8'), path.dirname(atlas)) : ['builds/gyre-atlas/index.html not found'],
+  );
 
   // seats
   const seatsDir = path.join(root, 'seats');
@@ -367,6 +462,16 @@ function main(argv) {
   return results.some((r) => r.status === 'FAIL') ? 1 : 0;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Compare real paths. A symlinked or relative invocation must still run the
+// checks; before this, a symlink printed nothing and exited 0.
+function isEntryPoint() {
+  if (!process.argv[1]) return false;
+  try {
+    return fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+if (isEntryPoint()) {
   process.exitCode = main(process.argv);
 }

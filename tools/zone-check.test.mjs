@@ -65,6 +65,8 @@ function baseFiles() {
   return {
     'builds/clean-build/index.html': CLEAN_INDEX,
     'builds/clean-build/README.md': CLEAN_README,
+    'builds/gyre-atlas/index.html': CLEAN_INDEX,
+    'builds/gyre-atlas/README.md': CLEAN_README,
     'seats/clean-seat/README.md': CLEAN_SEAT_README,
     'threads/2026-10-23_clean.md': CLEAN_THREAD,
   };
@@ -271,4 +273,114 @@ test('the secret scanner reports rule and line, never the value', () => {
   assert.equal(found.length, 1);
   assert.equal(found[0].line, 2);
   assert.ok(!JSON.stringify(found).includes('Q3ZP7LMN2XRT8KVB'));
+});
+
+// ---- Round three: new checks, each with a fixture that must FAIL ----
+
+const ATLAS = 'builds/gyre-atlas/index.html';
+
+test('an http(s) link in href is caught by the src/href/url() rule', () => {
+  const html = indexWith('<a href="https://elsewhere.example/page">out</a>');
+  withZone({ 'builds/clean-build/index.html': html }, (root) => {
+    assertCaught(checkZone(root), /src\/href\/url\(\)/);
+  });
+});
+
+test('an http(s) url() inside a style attribute is caught by the src/href/url() rule', () => {
+  const html = indexWith('<div style="background: url(https://img.example/a.png)">x</div>');
+  withZone({ 'builds/clean-build/index.html': html }, (root) => {
+    assertCaught(checkZone(root), /src\/href\/url\(\)/);
+  });
+});
+
+test('a fetch( in an onclick attribute is caught (the script-only network rule misses it)', () => {
+  const html = indexWith('<button onclick="fetch(\'/api/save\')">save</button>');
+  withZone({ 'builds/clean-build/index.html': html }, (root) => {
+    assertCaught(checkZone(root), /src\/href\/url\(\)|fetch/);
+  });
+});
+
+test('inline script in a nested builds/**/index.html is compile-checked', () => {
+  const html = indexWith('<script>function ( { return 1;</script>');
+  withZone({ 'builds/group/nested-build/index.html': html }, (root) => {
+    const hit = assertCaught(checkZone(root), /inline scripts compile/);
+    assert.ok(hit.some((r) => r.subject === 'builds/group/nested-build/index.html'));
+  });
+});
+
+test('a type=module inline script with a syntax error is caught (was only a WARN)', () => {
+  const html = indexWith('<script type="module">const = ;</script>');
+  withZone({ 'builds/clean-build/index.html': html }, (root) => {
+    assertCaught(checkZone(root), /inline scripts compile/);
+  });
+});
+
+test('a valid type=module inline script passes the syntax check', () => {
+  const html = indexWith('<script type="module">export const n = 1;</script>');
+  withZone({ 'builds/clean-build/index.html': html }, (root) => {
+    const syntax = checkZone(root).filter((r) => r.rule === 'inline scripts compile');
+    assert.ok(syntax.length > 0);
+    assert.ok(syntax.every((r) => r.status === 'PASS'), JSON.stringify(syntax));
+  });
+});
+
+test('module scripts are syntax-checked, never executed', () => {
+  const html = indexWith('<script type="module">globalThis.__zoneCheckModuleRan = true;</script>');
+  delete globalThis.__zoneCheckModuleRan;
+  withZone({ 'builds/clean-build/index.html': html }, (root) => {
+    checkZone(root);
+    assert.equal(globalThis.__zoneCheckModuleRan, undefined);
+  });
+});
+
+test('a gyre-atlas link to a missing file is caught', () => {
+  const html = indexWith('<a href="missing-page.html">gone</a>');
+  withZone({ [ATLAS]: html }, (root) => {
+    const hit = assertCaught(checkZone(root), /relative links resolve/);
+    assert.ok(hit.some((r) => r.detail.includes('missing-page.html')));
+  });
+});
+
+test('a gyre-atlas relative link that exists on disk passes', () => {
+  const html = indexWith('<a href="README.md">readme</a><a href="../clean-build/index.html#top">peer</a>');
+  withZone({ [ATLAS]: html }, (root) => {
+    const hit = checkZone(root).filter((r) => /relative links resolve/.test(r.rule));
+    assert.ok(hit.length > 0);
+    assert.ok(hit.every((r) => r.status === 'PASS'), JSON.stringify(hit));
+  });
+});
+
+test('a gyre-atlas url() to a missing relative file is caught', () => {
+  const html = indexWith('<style>.x { background: url(img/none.png); }</style>');
+  withZone({ [ATLAS]: html }, (root) => {
+    assertCaught(checkZone(root), /relative links resolve/);
+  });
+});
+
+test('a missing gyre-atlas index.html is caught, not skipped', () => {
+  withZone({ [ATLAS]: null }, (root) => {
+    assertCaught(checkZone(root), /relative links resolve/);
+  });
+});
+
+test('the CLI exits 1 when a symlink invokes it and a check fails', () => {
+  const link = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'zc-link-')), 'zone-check.mjs');
+  fs.symlinkSync(TOOL, link);
+  withZone({ 'seats/clean-seat/README.md': null }, (root) => {
+    const run = spawnSync(process.execPath, [link, root], { encoding: 'utf8' });
+    assert.equal(run.status, 1, run.stdout + run.stderr);
+    assert.match(run.stdout, /zone-check: FAIL/);
+  });
+  fs.rmSync(path.dirname(link), { recursive: true, force: true });
+});
+
+test('the CLI prints a report and exits 0 when a symlink invokes it on a clean zone', () => {
+  const link = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'zc-link-')), 'zone-check.mjs');
+  fs.symlinkSync(TOOL, link);
+  withZone({}, (root) => {
+    const run = spawnSync(process.execPath, [link, root], { encoding: 'utf8' });
+    assert.equal(run.status, 0, run.stdout + run.stderr);
+    assert.match(run.stdout, /zone-check: PASS/);
+  });
+  fs.rmSync(path.dirname(link), { recursive: true, force: true });
 });
