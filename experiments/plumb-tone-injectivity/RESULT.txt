@@ -1,0 +1,26 @@
+ANCHOR fnv1a("a") = e40c292c expected e40c292c OK
+ANCHOR fnv1a("hello") = 4f9f2cab
+
+corpus A sources: lexicon entries=23, system dictionary words=63875
+
+== Corpus A (lexicon + system dictionary, deduplicated) ==
+distinct words: 63896
+distinct forms: 63620
+distinct sound tuples: 3300
+tuples shared by 2+ distinct words: 3060
+words that share a tuple: 63656 (99.62%)
+largest collision group: 208
+
+== Corpus B (10,000 seeded random strings) ==
+distinct words: 10000
+distinct forms: 9930
+distinct sound tuples: 2519
+tuples shared by 2+ distinct words: 1806
+words that share a tuple: 9287 (92.87%)
+largest collision group: 38
+
+== Verdicts against PREDICTION.md ==
+PASS criterion (B): tuples<words AND forms>tuples -> PASS
+FALSIFIER (B): zero shared tuples -> not triggered
+Corpus A is descriptive only: tuples=3300 of words=63896
+exit=0
