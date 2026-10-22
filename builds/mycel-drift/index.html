@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mycel Drift</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0d0a14; color: #e9e2ff;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  [hidden] { display: none !important; }
+  canvas#field { position: fixed; inset: 0; width: 100%; height: 100%; display: block;
+    touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    z-index: 0; }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    display: flex; gap: 12px; align-items: center;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(13, 10, 20, 0.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  #bar label { font-size: 15px; white-space: nowrap; }
+  #vol { flex: 1; min-height: 36px; accent-color: #7af0d0; }
+  #volOut { min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
+  #start { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 18px; padding: 24px; text-align: center;
+    background: radial-gradient(ellipse at center, #241a38 0%, #0d0a14 70%); }
+  #start h1 { margin: 0; font-size: 32px; font-weight: 600; letter-spacing: 0.04em; color: #7af0d0; }
+  .hint { margin: 0; font-size: 15px; line-height: 1.55; max-width: 34ch; opacity: 0.85; }
+  #startBtn { font-size: 19px; padding: 16px 28px; border-radius: 999px; cursor: pointer;
+    border: 1px solid #7af0d0; background: rgba(122, 240, 208, 0.08); color: #e9e2ff; min-height: 52px; }
+  #startBtn:focus-visible, #vol:focus-visible { outline: 3px solid #ffd27a; outline-offset: 3px; }
+  #hint:empty { display: none; }
+  #hint { color: #ffd27a; }
+</style>
+</head>
+<body>
+
+<canvas id="field" role="img" aria-label="Sound field. Touch or drag to play. Left to right is pitch, higher is brighter and quicker."></canvas>
+
+<div id="start" role="dialog" aria-labelledby="title" aria-modal="true">
+  <h1 id="title">Mycel Drift</h1>
+  <p class="hint">A field of sound you play with a finger or a mouse. Left to right is pitch. Higher is brighter and quicker. Press and hold to let it drift.</p>
+  <button id="startBtn" type="button">Tap to wake the spores</button>
+  <p id="hint" class="hint" role="status"></p>
+</div>
+
+<div id="bar">
+  <label for="vol">Volume</label>
+  <input id="vol" type="range" min="0" max="1" step="0.01" value="0.3">
+  <output id="volOut" for="vol">30%</output>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const canvas = $('field');
+  const g = canvas.getContext('2d');
+  const startEl = $('start');
+  const startBtn = $('startBtn');
+  const hintEl = $('hint');
+  const vol = $('vol');
+  const volOut = $('volOut');
+
+  const BASE = 146.83;                              // D3
+  const SCALE = [0, 2, 5, 7, 9, 10, 12, 14, 17, 19, 21, 24]; // semitones, two octaves
+  const VOICE_LIMIT = 30;                           // hard cap on simultaneous voices
+  const MASTER_CEILING = 0.5;                       // slider 1.0 maps to this gain, so 0.3 is quiet
+  const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+
+  let ac = null;          // AudioContext, created only after a tap
+  let master = null;      // master gain
+  let send = null;        // echo send bus
+  const voices = [];      // live voice records
+  const pointers = new Map();
+  const rings = [];
+  const motes = [];
+  let W = 0, H = 0, DPR = 1, idleT = 0;
+
+  // ---------- canvas ----------
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.fillStyle = '#0d0a14';
+    g.fillRect(0, 0, W, H);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ---------- audio ----------
+  function buildAudio() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    ac = new AC();
+    master = ac.createGain();
+    master.gain.value = 0;                          // starts silent; ramped up on tap
+    master.connect(ac.destination);
+
+    // echo chamber: send -> delay -> damping lowpass -> feedback -> delay; out to master
+    const delay = ac.createDelay(2);
+    delay.delayTime.value = 0.36;
+    const fb = ac.createGain();
+    fb.gain.value = 0.52;
+    const damp = ac.createBiquadFilter();
+    damp.type = 'lowpass';
+    damp.frequency.value = 2400;
+    send = ac.createGain();
+    send.gain.value = 1;
+    send.connect(delay);
+    delay.connect(damp);
+    damp.connect(fb);
+    fb.connect(delay);
+    delay.connect(master);
+
+    // a slow wobble on the echo time, so the repeats drift like a tape
+    const lfo = ac.createOscillator();
+    lfo.frequency.value = 0.11;
+    const lfoAmt = ac.createGain();
+    lfoAmt.gain.value = 0.008;
+    lfo.connect(lfoAmt);
+    lfoAmt.connect(delay.delayTime);
+    lfo.start();
+  }
+
+  function killVoice(v) {
+    for (const n of v.nodes) {
+      try { n.disconnect(); } catch (e) { /* already gone */ }
+    }
+    try { v.osc.stop(); v.shimmer.stop(); } catch (e) { /* already stopped */ }
+  }
+
+  function voice(idx, yn, pan) {
+    const t = ac.currentTime;
+    const f = BASE * Math.pow(2, SCALE[idx] / 12);
+
+    const osc = ac.createOscillator();
+    osc.type = idx % 3 === 0 ? 'triangle' : 'sine';
+    osc.frequency.value = f;
+
+    // a near-octave partial that beats against the body, giving the shimmer
+    const shimmer = ac.createOscillator();
+    shimmer.type = 'sine';
+    shimmer.frequency.value = f * 2.007;
+    const shimG = ac.createGain();
+    shimG.gain.value = 0.22;
+
+    const amp = ac.createGain();
+    amp.gain.value = 0;
+
+    const lp = ac.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 300 * Math.pow(2, 4 * yn); // higher on screen is brighter
+    lp.Q.value = 1 + 7 * yn;
+
+    const panner = ac.createStereoPanner();
+    panner.pan.value = clamp(pan, -0.9, 0.9);
+
+    const sendG = ac.createGain();
+    sendG.gain.value = 0.6;
+
+    osc.connect(amp);
+    shimmer.connect(shimG);
+    shimG.connect(amp);
+    amp.connect(lp);
+    lp.connect(panner);
+    panner.connect(master);
+    panner.connect(sendG);
+    sendG.connect(send);
+
+    const end = t + 2.4;
+    amp.gain.setValueAtTime(0, t);
+    amp.gain.linearRampToValueAtTime(0.42, t + 0.02);
+    amp.gain.exponentialRampToValueAtTime(0.0001, end);
+    osc.start(t);
+    shimmer.start(t);
+    osc.stop(end);
+    shimmer.stop(end);
+
+    const rec = { osc, shimmer, end, nodes: [osc, shimmer, shimG, amp, lp, panner, sendG] };
+    voices.push(rec);
+    while (voices.length > VOICE_LIMIT) killVoice(voices.shift());
+  }
+
+  // ---------- playing ----------
+  function strike(p, now) {
+    const xn = clamp(p.x / W);
+    const yn = clamp(1 - p.y / H);
+    const idx = Math.min(SCALE.length - 1, Math.floor(xn * SCALE.length));
+    voice(idx, yn, xn * 2 - 1);
+    p.last = now;
+    p.hue = (170 + idx * 19) % 360;
+    rings.push({ x: p.x, y: p.y, r: 6, hue: p.hue, life: 1, speed: 1.6 + 2.4 * yn });
+    for (let i = 0; i < 2; i++) {
+      motes.push({
+        x: p.x + (Math.random() - 0.5) * 16, y: p.y,
+        vx: (Math.random() - 0.5) * 0.6, vy: -0.4 - Math.random() * 0.9,
+        life: 1, hue: p.hue, ph: Math.random() * 6.28
+      });
+    }
+    if (rings.length > 80) rings.splice(0, rings.length - 80);
+    if (motes.length > 260) motes.splice(0, motes.length - 260);
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    if (!ac || ac.state !== 'running') return;
+    canvas.setPointerCapture(e.pointerId);
+    const p = { x: e.clientX, y: e.clientY, last: 0, hue: 200, trail: [] };
+    pointers.set(e.pointerId, p);
+    strike(p, performance.now());
+  });
+  canvas.addEventListener('pointermove', e => {
+    const p = pointers.get(e.pointerId);
+    if (p) { p.x = e.clientX; p.y = e.clientY; }
+  });
+  const release = e => { pointers.delete(e.pointerId); };
+  canvas.addEventListener('pointerup', release);
+  canvas.addEventListener('pointercancel', release);
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  // ---------- frame loop ----------
+  function frame(now) {
+    requestAnimationFrame(frame);
+    idleT += 0.005;
+
+    // trails fade by painting a translucent veil over the last frame
+    g.globalCompositeOperation = 'source-over';
+    g.fillStyle = reduceMotion ? 'rgba(13, 10, 20, 0.35)' : 'rgba(13, 10, 20, 0.13)';
+    g.fillRect(0, 0, W, H);
+
+    // held pointers re-strike; hold height sets the pulse rate
+    if (ac && ac.state === 'running') {
+      for (const p of pointers.values()) {
+        const yn = clamp(1 - p.y / H);
+        if (now - p.last > 1000 - 850 * yn) strike(p, now);
+      }
+      for (let i = voices.length - 1; i >= 0; i--) {
+        if (voices[i].end < ac.currentTime) {
+          killVoice(voices[i]);
+          voices.splice(i, 1);
+        }
+      }
+    }
+
+    g.globalCompositeOperation = 'lighter';
+
+    // idle: a few dim spores orbit the centre
+    if (pointers.size === 0) {
+      for (let i = 0; i < 6; i++) {
+        const a = idleT * (0.6 + i * 0.07) + i;
+        const r = Math.min(W, H) * (0.18 + 0.04 * Math.sin(idleT * 2 + i));
+        g.fillStyle = `hsla(${190 + i * 22}, 80%, 70%, 0.35)`;
+        g.beginPath();
+        g.arc(W / 2 + Math.cos(a) * r, H / 2 + Math.sin(a) * r, 3 + 2 * Math.sin(idleT * 3 + i), 0, 6.2832);
+        g.fill();
+      }
+    }
+
+    // rings from each strike
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const r = rings[i];
+      r.r += r.speed;
+      r.life *= 0.975;
+      if (r.life < 0.02) { rings.splice(i, 1); continue; }
+      g.strokeStyle = `hsla(${r.hue}, 90%, 65%, ${r.life * 0.8})`;
+      g.lineWidth = 1.5 + 2 * r.life;
+      g.beginPath();
+      g.arc(r.x, r.y, r.r, 0, 6.2832);
+      g.stroke();
+    }
+
+    // spores drifting upward
+    for (let i = motes.length - 1; i >= 0; i--) {
+      const m = motes[i];
+      m.x += m.vx + Math.sin(now * 0.002 + m.ph) * 0.3;
+      m.y += m.vy;
+      m.life *= 0.986;
+      if (m.life < 0.02 || m.y < -10) { motes.splice(i, 1); continue; }
+      g.fillStyle = `hsla(${m.hue}, 95%, 75%, ${m.life})`;
+      g.beginPath();
+      g.arc(m.x, m.y, 1.5 + 3 * m.life, 0, 6.2832);
+      g.fill();
+    }
+
+    // filaments and glow under each held finger
+    for (const p of pointers.values()) {
+      p.trail.push({ x: p.x, y: p.y });
+      if (p.trail.length > 28) p.trail.shift();
+      const tr = p.trail;
+      if (tr.length > 2) {
+        g.strokeStyle = `hsla(${p.hue}, 90%, 70%, 0.7)`;
+        g.lineWidth = 2;
+        g.beginPath();
+        g.moveTo(tr[0].x, tr[0].y);
+        for (let i = 1; i < tr.length - 1; i++) {
+          const mx = (tr[i].x + tr[i + 1].x) / 2;
+          const my = (tr[i].y + tr[i + 1].y) / 2;
+          g.quadraticCurveTo(tr[i].x, tr[i].y, mx, my);
+        }
+        g.stroke();
+      }
+      const yn = clamp(1 - p.y / H);
+      g.fillStyle = `hsla(${p.hue}, 100%, 80%, 0.25)`;
+      g.beginPath();
+      g.arc(p.x, p.y, 20 + 30 * yn, 0, 6.2832);
+      g.fill();
+    }
+
+    g.globalCompositeOperation = 'source-over';
+  }
+  requestAnimationFrame(frame);
+
+  // ---------- start and volume ----------
+  function setLevel(v, ramp) {
+    if (!master) return;
+    const now = ac.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    if (ramp) master.gain.linearRampToValueAtTime(v * MASTER_CEILING, now + ramp);
+    else master.gain.setTargetAtTime(v * MASTER_CEILING, now, 0.05);
+  }
+
+  vol.addEventListener('input', () => {
+    volOut.textContent = Math.round(vol.value * 100) + '%';
+    vol.setAttribute('aria-valuetext', Math.round(vol.value * 100) + ' percent');
+    setLevel(Number(vol.value), 0);
+  });
+  volOut.textContent = Math.round(vol.value * 100) + '%';
+
+  startBtn.addEventListener('click', async () => {
+    try {
+      if (!ac) buildAudio();
+      await ac.resume();
+      setLevel(Number(vol.value), 1.5);   // fade in from silence over 1.5 s
+      startEl.hidden = true;
+      hintEl.textContent = '';
+    } catch (err) {
+      hintEl.textContent = 'Sound could not start in this browser. The visuals still run, but nothing will sound.';
+      startEl.hidden = false;
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!ac) return;
+    if (document.hidden) ac.suspend();
+    else ac.resume();
+  });
+})();
+</script>
+</body>
+</html>
