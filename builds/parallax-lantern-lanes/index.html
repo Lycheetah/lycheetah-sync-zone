@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Lantern Lanes · Parallax</title>
+<style>
+  :root {
+    --bg0: #0b0a1a;
+    --bg1: #1d1740;
+    --ink: #f3ecd9;
+    --dim: #b3abcf;
+    --ember: #ffb347;
+    --moon: #9fd8ff;
+    --shade: #05040c;
+    --warn: #ff8a78;
+    --card: rgba(11, 10, 26, 0.86);
+    --line: rgba(255, 179, 71, 0.45);
+  }
+  html, body { margin: 0; height: 100%; background: var(--bg0); overflow: hidden; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* No 100vh anywhere: the game is pinned to the visual viewport with inset. */
+  #game { position: fixed; inset: 0; overflow: hidden; background: linear-gradient(180deg, var(--bg0), var(--bg1)); }
+  #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+  #hud {
+    position: absolute; left: 0; right: 0; top: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 0;
+    pointer-events: none;
+  }
+  #hud .big { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #hud .small { font-size: 14px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  #hud .right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  #pips { display: flex; gap: 6px; }
+  #pips span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ember); background: transparent; }
+  #pips span.on { background: var(--ember); box-shadow: 0 0 10px rgba(255, 179, 71, 0.7); }
+  #mute {
+    pointer-events: auto; min-height: 44px; min-width: 44px; padding: 0 12px;
+    border-radius: 22px; border: 1px solid var(--line); background: rgba(11, 10, 26, 0.6);
+    color: var(--ink); font: inherit; font-size: 14px;
+  }
+
+  #toast {
+    position: absolute; left: 50%; top: 22%; transform: translate(-50%, 0);
+    width: min(88vw, 420px); /* vw is a width unit, not a height; still no 100vh */
+    text-align: center; font-size: 15px; line-height: 1.35; color: var(--ink);
+    padding: 10px 14px; border-radius: 14px; background: rgba(11, 10, 26, 0.78);
+    border: 1px solid var(--line); opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  #toast.show { opacity: 1; }
+
+  #satchel {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+    display: flex; gap: 10px;
+  }
+  .slot {
+    min-width: 96px; min-height: 56px; padding: 6px 10px; border-radius: 14px;
+    border: 1px solid var(--line); background: rgba(11, 10, 26, 0.72); color: var(--ink);
+    font: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    touch-action: manipulation; cursor: pointer;
+  }
+  .slot .sw { font-weight: 700; font-size: 16px; }
+  .slot .sn { font-size: 12px; color: var(--dim); }
+  .slot:disabled { opacity: 0.5; cursor: default; border-style: dashed; }
+  .slot[data-has="1"]:not(:disabled) { background: rgba(255, 179, 71, 0.18); }
+  .slot:focus-visible, #mute:focus-visible, .primary:focus-visible { outline: 3px solid var(--moon); outline-offset: 3px; }
+
+  .overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding: 16px; background: rgba(5, 4, 12, 0.55);
+  }
+  .overlay.hidden { display: none; }
+  .card {
+    width: min(92vw, 440px); max-height: 92%; overflow: auto; box-sizing: border-box;
+    padding: 22px 20px; border-radius: 20px; background: var(--card); border: 1px solid var(--line);
+    text-align: left; font-size: 16px; line-height: 1.45;
+  }
+  .card h1 { margin: 0 0 8px; font-size: 30px; color: var(--ember); }
+  .card h2 { margin: 0 0 8px; font-size: 26px; color: var(--ember); }
+  .card p { margin: 0 0 12px; }
+  .card ul { margin: 0 0 14px; padding-left: 20px; color: var(--dim); }
+  .card li { margin-bottom: 4px; }
+  .credit { font-size: 13px; color: var(--dim); }
+  .primary {
+    display: block; width: 100%; min-height: 52px; border-radius: 26px; border: none;
+    background: var(--ember); color: #1b1020; font: inherit; font-size: 18px; font-weight: 700;
+    touch-action: manipulation; cursor: pointer; margin-bottom: 12px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #toast { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <canvas id="cv" aria-hidden="true"></canvas>
+
+  <div id="hud">
+    <div>
+      <div class="big"><span id="score">0</span></div>
+      <div class="small">rows <span id="dist">0</span> · best <span id="best">0</span></div>
+    </div>
+    <div class="right">
+      <div id="pips" aria-label="Light"><span></span><span></span><span></span></div>
+      <button id="mute" type="button" aria-pressed="false">Sound on</button>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <div id="satchel" role="group" aria-label="Word satchel">
+    <button class="slot" type="button" disabled data-has="0"><span class="sw">-</span><span class="sn">empty</span></button>
+    <button class="slot" type="button" disabled data-has="0"><span class="sw">-</span><span class="sn">empty</span></button>
+    <button class="slot" type="button" disabled data-has="0"><span class="sw">-</span><span class="sn">empty</span></button>
+  </div>
+
+  <div id="title" class="overlay">
+    <div class="card">
+      <h1>Lantern Lanes</h1>
+      <p>You are a lantern in three lanes. Shadows come down the lanes. Catch the words as they pass, then cast them from your satchel.</p>
+      <ul>
+        <li>Tap the left or right half of the screen, or swipe, to change lane.</li>
+        <li>Tap a satchel word to cast it. On a keyboard: 1, 2, 3.</li>
+        <li>You have three lights. A shadow costs one. Mend restores one.</li>
+        <li>Nothing is lost between nights. The best score is kept on this device.</li>
+      </ul>
+      <button id="startBtn" class="primary" type="button">Light the lantern</button>
+      <p class="credit">Words are from the Lycheetah Sync Zone shared lexicon: Aetheron, Kineton, Kiln and Mycel. The tones use the scale of Mycel's Mycel Drift. Credits and limits are in the README.</p>
+    </div>
+  </div>
+
+  <div id="over" class="overlay hidden">
+    <div class="card">
+      <h2>Lantern out</h2>
+      <p>Score <span id="overScore">0</span> · best <span id="overBest">0</span></p>
+      <p id="overNote"></p>
+      <button id="againBtn" class="primary" type="button">Another night</button>
+      <p class="credit">Night <span id="overSeed"></span>. Open this page with <code>?seed=N</code> to start from the same layout.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// CORE: pure game logic. No DOM. Deterministic per seed (no Math.random).
+// ---------------------------------------------------------------------------
+const LANES = 3;
+const ROWS_IN_VIEW = 9;             // visible rows; the lantern sits near the bottom
+const SCALE = [0, 2, 5, 7, 9, 10, 12, 14, 17, 19, 21, 24]; // semitones, as in Mycel's mycel-drift build
+const BASE_HZ = 146.83;             // D3, Mycel's root
+
+// Words from builds/shared-lexicon/<seat>.md. Glosses are paraphrased; see README.
+const WORDS = [
+  { w: 'sticta',   seat: 'Aetheron', gloss: 'an invariant that persists under drift', spell: 'shield',    name: 'Shield',    blurb: 'Absorbs the next shadow.' },
+  { w: 'kinein',   seat: 'Aetheron', gloss: 'a claim that only shows itself in motion', spell: 'slow',      name: 'Slow',      blurb: 'Slows the night for three seconds.' },
+  { w: 'harmok',   seat: 'Kineton',  gloss: 'a flow that circulates with no local source or sink', spell: 'magnet',    name: 'Magnet',    blurb: 'Words drift to your lane for four seconds.' },
+  { w: 'obstruct', seat: 'Kineton',  gloss: 'a cycle that local agreements cannot patch into one whole', spell: 'break',     name: 'Break',     blurb: 'Breaks the shadows in your lane ahead.' },
+  { w: 'mirrel',   seat: 'Kiln',     gloss: 'a claim that names its own falsifier in the same line', spell: 'foresight', name: 'Foresight', blurb: 'Shows the next shadows as outlines for six seconds.' },
+  { w: 'ossuel',   seat: 'Kiln',     gloss: 'something an outside witness has seen, run or read', spell: 'mend',      name: 'Mend',      blurb: 'Restores one light.' },
+  { w: 'ansel',    seat: 'Mycel',    gloss: 'a value that passes from one seat into another seat’s sound', spell: 'double',    name: 'Double',    blurb: 'Doubles points for six seconds.' },
+];
+const WORD_BY = {};
+for (const d of WORDS) WORD_BY[d.w] = d;
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function createState(seed) {
+  seed = seed >>> 0;
+  return {
+    seed,
+    rng: mulberry32(seed),
+    t: 0,            // seconds since start (wall-ish, drives visuals only)
+    d: 0,            // distance in rows
+    rows: 0,
+    lane: 1,
+    light: 3,
+    shield: false,
+    slow: 0, magnet: 0, foresight: 0, dbl: 0, invuln: 0, // remaining seconds
+    objs: [],        // {kind:'shadow'|'word', row, lane, word?, done}
+    nextRow: 4,
+    freeLane: 1,
+    satchel: [null, null, null],
+    score: 0,
+    collected: 0,
+    seen: [],        // distinct words caught, in order
+    chain: 0, chainT: 0,
+    started: false,
+    over: false,
+    events: [],      // consumed by the DOM layer and the sound layer
+  };
+}
+
+function blocked(s, row, lane) {
+  for (const o of s.objs) if (o.kind === 'shadow' && !o.done && o.row === row && o.lane === lane) return true;
+  return false;
+}
+
+// One row of the night. Guarantees: at least one free lane per row, and the
+// free lane moves at most one lane between rows, so a path always exists.
+function genRow(s) {
+  const r = s.nextRow++;
+  const rng = s.rng;
+  const f = Math.max(0, Math.min(LANES - 1, s.freeLane + Math.floor(rng() * 3) - 1));
+  s.freeLane = f;
+  const p = Math.min(0.55, 0.22 + s.d / 400);
+  const shadowLanes = [];
+  if (r >= 6 && rng() < 0.78) {
+    for (let l = 0; l < LANES; l++) if (l !== f && rng() < p) shadowLanes.push(l);
+  }
+  for (const l of shadowLanes) s.objs.push({ kind: 'shadow', row: r, lane: l, done: false });
+  if (r >= 6 && rng() < 0.24) {
+    const free = [0, 1, 2].filter((l) => !shadowLanes.includes(l));
+    const lane = free[Math.floor(rng() * free.length)];
+    const word = WORDS[Math.floor(rng() * WORDS.length)].w;
+    s.objs.push({ kind: 'word', row: r, lane, word, done: false });
+  }
+  return r;
+}
+
+function endRun(s) {
+  s.over = true;
+  s.events.push({ type: 'over', score: Math.floor(s.score), collected: s.collected, rows: Math.floor(s.d) });
+}
+
+function hit(s) {
+  if (s.invuln > 0) return;
+  s.chain = 0; s.chainT = 0;
+  if (s.shield) {
+    s.shield = false; s.invuln = 0.6;
+    s.events.push({ type: 'block' });
+    return;
+  }
+  s.light -= 1; s.invuln = 0.9;
+  s.events.push({ type: 'hit', light: s.light });
+  if (s.light <= 0) endRun(s);
+}
+
+function collect(s, o) {
+  const mult = s.dbl > 0 ? 2 : 1;
+  s.collected += 1;
+  s.chain = s.chainT > 0 ? Math.min(s.chain + 1, SCALE.length - 1) : 0;
+  s.chainT = 1.6;
+  const note = Math.min(s.chain + (s.dbl > 0 ? 2 : 0), SCALE.length - 1);
+  s.score += 100 * mult;
+  if (!s.seen.includes(o.word)) s.seen.push(o.word);
+  const slot = s.satchel.indexOf(null);
+  if (slot >= 0) s.satchel[slot] = o.word;
+  s.events.push({ type: 'pick', word: o.word, note, slot, placed: slot >= 0 });
+}
+
+function cast(s, slot) {
+  const w = s.satchel[slot];
+  if (!w || s.over || !s.started) return false;
+  const def = WORD_BY[w];
+  s.satchel[slot] = null;
+  let count = 0;
+  switch (def.spell) {
+    case 'shield': s.shield = true; break;
+    case 'slow': s.slow = 3; break;
+    case 'magnet': s.magnet = 4; break;
+    case 'break':
+      for (const o of s.objs) {
+        if (!o.done && o.kind === 'shadow' && o.lane === s.lane && o.row > s.d && o.row <= s.d + 6) {
+          o.done = true; o.broken = true; count++;
+        }
+      }
+      break;
+    case 'foresight': s.foresight = 6; break;
+    case 'mend': s.light = Math.min(3, s.light + 1); break;
+    case 'double': s.dbl = 6; break;
+  }
+  s.events.push({ type: 'cast', spell: def.spell, word: w, count });
+  return true;
+}
+
+// Input: 'start' | 'left' | 'right' | 'cast' (with arg = slot index).
+function act(s, action, arg) {
+  if (action === 'start') {
+    if (!s.started && !s.over) { s.started = true; s.events.push({ type: 'start' }); }
+    return true;
+  }
+  if (!s.started || s.over) return false;
+  if (action === 'left' && s.lane > 0) { s.lane -= 1; s.events.push({ type: 'move' }); return true; }
+  if (action === 'right' && s.lane < LANES - 1) { s.lane += 1; s.events.push({ type: 'move' }); return true; }
+  if (action === 'cast') return cast(s, arg);
+  return false;
+}
+
+// Advance the night by dt seconds.
+function step(s, dt) {
+  if (!s.started || s.over) return s;
+  s.t += dt;
+  s.slow = Math.max(0, s.slow - dt);
+  s.magnet = Math.max(0, s.magnet - dt);
+  s.foresight = Math.max(0, s.foresight - dt);
+  s.dbl = Math.max(0, s.dbl - dt);
+  s.invuln = Math.max(0, s.invuln - dt);
+  if (s.chainT > 0) {
+    s.chainT -= dt;
+    if (s.chainT <= 0) { s.chainT = 0; s.chain = 0; }
+  }
+  const mult = s.dbl > 0 ? 2 : 1;
+  const speed = Math.min(4.6, 2.1 + s.d / 90) * (s.slow > 0 ? 0.45 : 1);
+  const prev = s.d;
+  s.d += speed * dt;
+  s.rows = Math.floor(s.d);
+  s.score += (s.d - prev) * 10 * mult;
+  while (s.nextRow < s.d + 14) genRow(s);
+
+  // Magnet: nearby words drift into the lantern's lane when that lane is clear.
+  if (s.magnet > 0) {
+    for (const o of s.objs) {
+      if (o.kind === 'word' && !o.done && o.row >= s.d && o.row - s.d <= 4 && o.lane !== s.lane && !blocked(s, o.row, s.lane)) {
+        o.lane = s.lane;
+      }
+    }
+  }
+
+  // Crossings: an object is judged once, when its row passes the lantern.
+  for (const o of s.objs) {
+    if (o.done || !(o.row > prev && o.row <= s.d)) continue;
+    o.done = true;
+    if (o.kind === 'shadow') {
+      if (o.lane === s.lane) hit(s);
+    } else if (o.lane === s.lane) {
+      collect(s, o);
+    }
+  }
+  s.objs = s.objs.filter((o) => o.row > s.d - 3);
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// SOUND: Web Audio only. Starts after a tap. Pitches are Mycel's scale.
+// ---------------------------------------------------------------------------
+const Sound = (function () {
+  let ctx = null, master = null, muted = false;
+  function ensure() {
+    if (ctx) return ctx;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = 0;
+      master.connect(ctx.destination);
+      master.gain.setTargetAtTime(muted ? 0 : 0.22, ctx.currentTime, 0.4); // fade in, no pop
+    } catch (e) { ctx = null; }
+    return ctx;
+  }
+  function note(idx, oct) { return BASE_HZ * Math.pow(2, (SCALE[Math.max(0, Math.min(SCALE.length - 1, idx))] + 12 * oct) / 12); }
+  function tone(freq, when, dur, type, vol, glideTo) {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, when);
+    if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, when + dur);
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(vol, when + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    o.connect(g); g.connect(master);
+    o.start(when); o.stop(when + dur + 0.05);
+  }
+  function play(ev) {
+    if (muted || !ensure()) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const t = ctx.currentTime + 0.01;
+    switch (ev.type) {
+      case 'start': tone(note(0, 1), t, 0.4, 'triangle', 0.14); tone(note(4, 1), t + 0.09, 0.5, 'triangle', 0.14); break;
+      case 'pick': tone(note(ev.note, 1), t, 0.45, 'triangle', 0.16); tone(note(ev.note, 1) * 2.007, t, 0.3, 'sine', 0.04); break;
+      case 'hit': tone(180, t, 0.35, 'sine', 0.25, 55); break;
+      case 'block': tone(note(7, 0), t, 0.25, 'sine', 0.14); break;
+      case 'cast': [0, 2, 4].forEach((i, k) => tone(note(i, 0), t + k * 0.07, 0.14, 'triangle', 0.12)); break;
+      case 'break': tone(note(3, 0), t, 0.2, 'sine', 0.08); break;
+      case 'over': [6, 4, 2, 0].forEach((i, k) => tone(note(i, 0), t + k * 0.3, 0.5, 'sine', 0.16)); break;
+      case 'move': tone(note(0, 2), t, 0.04, 'sine', 0.025); break;
+      default: break;
+    }
+  }
+  function setMuted(m) {
+    muted = m;
+    if (ctx) master.gain.setTargetAtTime(m ? 0 : 0.22, ctx.currentTime, 0.05);
+  }
+  return { ensure, play, setMuted, isMuted: () => muted };
+})();
+
+// ---------------------------------------------------------------------------
+// DOM LAYER. Runs only in a browser. The core above is what the checks import.
+// ---------------------------------------------------------------------------
+if (typeof window !== 'undefined') window.ParallaxLantern = { createState, step, act, genRow, cast, WORDS, WORD_BY, SCALE, LANES };
+
+if (typeof document !== 'undefined') {
+  (function boot() {
+    const game = document.getElementById('game');
+    const cv = document.getElementById('cv');
+    const ctx2d = cv.getContext('2d');
+    const el = {
+      score: document.getElementById('score'), dist: document.getElementById('dist'), best: document.getElementById('best'),
+      pips: Array.from(document.querySelectorAll('#pips span')), mute: document.getElementById('mute'),
+      toast: document.getElementById('toast'), slots: Array.from(document.querySelectorAll('#satchel .slot')),
+      title: document.getElementById('title'), start: document.getElementById('startBtn'),
+      over: document.getElementById('over'), overScore: document.getElementById('overScore'),
+      overBest: document.getElementById('overBest'), overNote: document.getElementById('overNote'),
+      overSeed: document.getElementById('overSeed'), again: document.getElementById('againBtn'),
+    };
+    const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const BEST_KEY = 'parallax-lantern-best';
+
+    function readBest() { try { return Number(window.localStorage.getItem(BEST_KEY)) || 0; } catch (e) { return 0; } }
+    function writeBest(v) { try { window.localStorage.setItem(BEST_KEY, String(v)); } catch (e) { /* private mode: best is per-visit */ } }
+    let best = readBest();
+
+    function seedFromUrl() {
+      try {
+        const v = new URLSearchParams(window.location.search).get('seed');
+        if (v !== null && /^\d+$/.test(v)) return Number(v) >>> 0;
+      } catch (e) { /* no URL: fall through */ }
+      return null;
+    }
+    function freshSeed() { return ((Math.random() * 0xffffffff) >>> 0); }
+
+    let S = createState(seedFromUrl() ?? freshSeed());
+    let W = 0, H = 0, dpr = 1;
+    let vl = S.lane;             // smoothed lane index for drawing
+    let shake = 0;
+    let toastUntil = 0;
+    const particles = [];
+    const stars = [];
+    const starRng = mulberry32(7);
+    for (let i = 0; i < 70; i++) stars.push({ x: starRng(), y: starRng(), r: 0.6 + starRng() * 1.4, p: starRng() * 6 });
+
+    function fit() {
+      W = game.clientWidth; H = game.clientHeight;
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.width = Math.max(1, Math.round(W * dpr));
+      cv.height = Math.max(1, Math.round(H * dpr));
+      ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(game);
+    fit();
+
+    function geo() {
+      const unit = H / ROWS_IN_VIEW;
+      const laneW = Math.min(W / 3, Math.max(70, unit * 2.4));
+      const py = H * 0.78;
+      return { unit, laneW, py, laneX: (v) => W / 2 + (v - 1) * laneW };
+    }
+
+    function burst(x, y, color, n) {
+      const count = reduce ? Math.ceil(n / 3) : n;
+      for (let i = 0; i < count; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const sp = 40 + Math.random() * 120;
+        particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30, life: 0.6 + Math.random() * 0.4, max: 1, color });
+      }
+      if (particles.length > 160) particles.splice(0, particles.length - 160);
+    }
+
+    function toast(text) {
+      el.toast.textContent = text;
+      el.toast.classList.add('show');
+      toastUntil = S.t + 2.6;
+    }
+
+    function drainEvents() {
+      for (const ev of S.events) {
+        Sound.play(ev);
+        const g = geo();
+        const lx = g.laneX(vl), py = g.py;
+        switch (ev.type) {
+          case 'pick': {
+            const def = WORD_BY[ev.word];
+            burst(lx, py, '255,200,110', 14);
+            toast(`${def.w}: ${def.gloss}. Coined by ${def.seat}. ` + (ev.placed ? 'In your satchel.' : 'Satchel full. The word passes.'));
+            break;
+          }
+          case 'hit':
+            shake = reduce ? 0 : 0.3;
+            burst(lx, py, '255,138,120', 18);
+            break;
+          case 'block':
+            burst(lx, py, '159,216,255', 16);
+            break;
+          case 'cast': {
+            const def = WORD_BY[ev.word];
+            burst(lx, py, '159,216,255', 10);
+            toast(`${def.w}: ${def.name}. ${def.blurb}`);
+            break;
+          }
+          case 'over':
+            if (ev.score > best) { best = ev.score; writeBest(best); }
+            el.overScore.textContent = String(ev.score);
+            el.overBest.textContent = String(best);
+            el.overNote.textContent = ev.rows > 0 ? `You went ${ev.rows} rows and caught ${ev.collected} word${ev.collected === 1 ? '' : 's'}.` : 'The dusk came early. Try once more.';
+            el.overSeed.textContent = String(S.seed);
+            el.over.classList.remove('hidden');
+            setTimeout(() => el.again.focus(), 50);
+            break;
+          default: break;
+        }
+      }
+      S.events.length = 0;
+    }
+
+    let lastKey = '';
+    function renderHud() {
+      const sc = String(Math.floor(S.score));
+      if (el.score.textContent !== sc) el.score.textContent = sc;
+      const bs = String(Math.max(best, Math.floor(S.score)));
+      if (el.best.textContent !== bs) el.best.textContent = bs;
+      const ds = String(S.rows);
+      if (el.dist.textContent !== ds) el.dist.textContent = ds;
+      el.pips.forEach((p, i) => p.classList.toggle('on', i < S.light));
+      const key = S.satchel.join('|') + (S.started ? 'S' : '') + (S.over ? 'O' : '');
+      if (key !== lastKey) {
+        lastKey = key;
+        el.slots.forEach((b, i) => {
+          const w = S.satchel[i];
+          const def = w ? WORD_BY[w] : null;
+          b.disabled = !w || S.over || !S.started;
+          b.dataset.has = w ? '1' : '0';
+          b.querySelector('.sw').textContent = def ? def.w : '-';
+          b.querySelector('.sn').textContent = def ? def.name : 'empty';
+          b.setAttribute('aria-label', def ? `Cast ${def.w}: ${def.name}. ${def.blurb}` : `Satchel slot ${i + 1}, empty`);
+        });
+      }
+      if (S.t > toastUntil && el.toast.classList.contains('show')) el.toast.classList.remove('show');
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx2d.beginPath();
+      ctx2d.moveTo(x + r, y);
+      ctx2d.arcTo(x + w, y, x + w, y + h, r);
+      ctx2d.arcTo(x + w, y + h, x, y + h, r);
+      ctx2d.arcTo(x, y + h, x, y, r);
+      ctx2d.arcTo(x, y, x + w, y, r);
+      ctx2d.closePath();
+    }
+
+    function drawShadow(x, y, w, h) {
+      const g = ctx2d.createRadialGradient(x, y, h * 0.1, x, y, Math.max(w, h) * 0.6);
+      g.addColorStop(0, '#000');
+      g.addColorStop(0.7, '#05040c');
+      g.addColorStop(1, 'rgba(60,30,90,0)');
+      ctx2d.fillStyle = g;
+      ctx2d.beginPath();
+      ctx2d.ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2);
+      ctx2d.fill();
+    }
+
+    function render(dt) {
+      const g = geo();
+      ctx2d.save();
+      if (shake > 0) {
+        ctx2d.translate((Math.random() - 0.5) * 10 * shake, (Math.random() - 0.5) * 10 * shake);
+        shake = Math.max(0, shake - dt);
+      }
+      // sky
+      const sky = ctx2d.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, '#0b0a1a');
+      sky.addColorStop(1, '#2a1f4f');
+      ctx2d.fillStyle = sky;
+      ctx2d.fillRect(-20, -20, W + 40, H + 40);
+      // stars drift with distance; still under reduced motion
+      for (const st of stars) {
+        const off = reduce ? 0 : (S.d * 3) % 1;
+        const y = ((st.y + off * st.r * 0.05) % 1) * H;
+        const tw = reduce ? 0.6 : 0.4 + 0.3 * Math.sin(S.t * 2 + st.p);
+        ctx2d.fillStyle = `rgba(243,236,217,${tw})`;
+        ctx2d.beginPath();
+        ctx2d.arc(st.x * W, y, st.r, 0, Math.PI * 2);
+        ctx2d.fill();
+      }
+      // lane guides
+      for (let l = 0; l < LANES; l++) {
+        const x = g.laneX(l);
+        ctx2d.strokeStyle = 'rgba(179,171,207,0.12)';
+        ctx2d.lineWidth = 2;
+        ctx2d.beginPath(); ctx2d.moveTo(x - g.laneW / 2, 0); ctx2d.lineTo(x - g.laneW / 2, H); ctx2d.stroke();
+        ctx2d.beginPath(); ctx2d.moveTo(x + g.laneW / 2, 0); ctx2d.lineTo(x + g.laneW / 2, H); ctx2d.stroke();
+      }
+      // objects
+      const fs = Math.max(13, Math.round(g.unit * 0.36));
+      ctx2d.font = `700 ${fs}px system-ui, sans-serif`;
+      ctx2d.textAlign = 'center';
+      ctx2d.textBaseline = 'middle';
+      for (const o of S.objs) {
+        if (o.done) continue;
+        const y = g.py - (o.row - S.d) * g.unit;
+        if (y < -g.unit * 2 || y > H + g.unit) continue;
+        const x = g.laneX(o.lane);
+        if (o.kind === 'shadow') {
+          drawShadow(x, y, g.laneW * 0.72, g.unit * 0.85);
+          if (S.foresight > 0 && o.row - S.d <= 8) {
+            ctx2d.strokeStyle = 'rgba(159,216,255,0.8)';
+            ctx2d.lineWidth = 2;
+            ctx2d.beginPath();
+            ctx2d.ellipse(x, y, g.laneW * 0.36, g.unit * 0.42, 0, 0, Math.PI * 2);
+            ctx2d.stroke();
+          }
+        } else {
+          const tw = ctx2d.measureText(o.word).width;
+          const bw = Math.max(g.unit * 1.2, tw + 18);
+          const bh = g.unit * 0.66;
+          roundRect(x - bw / 2, y - bh / 2, bw, bh, 10);
+          ctx2d.fillStyle = 'rgba(255,179,71,0.16)';
+          ctx2d.fill();
+          ctx2d.strokeStyle = 'rgba(255,179,71,0.9)';
+          ctx2d.lineWidth = 2;
+          ctx2d.stroke();
+          ctx2d.fillStyle = '#fff3d6';
+          ctx2d.fillText(o.word, x, y + 1);
+        }
+      }
+      // particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.life -= dt;
+        if (p.life <= 0) { particles.splice(i, 1); continue; }
+        p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt;
+        ctx2d.globalAlpha = Math.max(0, p.life / p.max);
+        ctx2d.fillStyle = `rgba(${p.color},1)`;
+        ctx2d.beginPath(); ctx2d.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx2d.fill();
+      }
+      ctx2d.globalAlpha = 1;
+      // lantern
+      vl += (S.lane - vl) * Math.min(1, dt * 14);
+      const lx = g.laneX(vl), py = g.py;
+      const pulse = reduce ? 0 : Math.sin(S.t * 3) * 2;
+      const glowR = g.unit * 1.2 + (S.dbl > 0 ? 6 : 0) + pulse;
+      const flick = S.invuln > 0 && !reduce ? (Math.sin(S.t * 40) > 0 ? 0.35 : 1) : 1;
+      const gl = ctx2d.createRadialGradient(lx, py, 4, lx, py, glowR);
+      gl.addColorStop(0, `rgba(255,200,110,${0.9 * flick})`);
+      gl.addColorStop(0.5, `rgba(255,140,60,${0.25 * flick})`);
+      gl.addColorStop(1, 'rgba(255,140,60,0)');
+      ctx2d.fillStyle = gl;
+      ctx2d.beginPath(); ctx2d.arc(lx, py, glowR, 0, Math.PI * 2); ctx2d.fill();
+      ctx2d.fillStyle = '#fff3d6';
+      ctx2d.beginPath(); ctx2d.arc(lx, py, g.unit * 0.22, 0, Math.PI * 2); ctx2d.fill();
+      if (S.shield) {
+        ctx2d.strokeStyle = 'rgba(159,216,255,0.95)';
+        ctx2d.lineWidth = 3;
+        ctx2d.beginPath(); ctx2d.arc(lx, py, g.unit * 0.5, 0, Math.PI * 2); ctx2d.stroke();
+      }
+      ctx2d.restore();
+    }
+
+    let last = 0;
+    function frame(now) {
+      const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
+      last = now;
+      if (!document.hidden) step(S, dt);
+      drainEvents();
+      render(dt);
+      renderHud();
+      requestAnimationFrame(frame);
+    }
+
+    function act2(action, arg) {
+      const before = S.lane;
+      const ok = act(S, action, arg);
+      if (action === 'left' || action === 'right') return S.lane !== before;
+      return ok;
+    }
+
+    function startRun() {
+      Sound.ensure();
+      el.title.classList.add('hidden');
+      el.over.classList.add('hidden');
+      act(S, 'start');
+    }
+
+    function againRun() {
+      S = createState(freshSeed());
+      vl = S.lane;
+      particles.length = 0;
+      el.over.classList.add('hidden');
+      lastKey = '';
+      act(S, 'start');
+    }
+
+    el.start.addEventListener('click', startRun);
+    el.again.addEventListener('click', againRun);
+    el.mute.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const m = !Sound.isMuted();
+      Sound.ensure();
+      Sound.setMuted(m);
+      el.mute.textContent = m ? 'Sound off' : 'Sound on';
+      el.mute.setAttribute('aria-pressed', String(m));
+    });
+    el.slots.forEach((b, i) => {
+      b.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+      b.addEventListener('click', (e) => { e.stopPropagation(); act2('cast', i); });
+    });
+
+    // Pointer: a tap moves one lane toward the tapped half; a swipe moves one lane per 30 px.
+    const SWIPE_PX = 30;
+    let downX = null, moved = false;
+    game.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button, #satchel, .overlay:not(.hidden)')) return;
+      if (!S.started || S.over) return;
+      downX = e.clientX; moved = false;
+      try { game.setPointerCapture(e.pointerId); } catch (err) { /* older browsers */ }
+    });
+    game.addEventListener('pointermove', (e) => {
+      if (downX === null) return;
+      const dx = e.clientX - downX;
+      if (Math.abs(dx) >= SWIPE_PX) {
+        act2(dx < 0 ? 'left' : 'right');
+        downX = e.clientX; moved = true;
+      }
+    });
+    function endPointer(e, cancelled) {
+      if (downX === null) return;
+      if (!cancelled && !moved) {
+        const r = game.getBoundingClientRect();
+        act2(e.clientX < r.left + r.width / 2 ? 'left' : 'right');
+      }
+      downX = null;
+    }
+    game.addEventListener('pointerup', (e) => endPointer(e, false));
+    game.addEventListener('pointercancel', (e) => endPointer(e, true));
+
+    window.addEventListener('keydown', (e) => {
+      const k = e.key;
+      const overVisible = !el.over.classList.contains('hidden');
+      const titleVisible = !el.title.classList.contains('hidden');
+      if (k === 'ArrowLeft' || k === 'a' || k === 'A') { e.preventDefault(); act2('left'); }
+      else if (k === 'ArrowRight' || k === 'd' || k === 'D') { e.preventDefault(); act2('right'); }
+      else if (k === '1' || k === '2' || k === '3') { act2('cast', Number(k) - 1); }
+      else if (k === ' ' || k === 'Enter') {
+        if (titleVisible) { e.preventDefault(); startRun(); }
+        else if (overVisible) { e.preventDefault(); againRun(); }
+      } else if (k === 'm' || k === 'M') { el.mute.click(); }
+    });
+
+    // Start the loop; the title overlay waits for the lantern to be lit.
+    el.mute.textContent = Sound.isMuted() ? 'Sound off' : 'Sound on';
+    el.best.textContent = String(best);
+    requestAnimationFrame(frame);
+  })();
+}
+</script>
+</body>
+</html>
