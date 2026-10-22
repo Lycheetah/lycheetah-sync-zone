@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mycel · Lexical Tones</title>
+<style>
+  :root {
+    --bg: #0d0a14;
+    --panel: #171224;
+    --ink: #e9e2ff;
+    --dim: #b8aed0;
+    --accent: #7af0d0;
+    --warn: #ffd27a;
+    --line: #3a2f52;
+  }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    min-height: 100vh;
+    box-sizing: border-box;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 26px; font-weight: 600; color: var(--accent); margin: 8px 0 6px; }
+  p { line-height: 1.5; margin: 0 0 12px; color: var(--dim); }
+  label { display: block; color: var(--dim); font-size: 15px; margin: 14px 0 6px; }
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    box-sizing: border-box;
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    font: 16px/1.45 system-ui, -apple-system, sans-serif; /* 16px stops iOS zooming in */
+    resize: vertical;
+  }
+  button {
+    min-height: 48px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    background: rgba(122, 240, 208, 0.08);
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.4; cursor: default; border-color: var(--line); }
+  button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+  button:focus-visible, input[type="range"]:focus-visible, textarea:focus-visible {
+    outline: 3px solid var(--warn);
+    outline-offset: 3px;
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; align-items: center; }
+  input[type="range"] { flex: 1; min-height: 36px; accent-color: var(--accent); }
+  #volOut { min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; }
+  #status { color: var(--warn); min-height: 1.5em; margin: 6px 0; }
+  #now { color: var(--ink); min-height: 1.5em; margin: 6px 0 10px; }
+  #chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip {
+    min-height: 44px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+    text-align: left;
+  }
+  .chip small { display: block; color: var(--dim); font-size: 12px; }
+  .chip.now { border-color: var(--accent); background: rgba(122, 240, 208, 0.14); }
+  @media (prefers-reduced-motion: no-preference) {
+    .chip { transition: background-color 0.2s ease, border-color 0.2s ease; }
+  }
+  details { margin-top: 22px; color: var(--dim); font-size: 14px; line-height: 1.5; }
+  summary { color: var(--accent); cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+</style>
+</head>
+<body>
+
+<h1>Lexical Tones</h1>
+<p>Type words. Each word becomes a sound, chosen by a small deterministic function.
+Nothing here is a translation, and no word means anything in music. The word-to-form
+method is adapted from Kiln's Glossolith build (<code>builds/kiln-glossolith/</code>).
+Tap <strong>Wake the sound</strong> first. Audio never starts on its own.</p>
+
+<label for="src">Your words (first 120 with letters are used)</label>
+<textarea id="src" spellcheck="false" aria-describedby="status">the river remembers what the hand forgot</textarea>
+
+<div class="row">
+  <button type="button" id="wake">Wake the sound</button>
+  <button type="button" id="sing" disabled>Sing the words</button>
+  <button type="button" id="drone" aria-pressed="false" disabled>Hold a drone</button>
+  <button type="button" id="stop" disabled>Stop</button>
+</div>
+
+<label for="vol">Volume</label>
+<div class="row">
+  <input id="vol" type="range" min="0" max="1" step="0.01" value="0.2">
+  <output id="volOut" for="vol" aria-live="off">20%</output>
+</div>
+
+<p id="status" role="status" aria-live="polite"></p>
+<p id="now" aria-live="polite"></p>
+<div id="chips" aria-label="Words and the sounds they became. Tap one to hear it alone."></div>
+
+<details>
+  <summary>What this is not</summary>
+  <p>Not a translation. Not a melody generator with taste. The pitch, the filter and the length come from a hash of each word. The same word always sounds the same. Change one letter and it sounds different.</p>
+  <p>Nothing is saved. Reloading starts over. No network, no libraries, no AI calls, no audio files.</p>
+</details>
+
+<script>
+(function () {
+  'use strict';
+
+  // Word-to-form method adapted from builds/kiln-glossolith/index.html (Kiln).
+  var CONS = ['k', 't', 'r', 's', 'l', 'm', 'n', 'v', 'th', 'z', 'ph', 'x', 'gh', 'sh', 'ly', 'd'];
+  var VOW = ['a', 'e', 'i', 'o', 'u', 'ae', 'ou', 'ia', 'y', 'eo'];
+  var CODA = ['', '', '', 'n', 's', 'th', 'r', 'k'];
+
+  var BASE = 146.83;                                       // D3
+  var SCALE = [0, 2, 5, 7, 9, 10, 12, 14, 17, 19, 21, 24]; // semitones from D
+  var NAMES = ['D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C', 'C#'];
+  var VOWEL_CUTOFF = { a: 900, e: 1400, i: 2200, o: 600, u: 400, ae: 1200, ou: 500, ia: 1800, y: 2000, eo: 800 };
+  var STEP = 0.24;          // seconds between words when singing
+  var MAX_WORDS = 120;
+  var MASTER = 0.35;        // slider at 100% maps to this gain; start at 20% is quiet
+  var MAX_VOICES = 400;     // hard cap on scheduled nodes per sing
+
+  var $ = function (id) { return document.getElementById(id); };
+  var src = $('src'), wake = $('wake'), sing = $('sing'), drone = $('drone'), stop = $('stop');
+  var vol = $('vol'), volOut = $('volOut'), statusEl = $('status'), nowEl = $('now'), chipsEl = $('chips');
+
+  var ac = null, master = null;
+  var tokens = [];        // { word, p: params }
+  var playRecs = [];      // { o, nodes }
+  var timers = [];
+  var droneNodes = null;
+  var reduceMotion = false;
+  try { reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { reduceMotion = false; }
+
+  function setStatus(msg) { statusEl.textContent = msg; }
+
+  // FNV-1a, 32-bit.
+  function hash(s) {
+    var x = 2166136261;
+    for (var i = 0; i < s.length; i++) {
+      x ^= s.charCodeAt(i);
+      x = Math.imul(x, 16777619) >>> 0;
+    }
+    return x >>> 0;
+  }
+
+  // mulberry32, seeded so the same input gives the same numbers.
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function pick(r, arr) { return arr[Math.floor(r() * arr.length) % arr.length]; }
+
+  function formOf(word) {
+    var key = word.toLowerCase();
+    var r = rng(hash(key));
+    var n = Math.min(4, 1 + Math.floor(key.length / 3));
+    var f = '';
+    for (var i = 0; i < n; i++) f += pick(r, CONS) + pick(r, VOW);
+    return f + pick(r, CODA);
+  }
+
+  // Each word becomes one set of sound parameters.
+  function paramsOf(word) {
+    var key = word.toLowerCase();
+    var h = hash('tone:' + key);
+    var form = formOf(word);
+    var semi = SCALE[h % SCALE.length];
+    var octave = (h >>> 8) % 2;
+    var freq = BASE * Math.pow(2, (semi + 12 * octave) / 12);
+    var vm = form.match(/(ae|ou|ia|eo|a|e|i|o|u|y)/);
+    var vowel = vm ? vm[0] : 'a';
+    var cutoff = VOWEL_CUTOFF[vowel] || 900;
+    var first = form.charAt(0);
+    var plosive = first === 'k' || first === 't' || first === 'd' || first === 'x' || first === 'ph';
+    var attack = plosive ? 0.005 : 0.06;
+    var syll = Math.min(4, 1 + Math.floor(key.length / 3));
+    var dur = 0.16 + 0.05 * syll;
+    var type = /k$/.test(form) ? 'square' : (/(s|th)$/.test(form) ? 'triangle' : 'sine');
+    return {
+      form: form, freq: freq, cutoff: cutoff, attack: attack, dur: dur, type: type,
+      note: NAMES[((semi % 12) + 12) % 12]
+    };
+  }
+
+  function tokenize(text) {
+    var out = [];
+    var raw = text.split(/\s+/);
+    for (var i = 0; i < raw.length; i++) {
+      var core = raw[i].replace(/[^A-Za-z]/g, '');
+      if (!core) continue;
+      out.push({ word: core, p: paramsOf(core) });
+      if (out.length >= MAX_WORDS) break;
+    }
+    return out;
+  }
+
+  function renderChips() {
+    chipsEl.textContent = '';
+    tokens.forEach(function (t, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = t.p.form;
+      var s = document.createElement('small');
+      s.textContent = t.word + ' · ' + t.p.note + ' · ' + Math.round(t.p.freq) + ' Hz';
+      b.appendChild(s);
+      b.setAttribute('aria-label', t.word + ' sounds as ' + t.p.form + ', ' + Math.round(t.p.freq) + ' hertz. Tap to hear it alone.');
+      b.setAttribute('data-i', String(i));
+      b.addEventListener('click', function () { playOne(t); });
+      chipsEl.appendChild(b);
+    });
+  }
+
+  function highlight(i) {
+    var chips = chipsEl.children;
+    for (var k = 0; k < chips.length; k++) chips[k].classList.remove('now');
+    if (i >= 0 && chips[i]) {
+      chips[i].classList.add('now');
+      nowEl.textContent = 'Now: ' + tokens[i].word + ' becomes ' + tokens[i].p.form;
+    } else {
+      nowEl.textContent = '';
+    }
+  }
+
+  function setLevel(v, rampSeconds) {
+    if (!master) return;
+    var now = ac.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    if (rampSeconds) master.gain.linearRampToValueAtTime(v * MASTER, now + rampSeconds);
+    else master.gain.setTargetAtTime(v * MASTER, now, 0.05);
+  }
+
+  // One note: oscillator, lowpass, envelope. Returns its nodes so Stop can cut them.
+  function voiceAt(p, when) {
+    var end = when + p.dur;
+    var o = ac.createOscillator();
+    o.type = p.type;
+    o.frequency.value = p.freq;
+    var lp = ac.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = p.cutoff;
+    lp.Q.value = 2;
+    var g = ac.createGain();
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(0.5, when + p.attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, end);
+    o.connect(lp);
+    lp.connect(g);
+    g.connect(master);
+    o.start(when);
+    o.stop(end + 0.05);
+    return { o: o, nodes: [o, lp, g] };
+  }
+
+  function playOne(t) {
+    if (!ac || ac.state !== 'running') { setStatus('Wake the sound first.'); return; }
+    if (playRecs.length > MAX_VOICES) return;
+    playRecs.push(voiceAt(t.p, ac.currentTime + 0.02));
+    setStatus(t.word + ' sounds as ' + t.p.form + '.');
+  }
+
+  function stopPlay() {
+    timers.forEach(function (id) { clearTimeout(id); });
+    timers = [];
+    playRecs.forEach(function (r) {
+      try { r.o.stop(); } catch (e) { /* already stopped */ }
+      r.nodes.forEach(function (n) { try { n.disconnect(); } catch (e) { /* gone */ } });
+    });
+    playRecs = [];
+    highlight(-1);
+  }
+
+  function singWords() {
+    if (!ac || ac.state !== 'running') { setStatus('Wake the sound first.'); return; }
+    stopPlay();
+    if (!tokens.length) { setStatus('There are no letters to sing. Type some words above.'); return; }
+    if (tokens.length === MAX_WORDS) setStatus('Singing the first ' + MAX_WORDS + ' words.');
+    else setStatus('Singing ' + tokens.length + ' word' + (tokens.length === 1 ? '' : 's') + '.');
+    var t0 = ac.currentTime + 0.12;
+    tokens.forEach(function (t, i) {
+      var when = t0 + i * STEP;
+      playRecs.push(voiceAt(t.p, when));
+      timers.push(setTimeout(function () { highlight(i); }, Math.max(0, (when - ac.currentTime) * 1000)));
+    });
+    var endMs = (t0 - ac.currentTime + tokens.length * STEP + 0.5) * 1000;
+    timers.push(setTimeout(function () {
+      highlight(-1);
+      setStatus('Finished. Tap any word to hear it alone.');
+    }, Math.max(0, endMs)));
+  }
+
+  // Drone: keyed to the whole text at the moment you press it. Two sines, root and a fifth.
+  function startDrone() {
+    if (!ac || ac.state !== 'running') { setStatus('Wake the sound first.'); return; }
+    if (droneNodes) return;
+    var h = hash('drone:' + src.value.toLowerCase());
+    var f = (BASE / 2) * Math.pow(2, SCALE[h % SCALE.length] / 12);
+    var t = ac.currentTime;
+    var dg = ac.createGain();
+    dg.gain.setValueAtTime(0, t);
+    dg.gain.linearRampToValueAtTime(0.18, t + 2);
+    dg.connect(master);
+    var a = ac.createOscillator();
+    a.type = 'sine';
+    a.frequency.value = f;
+    var b = ac.createOscillator();
+    b.type = 'sine';
+    b.frequency.value = f * 1.5;
+    var bg = ac.createGain();
+    bg.gain.value = 0.5;
+    a.connect(dg);
+    b.connect(bg);
+    bg.connect(dg);
+    a.start(t);
+    b.start(t);
+    droneNodes = { a: a, b: b, dg: dg };
+    drone.setAttribute('aria-pressed', 'true');
+    drone.textContent = 'Let go of the drone';
+    setStatus('Drone root ' + Math.round(f) + ' Hz, keyed to the text as it was when you pressed.');
+  }
+
+  function stopDrone() {
+    if (!droneNodes || !ac) return;
+    var d = droneNodes;
+    droneNodes = null;
+    var t = ac.currentTime;
+    d.dg.gain.cancelScheduledValues(t);
+    d.dg.gain.setValueAtTime(d.dg.gain.value, t);
+    d.dg.gain.linearRampToValueAtTime(0, t + 0.6);
+    try { d.a.stop(t + 0.7); d.b.stop(t + 0.7); } catch (e) { /* already stopped */ }
+    drone.setAttribute('aria-pressed', 'false');
+    drone.textContent = 'Hold a drone';
+  }
+
+  // ---- events ----
+
+  src.addEventListener('input', function () {
+    stopPlay();
+    tokens = tokenize(src.value);
+    renderChips();
+    if (!tokens.length) setStatus('No letters yet.');
+    else setStatus('');
+  });
+
+  wake.addEventListener('click', async function () {
+    try {
+      if (!ac) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        ac = new AC();
+        master = ac.createGain();
+        master.gain.value = 0; // silent until the fade below
+        master.connect(ac.destination);
+      }
+      await ac.resume();
+      setLevel(Number(vol.value), 1.5);
+      wake.disabled = true;
+      wake.textContent = 'Sound is awake';
+      sing.disabled = false;
+      drone.disabled = false;
+      stop.disabled = false;
+      setStatus('Awake. Volume fades in to your level.');
+    } catch (err) {
+      setStatus('Sound could not start in this browser. Nothing will play.');
+    }
+  });
+
+  sing.addEventListener('click', singWords);
+  drone.addEventListener('click', function () {
+    if (droneNodes) stopDrone(); else startDrone();
+  });
+  stop.addEventListener('click', function () {
+    stopPlay();
+    stopDrone();
+    setStatus('Stopped.');
+  });
+
+  vol.addEventListener('input', function () {
+    volOut.textContent = Math.round(vol.value * 100) + '%';
+    vol.setAttribute('aria-valuetext', Math.round(vol.value * 100) + ' percent');
+    setLevel(Number(vol.value), 0);
+  });
+  volOut.textContent = Math.round(vol.value * 100) + '%';
+
+  document.addEventListener('visibilitychange', function () {
+    if (!ac) return;
+    if (document.hidden) ac.suspend();
+    else ac.resume();
+  });
+
+  tokens = tokenize(src.value);
+  renderChips();
+})();
+</script>
+</body>
+</html>
