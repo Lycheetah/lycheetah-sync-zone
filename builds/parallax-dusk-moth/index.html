@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dusk Moth</title>
+<style>
+:root{
+  --bg:#120c1f;
+  --ink:#f3e7c9;
+  --ink-dim:#c9b99a;
+  --ember:#ffb347;
+  --moth:#bfe9ff;
+  --panel:rgba(18,12,31,.94);
+  --edge:rgba(255,179,71,.35);
+  --accent:#ff7a59;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#field{display:block;background:#000;touch-action:none;border-radius:6px}
+#ui{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;pointer-events:none}
+.card{pointer-events:auto;background:var(--panel);border:1px solid var(--edge);border-radius:16px;
+  padding:20px 20px 18px;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.kicker{margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
+h1,h2{margin:0 0 10px;font-weight:700;color:var(--ember);letter-spacing:.02em}
+h1{font-size:34px}
+h2{font-size:26px}
+p{margin:0 0 10px;line-height:1.45;font-size:15px}
+.night{color:var(--moth);font-style:italic;min-height:2.9em}
+.help{font-size:13px;color:var(--ink-dim)}
+.seed{font-size:12px;color:var(--ink-dim);margin-top:6px}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+button{font:inherit;font-size:15px;padding:11px 16px;min-height:44px;border-radius:999px;
+  border:1px solid var(--edge);background:transparent;color:var(--ink);cursor:pointer}
+button.primary{background:var(--ember);color:#1b1022;border-color:var(--ember);font-weight:700}
+button:focus-visible{outline:3px solid var(--moth);outline-offset:3px}
+button:active{transform:scale(.98)}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="field" role="img" aria-label="Dusk Moth playfield. A moth flies through shadows to gather embers."></canvas></div>
+
+<div id="ui">
+  <section id="title" class="card" aria-labelledby="titleH">
+    <p class="kicker">a one-screen night</p>
+    <h1 id="titleH">Dusk Moth</h1>
+    <p>Gather <b>14 embers</b> before the dusk goes out. Shadows drift down and bite. Every night breaks one rule.</p>
+    <p id="preview" class="night"></p>
+    <p class="help">Drag to fly toward your finger. Tap to pulse: it scatters nearby shadows and costs dusk.<br>
+    Keys: arrows or WASD fly, Space pulses, R restarts.</p>
+    <p id="seedLine" class="seed"></p>
+    <div class="row">
+      <button id="again" type="button">Another night</button>
+      <button id="begin" type="button" class="primary">Begin</button>
+    </div>
+  </section>
+
+  <section id="end" class="card" aria-labelledby="endH" hidden>
+    <p id="endKick" class="kicker"></p>
+    <h2 id="endH"></h2>
+    <p id="endStats" role="status" aria-live="polite"></p>
+    <p id="endLine" class="night"></p>
+    <p id="endSeed" class="seed"></p>
+    <div class="row">
+      <button id="same" type="button">This night again</button>
+      <button id="next" type="button" class="primary">Another night</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================================================================
+     PURE GAME LOGIC (no DOM). Deterministic given a seed.
+     Exposed as globalThis.DUSK_MOTH for tests and tinkering.
+     ================================================================ */
+
+  var W = 360, H = 640;
+  var GOAL = 14;          // embers to reach dawn
+  var PR = 10;            // moth radius
+  var MOVE = 240;         // moth speed, px/s
+  var PULSE_COST = 12;    // dusk spent per pulse
+  var PULSE_R = 120;      // pulse scatter radius
+  var MAX_SHADOWS = 13;
+  var HIT_COST = 28;      // dusk lost when a shadow touches you
+
+  var NIGHTS = [
+    { id: 'plain',   name: 'Plain Dusk',        line: 'Nothing is hidden. Everything is still hungry.' },
+    { id: 'inverse', name: 'The Mirror Moon',   line: 'Your hand is reversed: push left, fly right.' },
+    { id: 'echo',    name: 'The Echo Night',    line: 'The shadows chase the path you already walked.' },
+    { id: 'blind',   name: 'Blind Lantern',     line: 'You see only what your own light touches.' },
+    { id: 'tithe',   name: 'Heavy Tithe',       line: 'Dusk drains twice as fast. Embers pay twice.' },
+    { id: 'tide',    name: 'The Wrapping Tide', line: 'The sky has no walls. Leave one side, arrive at the other.' }
+  ];
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+
+  // Seed mixing (murmur-style finaliser). Always returns a non-zero int32.
+  function mix(seed) {
+    var x = (seed >>> 0) ^ 0x9e3779b9;
+    x = Math.imul(x ^ (x >>> 16), 0x85ebca6b);
+    x = Math.imul(x ^ (x >>> 13), 0xc2b2ae35);
+    x ^= x >>> 16;
+    return (x | 0) || 1;
+  }
+
+  // xorshift32 on g.rs (int32, never zero). Returns [0,1).
+  function rand(g) {
+    var x = g.rs;
+    x ^= x << 13;
+    x ^= x >>> 17;
+    x ^= x << 5;
+    g.rs = x;
+    return (x >>> 0) / 4294967296;
+  }
+  function rr(g, a, b) { return a + (b - a) * rand(g); }
+
+  function nightFor(seed) {
+    return NIGHTS[(mix(seed) >>> 0) % NIGHTS.length];
+  }
+
+  // Shortest horizontal difference a - b; wraps only under the tide rule.
+  function gap(g, a, b) {
+    var d = a - b;
+    if (g.night === 'tide') {
+      if (d > W / 2) d -= W;
+      else if (d < -W / 2) d += W;
+    }
+    return d;
+  }
+
+  function burst(g, x, y, rgb, n, speed) {
+    if (g.parts.length > 200) return;
+    for (var i = 0; i < n; i++) {
+      var a = rand(g) * Math.PI * 2;
+      var v = speed * (0.3 + 0.7 * rand(g));
+      g.parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+                     life: 0.5 + 0.4 * rand(g), max: 0.9, c: rgb });
+    }
+  }
+
+  function spawnShadow(g, early) {
+    var r = rr(g, 10, 14);
+    g.shads.push({
+      x: rr(g, r, W - r),
+      y: early ? rr(g, -H * 0.6, -30) : -20,
+      vx: rr(g, -25, 25),
+      vy: Math.min(110, rr(g, 36, 62) + g.t * 0.4),
+      r: r, ph: rr(g, 0, 6.2832), age: 0, kx: 0, ky: 0
+    });
+  }
+
+  function spawnEmber(g) {
+    var gold = rand(g) < 0.12;
+    g.embs.push({ x: rr(g, 20, W - 20), y: -16, vy: rr(g, 44, 70),
+                  r: gold ? 9 : 7, gold: gold, ph: rr(g, 0, 6.2832), age: 0, taken: false });
+  }
+
+  function createGame(seed) {
+    var s = (seed >>> 0) || 1;
+    var n = nightFor(s);
+    var g = {
+      seed: s, rs: mix(s), night: n.id, nightName: n.name, nightLine: n.line,
+      t: 0, state: 'play', endT: 0,
+      px: W / 2, py: H * 0.72, pulseCool: 0, inv: 0,
+      dusk: 100, embers: 0, score: 0, final: null,
+      embs: [], shads: [], trail: [], trailT: 0,
+      spawnE: 0.3, spawnS: 1.2,
+      parts: [], shake: 0, pulseFx: 0
+    };
+    spawnShadow(g, true);
+    return g;
+  }
+
+  function finish(g, how) {
+    g.state = how;
+    if (how === 'dawn') {
+      g.score += Math.round(g.dusk * 5) + Math.max(0, Math.round((150 - g.t) * 3));
+    }
+    g.final = { how: how, embers: g.embers, score: g.score, seconds: Math.round(g.t) };
+  }
+
+  function updateFx(g, dt) {
+    g.shake = Math.max(0, g.shake - dt);
+    g.pulseFx = Math.max(0, g.pulseFx - dt);
+    g.endT += dt;
+    for (var i = 0; i < g.parts.length; i++) {
+      var p = g.parts[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= Math.exp(-dt * 3);
+      p.vy *= Math.exp(-dt * 3);
+      p.life -= dt;
+    }
+    g.parts = g.parts.filter(function (p) { return p.life > 0; });
+  }
+
+  // inp = { mx, my, pulse }: move vector in [-1,1] (already normalised by caller), pulse edge flag.
+  function step(g, inp, dt) {
+    inp = inp || {};
+    dt = clamp(dt || 0, 0, 0.05);
+    if (g.state !== 'play') { updateFx(g, dt); return g; }
+
+    g.t += dt;
+    g.inv = Math.max(0, g.inv - dt);
+    g.pulseCool = Math.max(0, g.pulseCool - dt);
+    var heavy = g.night === 'tithe';
+    var tide = g.night === 'tide';
+    var echo = g.night === 'echo';
+
+    // --- moth movement
+    var mx = clamp(inp.mx || 0, -1, 1);
+    var my = clamp(inp.my || 0, -1, 1);
+    if (g.night === 'inverse') mx = -mx;
+    g.px += mx * MOVE * dt;
+    g.py += my * MOVE * dt;
+    if (tide) g.px = ((g.px % W) + W) % W;
+    else g.px = clamp(g.px, PR, W - PR);
+    g.py = clamp(g.py, PR, H - PR);
+
+    g.trailT += dt;
+    if (g.trailT >= 0.05) {
+      g.trailT = 0;
+      g.trail.push({ x: g.px, y: g.py });
+      if (g.trail.length > 200) g.trail.shift();
+    }
+
+    // --- pulse: scatter shadows, costs dusk
+    if (inp.pulse && g.pulseCool <= 0 && g.dusk > PULSE_COST) {
+      g.dusk -= PULSE_COST;
+      g.pulseCool = 1.1;
+      g.pulseFx = 0.35;
+      for (var i = 0; i < g.shads.length; i++) {
+        var s0 = g.shads[i];
+        var dx0 = gap(g, s0.x, g.px), dy0 = s0.y - g.py;
+        var d0 = Math.hypot(dx0, dy0);
+        if (d0 < PULSE_R) {
+          var k = (1 - d0 / PULSE_R) * 460;
+          var u = d0 > 0.001 ? 1 / d0 : 0;
+          s0.kx += dx0 * u * k;
+          s0.ky += dy0 * u * k;
+        }
+      }
+      burst(g, g.px, g.py, '191,233,255', 14, 160);
+    }
+
+    // --- spawning
+    g.spawnE -= dt;
+    if (g.spawnE <= 0) { spawnEmber(g); g.spawnE = rr(g, 0.5, 0.85); }
+    g.spawnS -= dt;
+    if (g.spawnS <= 0) {
+      if (g.shads.length < MAX_SHADOWS) spawnShadow(g, false);
+      g.spawnS = Math.max(0.8, 2.3 - g.t / 50) * rr(g, 0.85, 1.15);
+    }
+
+    // --- embers fall; gather
+    for (var e0 = 0; e0 < g.embs.length; e0++) {
+      var e = g.embs[e0];
+      e.age += dt;
+      e.y += e.vy * dt;
+      e.x += Math.sin(e.age * 1.7 + e.ph) * 14 * dt;
+      if (tide) e.x = ((e.x % W) + W) % W;
+    }
+    for (var e1 = 0; e1 < g.embs.length; e1++) {
+      var em = g.embs[e1];
+      var edx = gap(g, em.x, g.px), edy = em.y - g.py;
+      if (Math.hypot(edx, edy) < PR + em.r + 4) {
+        em.taken = true;
+        var mult = heavy ? 2 : 1;
+        g.embers += 1;
+        g.score += (em.gold ? 300 : 100) * mult;
+        g.dusk = Math.min(100, g.dusk + (em.gold ? 24 : 14) * mult);
+        burst(g, em.x, em.y, em.gold ? '255,224,140' : '255,179,71', 10, 120);
+      }
+    }
+    g.embs = g.embs.filter(function (em2) { return !em2.taken && em2.y < H + 20; });
+
+    // --- shadows move (echo: chase the path you walked 1.2s ago)
+    var target = (echo && g.trail.length > 24) ? g.trail[g.trail.length - 24] : null;
+    for (var j = 0; j < g.shads.length; j++) {
+      var s = g.shads[j];
+      s.age += dt;
+      var dec = Math.exp(-dt * 4);
+      s.kx *= dec;
+      s.ky *= dec;
+      if (target) {
+        var tdx = gap(g, target.x, s.x), tdy = target.y - s.y;
+        var td = Math.hypot(tdx, tdy) || 1;
+        var st = Math.min(td, 120 * dt);
+        s.x += tdx / td * st + s.kx * dt;
+        s.y += tdy / td * st + s.ky * dt;
+      } else {
+        s.x += (s.vx + s.kx + Math.sin(s.age * 2 + s.ph) * 16) * dt;
+        s.y += (s.vy + s.ky) * dt;
+      }
+      if (tide) {
+        s.x = ((s.x % W) + W) % W;
+      } else if (s.x < s.r) {
+        s.x = s.r; s.vx = Math.abs(s.vx);
+      } else if (s.x > W - s.r) {
+        s.x = W - s.r; s.vx = -Math.abs(s.vx);
+      }
+    }
+    g.shads = g.shads.filter(function (sh) { return sh.y < H + 40; });
+
+    // --- contact: a shadow costs dusk, then you have a short reprieve
+    if (g.inv <= 0) {
+      for (var k2 = 0; k2 < g.shads.length; k2++) {
+        var sh = g.shads[k2];
+        var hx = gap(g, sh.x, g.px), hy = sh.y - g.py;
+        var hd = Math.hypot(hx, hy);
+        if (hd < PR + sh.r * 0.8) {
+          g.dusk -= HIT_COST;
+          g.inv = 1.0;
+          g.shake = 0.4;
+          var hu = hd > 0.001 ? 1 / hd : 0;
+          sh.kx += hx * hu * 380;
+          sh.ky += hy * hu * 380;
+          burst(g, g.px, g.py, '255,106,138', 12, 140);
+          break;
+        }
+      }
+    }
+
+    // --- drain: dusk falls faster as the night goes on
+    g.dusk -= (3 + g.t / 40) * (heavy ? 2 : 1) * dt;
+    if (g.dusk < 0) g.dusk = 0;
+
+    updateFx(g, dt);
+
+    if (g.dusk <= 0) finish(g, 'dusk');
+    else if (g.embers >= GOAL) finish(g, 'dawn');
+    return g;
+  }
+
+  var api = {
+    W: W, H: H, GOAL: GOAL, NIGHTS: NIGHTS,
+    mix: mix, rand: rand, nightFor: nightFor,
+    createGame: createGame, step: step, finish: finish
+  };
+  if (typeof globalThis !== 'undefined') globalThis.DUSK_MOTH = api;
+
+  /* ================================================================
+     DOM LAYER (browser only). Skipped when there is no document.
+     ================================================================ */
+  if (typeof document === 'undefined' || !document.getElementById('field')) return;
+
+  var canvas = document.getElementById('field');
+  var ctx = canvas.getContext('2d');
+  var reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var DPR = 1;
+  var game = null;
+  var running = false;
+  var endShown = false;
+  var keys = {};
+  var pulseReq = false;
+  var touch = null;
+  var lastNow = 0;
+  var seed = newSeed();
+
+  var hashMatch = /seed=(\d+)/.exec(location.hash || '');
+  if (hashMatch) seed = (parseInt(hashMatch[1], 10) >>> 0) || 1;
+
+  // Stars: a fixed, seeded field for the parallax layers (visual only).
+  var STARS = [];
+  (function () {
+    var s = 12345;
+    function r() { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }
+    for (var layer = 0; layer < 3; layer++) {
+      var arr = [];
+      for (var i = 0; i < 36; i++) arr.push({ x: r() * W, y: r() * H, a: 0.3 + r() * 0.6 });
+      STARS.push(arr);
+    }
+  })();
+  var LAYER_SPEED = [5, 13, 26];
+  var LAYER_SIZE = [0.8, 1.2, 1.7];
+
+  function newSeed() { return (Math.floor(Math.random() * 4294967295) + 1) >>> 0; }
+
+  function $(id) { return document.getElementById(id); }
+
+  function resize() {
+    var s = Math.min(window.innerWidth / W, window.innerHeight / H) * 0.98;
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    canvas.style.width = Math.floor(W * s) + 'px';
+    canvas.style.height = Math.floor(H * s) + 'px';
+    canvas.width = Math.floor(W * s * DPR);
+    canvas.height = Math.floor(H * s * DPR);
+  }
+
+  function toLogical(e) {
+    var r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height };
+  }
+
+  function renderPreview() {
+    var n = nightFor(seed);
+    $('preview').textContent = 'Tonight: ' + n.name + '. ' + n.line;
+    $('seedLine').textContent = 'night #' + seed + ' · replay it with #seed=' + seed;
+  }
+
+  function showTitle() {
+    running = false;
+    game = null;
+    renderPreview();
+    $('title').hidden = false;
+    $('end').hidden = true;
+    $('begin').focus();
+  }
+
+  function begin(sameSeed) {
+    if (!sameSeed) seed = newSeed();
+    game = createGame(seed);
+    endShown = false;
+    running = true;
+    $('title').hidden = true;
+    $('end').hidden = true;
+    canvas.focus && canvas.focus();
+  }
+
+  function showEnd() {
+    var f = game.final;
+    var won = f.how === 'dawn';
+    $('endKick').textContent = game.nightName + ' · ' + (won ? 'dawn' : 'dusk');
+    $('endH').textContent = won ? 'Dawn.' : 'The dusk went out.';
+    $('endStats').textContent = (won
+      ? 'You gathered all 14 embers in ' + f.seconds + 's. '
+      : 'You gathered ' + f.embers + ' of 14 embers in ' + f.seconds + 's. ') +
+      'Score ' + f.score + '.';
+    $('endLine').textContent = won
+      ? 'The moth keeps the light for another night.'
+      : 'Every ember you missed is still out there, glowing somewhere below.';
+    $('endSeed').textContent = 'night #' + seed + ' · replay it with #seed=' + seed;
+    $('end').hidden = false;
+    $('same').focus();
+  }
+
+  // Keyboard
+  var MOVE_KEYS = { arrowleft: 1, a: 1, arrowright: 1, d: 1, arrowup: 1, w: 1, arrowdown: 1, s: 1 };
+  window.addEventListener('keydown', function (e) {
+    var k = (e.key || '').toLowerCase();
+    var onButton = e.target && e.target.tagName === 'BUTTON';
+    if (!running) {
+      if (k === 'enter' && !onButton && $('title').hidden === false) { begin(false); e.preventDefault(); }
+      return;
+    }
+    if (k === ' ' && !onButton) { pulseReq = true; e.preventDefault(); }
+    else if (k === 'r' && game && game.state !== 'play') { begin(true); e.preventDefault(); }
+    else if (MOVE_KEYS[k]) { keys[k] = true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup', function (e) {
+    var k = (e.key || '').toLowerCase();
+    if (MOVE_KEYS[k]) keys[k] = false;
+  });
+  window.addEventListener('blur', function () { keys = {}; touch = null; });
+
+  // Touch and mouse on the canvas: drag to fly, quick tap to pulse
+  canvas.addEventListener('pointerdown', function (e) {
+    if (!running || game.state !== 'play') return;
+    var p = toLogical(e);
+    touch = { id: e.pointerId, x: p.x, y: p.y, sx: p.x, sy: p.y, t: performance.now() };
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    e.preventDefault();
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!touch || touch.id !== e.pointerId) return;
+    var p = toLogical(e);
+    touch.x = p.x; touch.y = p.y;
+  });
+  function endTouch(e) {
+    if (!touch || touch.id !== e.pointerId) return;
+    var p = toLogical(e);
+    var moved = Math.hypot(p.x - touch.sx, p.y - touch.sy);
+    var quick = performance.now() - touch.t < 220;
+    if (e.type === 'pointerup' && quick && moved < 12) pulseReq = true;
+    touch = null;
+  }
+  canvas.addEventListener('pointerup', endTouch);
+  canvas.addEventListener('pointercancel', endTouch);
+
+  function readInput() {
+    var mx = 0, my = 0;
+    if (keys.arrowleft || keys.a) mx -= 1;
+    if (keys.arrowright || keys.d) mx += 1;
+    if (keys.arrowup || keys.w) my -= 1;
+    if (keys.arrowdown || keys.s) my += 1;
+    if (touch && game) {
+      var dx = touch.x - game.px, dy = touch.y - game.py;
+      var d = Math.hypot(dx, dy);
+      if (d > 6) {
+        var k = Math.min(1, d / 40);
+        mx += dx / d * k;
+        my += dy / d * k;
+      }
+    }
+    var m = Math.hypot(mx, my);
+    if (m > 1) { mx /= m; my /= m; }
+    var pulse = pulseReq;
+    pulseReq = false;
+    return { mx: mx, my: my, pulse: pulse };
+  }
+
+  // Buttons
+  $('begin').addEventListener('click', function () { begin(false); });
+  $('again').addEventListener('click', function () { seed = newSeed(); renderPreview(); $('begin').focus(); });
+  $('same').addEventListener('click', function () { begin(true); });
+  $('next').addEventListener('click', function () { seed = newSeed(); begin(false); });
+
+  // Drawing
+  function rgba(rgb, a) { return 'rgba(' + rgb + ',' + a + ')'; }
+
+  function drawBackground(g) {
+    var top, bot;
+    if (g.state === 'dawn') { top = '#2a3d6b'; bot = '#ffb08a'; }
+    else if (g.state === 'dusk') { top = '#050308'; bot = '#1a0810'; }
+    else { top = '#1b1033'; bot = '#3b1d3f'; }
+    var grd = ctx.createLinearGradient(0, 0, 0, H);
+    grd.addColorStop(0, top);
+    grd.addColorStop(1, bot);
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawStars(g) {
+    for (var layer = 0; layer < 3; layer++) {
+      var speed = reduced ? 0 : LAYER_SPEED[layer];
+      var arr = STARS[layer];
+      for (var i = 0; i < arr.length; i++) {
+        var st = arr[i];
+        var y = ((st.y + g.t * speed) % H + H) % H;
+        ctx.fillStyle = rgba('255,240,215', st.a * (g.state === 'dusk' ? 0.3 : 1));
+        ctx.beginPath();
+        ctx.arc(st.x, y, LAYER_SIZE[layer], 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  function drawEmber(e, now) {
+    var c = e.gold ? '255,224,140' : '255,179,71';
+    var wob = reduced ? 0 : 0.1 * Math.sin(now / 300 + e.ph);
+    var r = e.r * (1 + wob);
+    var gr = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, r * 3);
+    gr.addColorStop(0, rgba(c, 0.9));
+    gr.addColorStop(1, rgba(c, 0));
+    ctx.fillStyle = gr;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, r * 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgb(' + c + ')';
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, r * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawShadow(s, g) {
+    var gr = ctx.createRadialGradient(s.x, s.y, s.r * 0.2, s.x, s.y, s.r * 1.6);
+    gr.addColorStop(0, 'rgba(8,2,14,1)');
+    gr.addColorStop(0.7, 'rgba(20,6,30,0.85)');
+    gr.addColorStop(1, 'rgba(20,6,30,0)');
+    ctx.fillStyle = gr;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r * 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    var dx = g.px - s.x, dy = g.py - s.y;
+    var d = Math.hypot(dx, dy) || 1;
+    var ex = dx / d * 2.5, ey = dy / d * 2.5;
+    ctx.fillStyle = 'rgba(255,106,138,0.9)';
+    ctx.beginPath();
+    ctx.arc(s.x - 3.5 + ex, s.y - 2 + ey, 1.6, 0, Math.PI * 2);
+    ctx.arc(s.x + 3.5 + ex, s.y - 2 + ey, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawMoth(g, now) {
+    var flap = reduced ? 0.15 : 0.35 + 0.3 * Math.sin(now / 70);
+    var blink = g.inv > 0 && !reduced && Math.floor(now / 90) % 2 === 0;
+    ctx.save();
+    ctx.translate(g.px, g.py);
+    if (blink) ctx.globalAlpha = 0.4;
+    var glow = ctx.createRadialGradient(0, 0, 0, 0, 0, 26);
+    glow.addColorStop(0, 'rgba(191,233,255,0.4)');
+    glow.addColorStop(1, 'rgba(191,233,255,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, 26, 0, Math.PI * 2);
+    ctx.fill();
+    for (var side = -1; side <= 1; side += 2) {
+      ctx.save();
+      ctx.scale(side, 1);
+      ctx.rotate(-flap);
+      ctx.fillStyle = 'rgba(191,233,255,0.85)';
+      ctx.beginPath();
+      ctx.ellipse(10, -2, 11, 6, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.fillStyle = '#2a2238';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 3, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function drawHud(g) {
+    var ratio = clamp(g.dusk / 100, 0, 1);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fillRect(12, 12, W - 24, 9);
+    var col = ratio > 0.35 ? '#ffb347' : '#ff5a4a';
+    ctx.fillStyle = col;
+    ctx.fillRect(12, 12, (W - 24) * ratio, 9);
+    ctx.font = '13px system-ui, sans-serif';
+    ctx.fillStyle = '#f3e7c9';
+    ctx.textAlign = 'left';
+    ctx.fillText(g.nightName, 12, 42);
+    ctx.textAlign = 'right';
+    ctx.fillText('embers ' + g.embers + ' / ' + GOAL, W - 12, 42);
+    ctx.textAlign = 'left';
+    var cool = g.pulseCool > 0 ? 'pulse ' + g.pulseCool.toFixed(1) + 's' : 'pulse ready';
+    ctx.fillStyle = 'rgba(201,185,154,0.85)';
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.fillText(cool, 12, H - 12);
+  }
+
+  function draw(now) {
+    var g = game;
+    ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    if (!g) { drawBackground({ state: 'play', t: 0 }); drawStars({ t: now / 1000 }); return; }
+
+    ctx.save();
+    if (g.shake > 0 && !reduced) {
+      ctx.translate((Math.random() - 0.5) * g.shake * 18, (Math.random() - 0.5) * g.shake * 18);
+    }
+    drawBackground(g);
+    drawStars(g);
+    for (var i = 0; i < g.embs.length; i++) drawEmber(g.embs[i], now);
+    for (var j = 0; j < g.shads.length; j++) drawShadow(g.shads[j], g);
+    drawMoth(g, now);
+
+    if (!reduced) {
+      for (var p = 0; p < g.parts.length; p++) {
+        var pt = g.parts[p];
+        ctx.fillStyle = rgba(pt.c, Math.max(0, pt.life / pt.max));
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    if (g.pulseFx > 0 && !reduced) {
+      var rad = PULSE_R * (1 - g.pulseFx / 0.35);
+      ctx.strokeStyle = rgba('191,233,255', g.pulseFx / 0.35 * 0.7);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(g.px, g.py, rad, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    if (g.night === 'blind') {
+      // Darkness everywhere except a lantern circle around the moth.
+      ctx.fillStyle = 'rgba(0,0,0,0.94)';
+      ctx.beginPath();
+      ctx.rect(0, 0, W, H);
+      ctx.arc(g.px, g.py, 72, 0, Math.PI * 2, true);
+      ctx.fill('evenodd');
+    }
+    drawHud(g);
+    ctx.restore();
+  }
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    var dt = lastNow ? Math.min(0.05, (now - lastNow) / 1000) : 0;
+    lastNow = now;
+    if (running && game) {
+      step(game, game.state === 'play' ? readInput() : {}, dt);
+      if (game.state !== 'play' && !endShown) { endShown = true; showEnd(); }
+    }
+    draw(now);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  renderPreview();
+  $('title').hidden = false;
+  $('begin').focus();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
