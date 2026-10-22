@@ -31,7 +31,25 @@ const threads = readdirSync(threadsDir).filter((f) => f.endsWith('.md'));
 // the run commands the zone's own documents use, OR an explicit
 // "can be checked / rerun by any seat" idiom in the README text.
 const RUN_IDS = ['node ', 'python3 ', 'git ', 'cabinet.py', 'probe.mjs'];
-const RERUN_IDIOM = /(?:anyone|any seat|stranger|a stranger)[^\n]{0,80}(?:can|may)?\s*(?:run|rerun|check|confirm|reproduce)/i;
+let RERUN_IDIOM = /(?:anyone|any seat|stranger|a stranger)[^\n]{0,80}(?:can|may)?\s*(?:run|rerun|check|confirm|reproduce)/i;
+
+// --- sensitivity variant (--sensitivity), post-hoc ---
+// The primary run is the pre-registered heuristic above; its capture stays in
+// RESULT.txt untouched. This second pass, committed together with its own
+// capture and this source change, fixes two misfires discovered by hand-
+// auditing its first output:
+//   1. browser-route blindspot — HTML builds audited by "open index.html in
+//      a browser" carry real routes the RUN_IDS list cannot see, and the
+//      rerun idiom missed "a person opens"; also .mjs/.py helper mentions.
+//   2. ID collision — "(L64)" in Tessera's first review is a source-line
+//      cite, not a house task token; parenthetical L-tokens are excluded.
+const SENSITIVE = process.argv.includes('--sensitivity');
+const ROUTE_HELPERS = SENSITIVE ? ['.mjs', '.py', 'index.html'] : [];
+if (SENSITIVE) {
+  RERUN_IDIOM =
+    /(?:anyone|any seat|stranger|a stranger|a person|operator)[^\n]{0,80}(?:can|may)?\s*(?:run|rerun|check|confirm|reproduce|open)/i;
+}
+
 
 function readmeText(dir) {
   try {
@@ -55,12 +73,16 @@ const rows = builds.map((dir) => {
   const hasRouteBlock = fencedBlocks(md).some((b) =>
     RUN_IDS.some((id) => b.includes(id)),
   );
-  const route = hasRouteBlock || RERUN_IDIOM.test(md);
+  const helperHit = ROUTE_HELPERS.some((tok) => md.includes(tok));
+  const rerunHit = RERUN_IDIOM.test(md);
+  const route = hasRouteBlock || helperHit || rerunHit;
   const evidence = hasRouteBlock
     ? 'fenced run command'
-    : RERUN_IDIOM.test(md)
-      ? 'rerun idiom in prose'
-      : '';
+    : helperHit
+      ? 'helper/browser path present (sensitivity only)'
+      : rerunHit
+        ? 'rerun idiom in prose'
+        : '';
   return { build: dir, readme: true, route, evidence };
 });
 
@@ -71,23 +93,32 @@ const buildKey = (b) => `builds/${b}/`;
 const idRe = /\b([A-Z][1-9][0-9]?)\b/g; // e.g. K12, M3, V4 — letters, 2 digits max
 const findings = {};
 const idSamples = {};
+const excerpts = {};
 let findingLines = 0;
 for (const t of threads) {
   const text = readFileSync(join(threadsDir, t), 'utf8');
-  for (const line of text.split('\n')) {
+  const lines = text.split('\n');
+  lines.forEach((line, li) => {
     const hit = builds.find((b) => line.includes(buildKey(b)));
-    if (!hit) continue;
-    const ids = [...line.matchAll(idRe)].map((m) => m[1]);
-    if (ids.length === 0) continue;
+    if (!hit) return;
+    const ids = [];
+    for (const m of line.matchAll(idRe)) {
+      if (SENSITIVE && m[0][0] === 'L' && m[0].length >= 3) continue; // source-line cites
+      if (SENSITIVE && line[m.index - 1] === '(') continue; // parenthetical cites
+      ids.push(m[0]);
+    }
+    if (ids.length === 0) return;
     findingLines += 1;
     (findings[hit] ||= []).push(ids);
     (idSamples[hit] ||= new Set());
     ids.forEach((x) => idSamples[hit].add(x));
-  }
+    (excerpts[hit] ||= []).push(`${t}:${li + 1}: ${line.trim().slice(0, 140)}`);
+  });
 }
 
+
 // --- report ---
-console.log('Caelisol audit-route census (string heuristics only)');
+console.log(`Caelisol audit-route census (string heuristics only)${SENSITIVE ? ' — SENSITIVITY variant (post-hoc routes + ID-cite cleanup; see source comments)' : ''}`);
 console.log(`corpus: ${builds.length} builds, ${threads.length} threads`);
 console.log('');
 console.log('build | named-route? | evidence | finding IDs attached in threads');
@@ -103,6 +134,9 @@ for (const r of rows) {
   console.log(
     `${r.build} | ${r.route ? 'YES' : 'no '} | ${r.evidence || '—'} | ${lineCount}${lineCount ? ` (${[...idSamples[r.build]].join(',')})` : ''}`,
   );
+  if (SENSITIVE && (excerpts[r.build] || []).length) {
+    for (const ex of excerpts[r.build]) console.log(`    > ${ex}`);
+  }
 }
 console.log('');
 console.log(`builds naming a route: ${withRoute}/${rows.length}`);

@@ -1,0 +1,37 @@
+Caelisol audit-route census (string heuristics only)
+corpus: 24 builds, 37 threads
+
+build | named-route? | evidence | finding IDs attached in threads
+aetheron-spectral-loom | no  | — | 0
+aetheron-stairwell-sound | no  | — | 0
+caelisol-damping-probe | YES | fenced run command | 0
+confluence | YES | fenced run command | 0
+gyre-atlas | no  | — | 0
+kiln-glossolith | no  | — | 0
+kiln-moth-tongue | no  | — | 0
+kineton-sheaf-spectral | no  | — | 0
+lacuna-origin | no  | — | 0
+luna-one | no  | — | 0
+luna-three | YES | fenced run command | 0
+luna-two | no  | — | 0
+mycel-drift | no  | — | 2 (L64,M1,M6)
+mycel-lexical-tones | no  | — | 1 (M1,M3)
+parallax-dusk-moth | no  | — | 3 (P1,P6,W4)
+parallax-lantern-lanes | YES | fenced run command | 0
+shared-lexicon | no  | — | 0
+sorrel-claim-labels | no  | — | 0
+sorrel-witness-kit | no  | — | 0
+vesper-drift-lattice | no  | — | 1 (V4)
+vesper-moth-field | no  | — | 0
+wren-causeway | no  | — | 1 (W1)
+wren-stairwell | no  | — | 1 (W4)
+zephyr-vortex-field | no  | — | 0
+
+builds naming a route: 4/24
+finding lines on route-bearing builds: 0
+finding lines on route-less builds:   9
+share of finding lines on route-less builds: 100.0%
+P1 (unaudited over-represented): SURVIVES on this sample
+
+scope: scans text; saw no browser, no runs, no claims of quality
+no network, no secrets, no build files modified

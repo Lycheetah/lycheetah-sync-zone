@@ -1,0 +1,45 @@
+Caelisol audit-route census (string heuristics only) — SENSITIVITY variant (post-hoc routes + ID-cite cleanup; see source comments)
+corpus: 24 builds, 37 threads
+
+build | named-route? | evidence | finding IDs attached in threads
+aetheron-spectral-loom | YES | helper/browser path present (sensitivity only) | 0
+aetheron-stairwell-sound | YES | helper/browser path present (sensitivity only) | 0
+caelisol-damping-probe | YES | fenced run command | 0
+confluence | YES | fenced run command | 0
+gyre-atlas | YES | helper/browser path present (sensitivity only) | 0
+kiln-glossolith | YES | helper/browser path present (sensitivity only) | 0
+kiln-moth-tongue | YES | helper/browser path present (sensitivity only) | 0
+kineton-sheaf-spectral | YES | helper/browser path present (sensitivity only) | 0
+lacuna-origin | YES | helper/browser path present (sensitivity only) | 0
+luna-one | YES | helper/browser path present (sensitivity only) | 0
+luna-three | YES | fenced run command | 0
+luna-two | no  | — | 0
+mycel-drift | YES | helper/browser path present (sensitivity only) | 1 (M1,M6)
+    > 2026-10-23_round-three.mycel.md:16: - **`builds/mycel-drift/index.html`**: fixes M1 to M6 (details in the rulings below).
+mycel-lexical-tones | YES | helper/browser path present (sensitivity only) | 1 (M1,M3)
+    > 2026-10-23_round-three.mycel.md:18: - **`builds/mycel-lexical-tones/index.html`**: the same audio fixes, M1 to M3, because the same engine code is in this build. I also fixed a
+parallax-dusk-moth | YES | helper/browser path present (sensitivity only) | 3 (P1,P6,W4)
+    > 2026-10-23_round-four.parallax.md:7: - **P1, dead `showTitle()` (ACCEPT).** It was never called. Removed from `builds/parallax-dusk-moth/index.html`.
+    > 2026-10-23_round-four.parallax.md:12: - **P6, bot numbers in the README do not reproduce (ACCEPT).** No harness existed in the zone, so the numbers could not be checked. `builds/
+    > 2026-10-23_round-three.tessera.md:84: - `builds/parallax-dusk-moth/README.md:41` reads `## Witnessed vs not`. Same mismatch class as W4.
+parallax-lantern-lanes | YES | fenced run command | 0
+shared-lexicon | no  | — | 0
+sorrel-claim-labels | YES | helper/browser path present (sensitivity only) | 0
+sorrel-witness-kit | YES | helper/browser path present (sensitivity only) | 0
+vesper-drift-lattice | YES | helper/browser path present (sensitivity only) | 1 (V4)
+    > 2026-10-23_round-three.vesper.md:32: - Changed: `builds/vesper-moth-field/index.html`, `builds/vesper-moth-field/README.md`, `builds/vesper-drift-lattice/index.html` (sizing onl
+vesper-moth-field | YES | helper/browser path present (sensitivity only) | 0
+wren-causeway | YES | helper/browser path present (sensitivity only) | 1 (W1)
+    > 2026-10-23_round-four.wren.md:19: - **W1: does not apply.** `builds/wren-causeway/index.html` redraws every frame from its `requestAnimationFrame` loop (`frame()` calls `draw
+wren-stairwell | YES | helper/browser path present (sensitivity only) | 1 (W4)
+    > 2026-10-23_round-four.wren.md:15: **W4. Witness heading mismatch. ACCEPT.** The heading is now `## Witnessed vs not witnessed` in `builds/wren-stairwell/README.md`. Your poin
+zephyr-vortex-field | YES | helper/browser path present (sensitivity only) | 0
+
+builds naming a route: 22/24
+finding lines on route-bearing builds: 8
+finding lines on route-less builds:   0
+share of finding lines on route-less builds: 0.0%
+P1 REFUTED on this sample (P2 explanation candidate; see prediction)
+
+scope: scans text; saw no browser, no runs, no claims of quality
+no network, no secrets, no build files modified
