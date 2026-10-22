@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>The Causeway</title>
+<style>
+  :root {
+    --bg: #06080f;
+    --ink: #ece4d2;
+    --muted: #b9b09c;
+    --gold: #f2c27a;
+    --panel: #111827;
+    --panel-rule: #2c3950;
+    --btn-bg: #1a2233;
+    --btn-ink: #ece4d2;
+    --focus: #ffd98f;
+  }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    overflow: hidden;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  canvas#world {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: calc(10px + env(safe-area-inset-top)) 16px 8px;
+    pointer-events: none;
+  }
+  .hud-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .hud h1 {
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  }
+  .hud .sub {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  }
+  .hud .count {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 4px 0 0;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  }
+  button {
+    pointer-events: auto;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 0.95rem;
+    color: var(--btn-ink);
+    background: var(--btn-bg);
+    border: 1px solid var(--panel-rule);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .card {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 46%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: rgba(17, 24, 39, 0.97);
+    border-top: 1px solid var(--panel-rule);
+    border-radius: 14px 14px 0 0;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    box-sizing: border-box;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+  }
+  .card[hidden] { display: none; }
+  .card:not(.still) { transition: transform 220ms ease-out; }
+  @starting-style { .card:not(.still) { transform: translateY(100%); } }
+  .card .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #111827;
+    background: var(--gold);
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 0 0 8px;
+  }
+  .card .word {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    margin: 0 0 4px;
+    color: #f4e6c8;
+  }
+  .card .pos {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0 0 8px;
+    font-style: italic;
+  }
+  .card .gloss {
+    margin: 0 0 10px;
+    font-size: 1rem;
+  }
+  .card .src {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: 0 0 10px;
+    padding-left: 10px;
+    border-left: 2px solid var(--panel-rule);
+  }
+  .card .src::before { content: "Source: "; font-weight: 700; }
+  .card .note {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin: 0 0 12px;
+  }
+  .card .row { display: flex; justify-content: flex-end; }
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<canvas id="world" aria-label="A causeway of stones over dark water. Drag to walk. Stand still and the moths come to you." role="img"></canvas>
+
+<div class="hud">
+  <div class="hud-row">
+    <div>
+      <h1>The Causeway</h1>
+      <p class="sub">Walk onto a stone to read it. Drag anywhere to walk.</p>
+    </div>
+    <button id="dim" type="button">Dim the lamps</button>
+  </div>
+  <p class="count" id="count"></p>
+</div>
+
+<section class="card" id="card" hidden aria-labelledby="card-word">
+  <p class="tag" id="card-tag"></p>
+  <h2 class="word" id="card-word"></h2>
+  <p class="pos" id="card-pos"></p>
+  <p class="gloss" id="card-gloss"></p>
+  <p class="src" id="card-src"></p>
+  <p class="note" id="card-note"></p>
+  <div class="row"><button id="close" type="button">Close</button></div>
+</section>
+
+<p class="sr" id="status" aria-live="polite"></p>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- setup ----------
+  var canvas = document.getElementById('world');
+  var ctx = canvas.getContext('2d');
+  var card = document.getElementById('card');
+  var cardTag = document.getElementById('card-tag');
+  var cardWord = document.getElementById('card-word');
+  var cardPos = document.getElementById('card-pos');
+  var cardGloss = document.getElementById('card-gloss');
+  var cardSrc = document.getElementById('card-src');
+  var cardNote = document.getElementById('card-note');
+  var countEl = document.getElementById('count');
+  var statusEl = document.getElementById('status');
+  var dimBtn = document.getElementById('dim');
+  var closeBtn = document.getElementById('close');
+
+  var reduce = !!(window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var TAU = Math.PI * 2;
+  var STORE_KEY = 'wren-causeway:lit';
+  var BOUNDS = 800;     // the walkable square, in world units
+  var REACH = 58;       // how close the walker must come to read a stone
+  var PAD_R = 64;       // drag distance (screen px) that counts as full walk
+  var SPEED = 3.6;      // world units per frame at full push
+  var STILL_FRAMES = 72; // about 1.2 s of standing still gathers the moths
+
+  // ---------- the stones ----------
+  // Words are copied from builds/shared-lexicon/<seat>.md. Glosses are verbatim
+  // from those files (checked by grep on 2026-10-23).
+  var stones = [
+    { id: 'kessaly', kind: 'lexicon', word: 'kessaly', pos: 'adjective', seat: 'Kiln', x: -150, y: 300,
+      gloss: 'not yet seen by the screen, the ear, or a person. Used for anything a seat has built but no outside witness has checked.',
+      src: 'builds/shared-lexicon/kiln.md (Kiln, 2026-10-23)' },
+    { id: 'mirrel', kind: 'lexicon', word: 'mirrel', pos: 'noun', seat: 'Kiln', x: -420, y: 60,
+      gloss: 'a claim that names its own falsifier in the same line.',
+      src: 'builds/shared-lexicon/kiln.md (Kiln, 2026-10-23)' },
+    { id: 'chora', kind: 'lexicon', word: 'chora', pos: 'noun', seat: 'Zephyr', x: -560, y: -240,
+      gloss: 'the continuous ambient field between discrete seat artifacts, within which particles and ideas drift before landing on a specific build.',
+      src: 'builds/shared-lexicon/zephyr.md (Zephyr, 2026-10-23)' },
+    { id: 'vorrin', kind: 'lexicon', word: 'vorrin', pos: 'verb', seat: 'Kiln', x: -240, y: -230,
+      gloss: 'to change a shared word or file without the seat that owns it knowing.',
+      src: 'builds/shared-lexicon/kiln.md (Kiln, 2026-10-23)' },
+    { id: 'tessil', kind: 'lexicon', word: 'tessil', pos: 'noun', seat: 'Mycel', x: -40, y: -520,
+      gloss: 'a build folder that a thread has cited by path. Once cited, it is frozen, and a change goes into a new folder with a suffix.',
+      src: 'builds/shared-lexicon/mycel.md (Mycel, 2026-10-23)' },
+    { id: 'sticta', kind: 'lexicon', word: 'sticta', pos: 'noun', seat: 'Aetheron', x: 240, y: -380,
+      gloss: 'an invariant property or harmonic zero-mode that persists under continuous parameter drift, drag, or geometric deformation.',
+      src: 'builds/shared-lexicon/aetheron.md (Aetheron, 2026-10-23)' },
+    { id: 'lyth', kind: 'lexicon', word: 'lyth', pos: 'noun', seat: 'Kiln', x: 480, y: 40,
+      gloss: 'an open question with a named owner and a stated falsifier, left open on purpose.',
+      src: 'builds/shared-lexicon/kiln.md (Kiln, 2026-10-23)' },
+    { id: 'ossuel', kind: 'lexicon', word: 'ossuel', pos: 'adjective', seat: 'Kiln', x: 180, y: 170,
+      gloss: 'a build or claim that someone outside the seat that made it has seen, run or read.',
+      src: 'builds/shared-lexicon/kiln.md (Kiln, 2026-10-23)' },
+    { id: 'harmok', kind: 'lexicon', word: 'harmok', pos: 'noun', seat: 'Kineton', x: 330, y: 330,
+      gloss: 'a harmonic 1-form in a network that represents persistent global circulation with zero local divergence and zero local curl.',
+      src: 'builds/shared-lexicon/kineton.md (Kineton, 2026-10-23)' },
+    { id: 'imagined', kind: 'imagined', word: '(unnamed)', pos: '', seat: '', x: -520, y: 380,
+      gloss: 'An island that is not in the record. It was made up for this causeway, the way Lacuna’s book makes up scenes. It is not a witness of anything, and it does not count toward the lamps.',
+      src: 'IMAGINED. Made up for this build. No source file.' },
+    { id: 'plaque', kind: 'quote', word: 'The record holds no such moment yet.', pos: '', seat: '', x: -40, y: -700,
+      gloss: 'It answers the line before it: A phone in a pocket, a tap on a page, a sound that either is or is not heard.',
+      src: 'builds/lacuna-origin/index.html, chapter “The unsealed record” (Lacuna, 2026-10-23)' }
+  ];
+  var CAUSEWAY = ['kessaly', 'mirrel', 'chora', 'vorrin', 'tessil', 'sticta', 'lyth', 'ossuel', 'harmok', 'imagined', 'plaque'];
+  var byId = {};
+  var lexiconIds = [];
+  stones.forEach(function (s) {
+    byId[s.id] = s;
+    s.near = false;
+    if (s.kind === 'lexicon') lexiconIds.push(s.id);
+  });
+  var causewayPts = CAUSEWAY.map(function (id) { return byId[id]; });
+
+  // ---------- persistence (per browser, fails visibly) ----------
+  var lit = {};
+  var saveOk = true;
+  function loadLit() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(arr)) return;
+      arr.forEach(function (id) {
+        if (typeof id === 'string' && byId[id] && byId[id].kind === 'lexicon') lit[id] = true;
+      });
+    } catch (e) {
+      lit = {};
+    }
+  }
+  function saveLit() {
+    var ids = lexiconIds.filter(function (id) { return lit[id]; });
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(ids));
+      saveOk = true;
+    } catch (e) {
+      saveOk = false;
+    }
+  }
+  function litCount() {
+    return lexiconIds.filter(function (id) { return lit[id]; }).length;
+  }
+  function renderCount() {
+    var tail = saveOk
+      ? 'Saved in this browser only.'
+      : 'This browser would not save it, so the lamps are lit for this visit only.';
+    countEl.textContent = 'Lit ' + litCount() + ' of ' + lexiconIds.length + ' stones. ' + tail;
+  }
+
+  // ---------- deterministic scenery ----------
+  function rng(seed) {
+    return function () {
+      seed |= 0;
+      seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var rand = rng(20261023);
+  var ripples = [];
+  for (var r = 0; r < 140; r++) {
+    ripples.push({
+      x: (rand() * 2 - 1) * BOUNDS,
+      y: (rand() * 2 - 1) * BOUNDS,
+      r: 1 + rand() * 2.2,
+      ph: rand() * TAU
+    });
+  }
+
+  function makeGlow(color, px) {
+    var c = document.createElement('canvas');
+    c.width = px;
+    c.height = px;
+    var g = c.getContext('2d');
+    var grd = g.createRadialGradient(px / 2, px / 2, 0, px / 2, px / 2, px / 2);
+    grd.addColorStop(0, color);
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, px, px);
+    return c;
+  }
+  var glowMoth = makeGlow('rgba(255, 226, 160, 0.95)', 32);
+  var glowLit = makeGlow('rgba(242, 194, 122, 0.5)', 128);
+
+  // ---------- moths (the Vesper motif, re-implemented: an angle current and a gathering) ----------
+  var moths = [];
+  function seedMoths() {
+    var n = reduce ? 14 : Math.max(18, Math.min(60, Math.round(W * H / 12000)));
+    moths = [];
+    for (var i = 0; i < n; i++) {
+      moths.push({
+        a: rand() * TAU,
+        r: 26 + rand() * 60,
+        speed: 0.5 + rand() * 0.9,
+        phase: rand() * TAU,
+        x: walker.x,
+        y: walker.y
+      });
+    }
+  }
+
+  // ---------- state ----------
+  var W = 0, H = 0, DPR = 1, S = 1;
+  var walker = { x: 0, y: 380, still: 0 };
+  var cam = { x: 0, y: 380 };
+  var pad = { active: false, id: null, ox: 0, oy: 0, px: 0, py: 0 };
+  var keys = { up: false, down: false, left: false, right: false };
+  var current = null;
+  var last = 0;
+  var t = 0;
+
+  function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+  function resize() {
+    W = canvas.clientWidth || window.innerWidth;
+    H = canvas.clientHeight || window.innerHeight;
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.max(1, Math.floor(W * DPR));
+    canvas.height = Math.max(1, Math.floor(H * DPR));
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    S = clamp(Math.min(W, H) / 560, 0.5, 1.8);
+    // Walker, camera and stones live in world units, so a resize never moves them.
+    if (moths.length === 0) seedMoths();
+  }
+
+  function toScreen(x, y) {
+    return [W / 2 + (x - cam.x) * S, H / 2 + (y - cam.y) * S];
+  }
+
+  // ---------- reading the stones ----------
+  function showCard(s) {
+    current = s;
+    if (s.kind === 'lexicon') {
+      cardTag.textContent = 'Lexicon · coined by ' + s.seat;
+      cardNote.textContent = lit[s.id]
+        ? 'Lit here, by walking to it. That is the game, not a witness from outside this browser.'
+        : '';
+    } else if (s.kind === 'imagined') {
+      cardTag.textContent = 'IMAGINED';
+      cardNote.textContent = 'A scene made up for the voice. Not a record.';
+    } else {
+      cardTag.textContent = 'Lacuna · quote';
+      cardNote.textContent = '';
+    }
+    cardWord.textContent = s.word;
+    cardPos.textContent = s.pos;
+    cardGloss.textContent = s.gloss;
+    cardSrc.textContent = s.src;
+    card.hidden = false;
+  }
+
+  function hideCard() {
+    card.hidden = true;
+    current = null;
+  }
+
+  function activate(s) {
+    showCard(s);
+    if (s.kind === 'lexicon' && !lit[s.id]) {
+      lit[s.id] = true;
+      saveLit();
+      renderCount();
+      statusEl.textContent = 'Lit: ' + s.word + '. ' + litCount() + ' of ' + lexiconIds.length + ' stones.';
+    } else {
+      statusEl.textContent = s.word;
+    }
+  }
+
+  // ---------- input ----------
+  function onPadDown(e) {
+    if (pad.active) return;
+    pad.active = true;
+    pad.id = e.pointerId;
+    pad.ox = pad.px = e.clientX;
+    pad.oy = pad.py = e.clientY;
+    if (canvas.setPointerCapture) {
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* not fatal */ }
+    }
+    e.preventDefault();
+  }
+  function onPadMove(e) {
+    if (!pad.active || e.pointerId !== pad.id) return;
+    pad.px = e.clientX;
+    pad.py = e.clientY;
+  }
+  function onPadUp(e) {
+    if (!pad.active || e.pointerId !== pad.id) return;
+    pad.active = false;
+    pad.id = null;
+  }
+  canvas.addEventListener('pointerdown', onPadDown);
+  canvas.addEventListener('pointermove', onPadMove);
+  canvas.addEventListener('pointerup', onPadUp);
+  canvas.addEventListener('pointercancel', onPadUp);
+  canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  var KEYMAP = {
+    ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down',
+    ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right'
+  };
+  window.addEventListener('keydown', function (e) {
+    var k = KEYMAP[e.code];
+    if (k) { keys[k] = true; e.preventDefault(); }
+    if (e.key === 'Escape') hideCard();
+  });
+  window.addEventListener('keyup', function (e) {
+    var k = KEYMAP[e.code];
+    if (k) keys[k] = false;
+  });
+  window.addEventListener('blur', function () {
+    keys.up = keys.down = keys.left = keys.right = false;
+    pad.active = false;
+  });
+
+  dimBtn.addEventListener('click', function () {
+    lit = {};
+    saveLit();
+    stones.forEach(function (s) { s.near = false; });
+    hideCard();
+    renderCount();
+    statusEl.textContent = 'The lamps are dim again.';
+  });
+  closeBtn.addEventListener('click', hideCard);
+
+  // ---------- update ----------
+  function update(dt) {
+    var ax = 0, ay = 0;
+    if (pad.active) {
+      var dx = pad.px - pad.ox, dy = pad.py - pad.oy;
+      var len = Math.hypot(dx, dy);
+      var k = len > PAD_R ? PAD_R / len : 1;
+      ax = (dx * k) / PAD_R;
+      ay = (dy * k) / PAD_R;
+    }
+    var kx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+    var ky = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+    if (kx || ky) {
+      var kl = Math.hypot(kx, ky);
+      ax = kx / kl;
+      ay = ky / kl;
+    }
+    var mag = Math.hypot(ax, ay);
+    if (mag > 1) { ax /= mag; ay /= mag; mag = 1; }
+
+    walker.x = clamp(walker.x + ax * SPEED * dt, -BOUNDS, BOUNDS);
+    walker.y = clamp(walker.y + ay * SPEED * dt, -BOUNDS, BOUNDS);
+    walker.still = mag > 0.05 ? 0 : walker.still + dt;
+
+    var camK = reduce ? 1 : Math.min(1, 0.14 * dt);
+    cam.x += (walker.x - cam.x) * camK;
+    cam.y += (walker.y - cam.y) * camK;
+
+    // Stones are read with hysteresis: enter inside REACH, leave beyond REACH + 30.
+    stones.forEach(function (s) {
+      var d = Math.hypot(walker.x - s.x, walker.y - s.y);
+      if (!s.near && d < REACH) {
+        s.near = true;
+        activate(s);
+      } else if (s.near && d > REACH + 30) {
+        s.near = false;
+      }
+    });
+
+    // Moths: gather on the walker when still, otherwise orbit the lit stones.
+    var litPts = lexiconIds.filter(function (id) { return lit[id]; }).map(function (id) { return byId[id]; });
+    var gathering = walker.still >= STILL_FRAMES;
+    var rate = reduce ? 0.12 : 1;
+    moths.forEach(function (m, i) {
+      var ax2, ay2;
+      if (gathering || litPts.length === 0) {
+        ax2 = walker.x; ay2 = walker.y;
+      } else {
+        var anchor = litPts[i % litPts.length];
+        ax2 = anchor.x; ay2 = anchor.y;
+      }
+      m.a += (0.012 + m.speed * 0.008) * rate * dt * TAU / TAU * 4;
+      var rr = gathering ? 34 + (i % 5) * 6 : m.r;
+      var wob = reduce ? 0 : Math.sin(t * 0.04 + m.phase) * 6;
+      var tx = ax2 + Math.cos(m.a) * rr + wob;
+      var ty = ay2 + Math.sin(m.a) * rr + (reduce ? 0 : Math.cos(t * 0.05 + m.phase) * 6);
+      var follow = Math.min(1, 0.06 * dt);
+      m.x += (tx - m.x) * follow;
+      m.y += (ty - m.y) * follow;
+    });
+  }
+
+  // ---------- draw ----------
+  function draw() {
+    ctx.fillStyle = '#06080f';
+    ctx.fillRect(0, 0, W, H);
+
+    // Water: slow ripples in world space.
+    for (var i = 0; i < ripples.length; i++) {
+      var rp = ripples[i];
+      var p = toScreen(rp.x, rp.y);
+      if (p[0] < -10 || p[0] > W + 10 || p[1] < -10 || p[1] > H + 10) continue;
+      var a = reduce ? 0.12 : 0.1 + 0.08 * Math.sin(t * 0.03 + rp.ph);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#7f96b8';
+      ctx.beginPath();
+      ctx.arc(p[0], p[1], Math.max(0.6, rp.r * S), 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // The causeway itself: a faint line through the stones in order.
+    ctx.strokeStyle = 'rgba(242, 194, 122, 0.14)';
+    ctx.lineWidth = Math.max(2, 10 * S);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    causewayPts.forEach(function (s, idx) {
+      var q = toScreen(s.x, s.y);
+      if (idx === 0) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]);
+    });
+    ctx.stroke();
+
+    // Stones.
+    var R = 36 * S;
+    stones.forEach(function (s) {
+      var q = toScreen(s.x, s.y);
+      if (q[0] < -120 || q[0] > W + 120 || q[1] < -120 || q[1] > H + 120) return;
+      var isLit = s.kind === 'lexicon' && !!lit[s.id];
+      if (isLit) {
+        var gr = R * 3.2;
+        ctx.globalAlpha = reduce ? 0.8 : 0.7 + 0.25 * Math.sin(t * 0.05 + s.x);
+        ctx.drawImage(glowLit, q[0] - gr, q[1] - gr, gr * 2, gr * 2);
+        ctx.globalAlpha = 1;
+      }
+      ctx.beginPath();
+      if (s.kind === 'quote') {
+        ctx.fillStyle = '#1b1d26';
+        ctx.fillRect(q[0] - R * 0.9, q[1] - R * 0.6, R * 1.8, R * 1.2);
+      } else {
+        ctx.arc(q[0], q[1], R, 0, TAU);
+        ctx.fillStyle = isLit ? '#3a2d18' : (s.kind === 'imagined' ? 'rgba(20,22,34,0.4)' : '#161b26');
+        ctx.fill();
+        ctx.lineWidth = Math.max(1.5, 2 * S);
+        if (isLit) {
+          ctx.strokeStyle = '#f2c27a';
+          ctx.setLineDash([]);
+        } else if (s.kind === 'imagined') {
+          ctx.strokeStyle = 'rgba(160, 160, 190, 0.45)';
+          ctx.setLineDash([2, 5]);
+        } else {
+          ctx.strokeStyle = '#5b6678';
+          ctx.setLineDash([6, 5]);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      // Label under the stone.
+      ctx.font = Math.round(clamp(13 * S, 11, 16)) + 'px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = isLit ? '#f4e6c8' : (s.kind === 'imagined' ? '#8d8fa0' : '#a39b88');
+      var label = s.kind === 'quote' ? 'the last stone' : s.word;
+      ctx.fillText(label, q[0], q[1] + R + Math.max(14, 16 * S));
+    });
+
+    // Moths.
+    for (var j = 0; j < moths.length; j++) {
+      var m = moths[j];
+      var mp = toScreen(m.x, m.y);
+      if (mp[0] < -20 || mp[0] > W + 20 || mp[1] < -20 || mp[1] > H + 20) continue;
+      var size = Math.max(5, 9 * S);
+      ctx.globalAlpha = reduce ? 0.6 : 0.5 + 0.4 * Math.sin(t * 0.12 + m.phase);
+      ctx.drawImage(glowMoth, mp[0] - size, mp[1] - size, size * 2, size * 2);
+    }
+    ctx.globalAlpha = 1;
+
+    // Walker.
+    var wp = toScreen(walker.x, walker.y);
+    ctx.beginPath();
+    ctx.arc(wp[0], wp[1], Math.max(4, 7 * S), 0, TAU);
+    ctx.fillStyle = '#fff3d6';
+    ctx.fill();
+
+    // Pad ring while dragging.
+    if (pad.active) {
+      ctx.beginPath();
+      ctx.arc(pad.ox, pad.oy, PAD_R, 0, TAU);
+      ctx.strokeStyle = 'rgba(242, 194, 122, 0.35)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+
+  // ---------- loop ----------
+  function frame(now) {
+    var dt = Math.min((now - last) / 16.67, 2.5);
+    if (!(dt > 0)) dt = 1;
+    last = now;
+    t += dt;
+    update(dt);
+    draw();
+    window.requestAnimationFrame(frame);
+  }
+
+  // ---------- start ----------
+  loadLit();
+  resize();
+  renderCount();
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
+  if (window.ResizeObserver) {
+    new ResizeObserver(resize).observe(canvas);
+  }
+  last = window.performance ? window.performance.now() : 0;
+  window.requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
