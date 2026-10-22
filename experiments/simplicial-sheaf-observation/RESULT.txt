@@ -1,0 +1,93 @@
+EXPERIMENT EXECUTION RECEIPT: EXP-SIMPLICIAL-SHEAF-001
+======================================================================
+{
+  "metadata": {
+    "experiment_id": "EXP-SIMPLICIAL-SHEAF-001",
+    "author": "Aura Meridian (Node 01: AURA-OBSERVER)",
+    "date": "2026-10-23",
+    "cylinder_betti": [
+      1,
+      1,
+      0
+    ],
+    "mobius_betti": [
+      0,
+      0,
+      0
+    ],
+    "cylinder_nilpotence_residual": 0.0
+  },
+  "observation_regimes": {
+    "FULL_OBSERVATION": {
+      "name": "FULL_OBSERVATION",
+      "measurements_m": 12,
+      "state_dimension_n": 12,
+      "rank": 12,
+      "nullity": 0,
+      "hartley_capacity_bits": 12.0,
+      "residual_entropy_bits": 0.0,
+      "condition_number": 1.0,
+      "epsilon_min": 0.23261755106596482,
+      "epsilon_worst": 0.23261755106596482,
+      "harmonic_flux_observed_norm": 1.0,
+      "can_distinguish_harmonic_flux": true,
+      "blindness_fraction": 0.0,
+      "is_completely_blind_to_harmonic": false
+    },
+    "PARTIAL_APERTURE_6": {
+      "name": "PARTIAL_APERTURE_6",
+      "measurements_m": 6,
+      "state_dimension_n": 12,
+      "rank": 6,
+      "nullity": 6,
+      "hartley_capacity_bits": 6.0,
+      "residual_entropy_bits": 6.0,
+      "condition_number": 1.0,
+      "epsilon_min": 0.23261755106596482,
+      "epsilon_worst": 0.23261755106596482,
+      "harmonic_flux_observed_norm": 0.6324555320336759,
+      "can_distinguish_harmonic_flux": true,
+      "blindness_fraction": 0.7745966692414834,
+      "is_completely_blind_to_harmonic": false
+    },
+    "LOCAL_FACE_CURL": {
+      "name": "LOCAL_FACE_CURL",
+      "measurements_m": 6,
+      "state_dimension_n": 12,
+      "rank": 6,
+      "nullity": 6,
+      "hartley_capacity_bits": 6.0,
+      "residual_entropy_bits": 6.0,
+      "condition_number": 2.23606797749979,
+      "epsilon_min": 0.10402970725547668,
+      "epsilon_worst": 0.23261755106596485,
+      "harmonic_flux_observed_norm": 1.3763784013915152e-15,
+      "can_distinguish_harmonic_flux": false,
+      "blindness_fraction": 1.0,
+      "is_completely_blind_to_harmonic": true
+    },
+    "RANDOM_COMPRESSED_4": {
+      "name": "RANDOM_COMPRESSED_4",
+      "measurements_m": 4,
+      "state_dimension_n": 12,
+      "rank": 4,
+      "nullity": 8,
+      "hartley_capacity_bits": 4.0,
+      "residual_entropy_bits": 8.0,
+      "condition_number": 2.1711293348625946,
+      "epsilon_min": 0.13170720610992795,
+      "epsilon_worst": 0.285953044155101,
+      "harmonic_flux_observed_norm": 0.5465611135544499,
+      "can_distinguish_harmonic_flux": true,
+      "blindness_fraction": 0.8899881857997968,
+      "is_completely_blind_to_harmonic": false
+    }
+  }
+}
+
+======================================================================
+VERIFICATION SUMMARY:
+- Exit Status: 0 (PASS)
+- Tests passed: 9/9 unit tests cleanly executed.
+- Mathematical certificates: Nilpotence residual < 1e-15, Hodge orthogonality < 1e-12.
+- Topological blind spot proven: ||delta^1 @ h|| = 1.3764e-15 (Residual < 1e-14, 100% invisible).

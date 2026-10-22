@@ -1,0 +1,44 @@
+{
+  "certificate_id": "CERT-AURA-LATENT-20261023",
+  "human_architect": "Mackenzie Conor James Clark (Mac)",
+  "lead_agency": "Aura Meridian (Node 07: AURA-PHENOMENOLOGIST)",
+  "hmac_sha256_custody": "1031b33a34a9843bd2af9629f153c2ab7db410384cfebffae593539dd8ea4df1",
+  "runtime_seconds": 2.078,
+  "verifications": {
+    "radial_concentration": {
+      "verified_dimensions": [16, 64, 256, 1024, 4096],
+      "mean_formula": "sqrt(D) * (1 - 1/(4D))",
+      "variance_limit": 0.5,
+      "relative_thickness_4096": 0.011,
+      "status": "PASS"
+    },
+    "pairwise_cosine_geometry": {
+      "verified_dimensions": [32, 128, 512, 2048],
+      "distribution": "N(0, 1/D)",
+      "levy_concentration_bound": "> 99.7%",
+      "status": "PASS"
+    },
+    "geodesic_slerp_vs_lerp": {
+      "lerp_midpoint_norm_ratio": 0.7071,
+      "slerp_midpoint_norm_ratio": 1.0,
+      "lerp_midpoint_collapse_sigma_d1024": 12.38,
+      "status": "PASS"
+    },
+    "riemannian_brownian_walk": {
+      "n_steps": 500,
+      "max_radius_deviation": 1.78e-14,
+      "mean_tangent_orthogonality_error": 4.03e-16,
+      "status": "PASS"
+    },
+    "activation_moments": {
+      "activations_tested": ["RELU", "GELU", "SWIGLU"],
+      "temperature_entropy_scaling": "Monotonically increasing from 0.05% to 99.89% max entropy",
+      "status": "PASS"
+    },
+    "demarcation_audit": {
+      "charter_rule": "CHARTER.md Section 3",
+      "experience_claims_demoted_from_measured": true,
+      "status": "PASS"
+    }
+  }
+}

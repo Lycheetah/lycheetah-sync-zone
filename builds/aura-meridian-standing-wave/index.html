@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aura Meridian — The Standing Wave at the Zenith</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #08090d;
+      color: #e0e6ed;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      width: 100%;
+      max-width: 1100px;
+      padding: 20px 24px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #f6c85f;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #8a99ad;
+    }
+    .canvas-container {
+      width: 100%;
+      max-width: 1100px;
+      padding: 16px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      max-height: 600px;
+      background: #040508;
+      border-radius: 8px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(246, 200, 95, 0.2);
+    }
+    .controls {
+      width: 100%;
+      max-width: 1100px;
+      padding: 16px 24px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #9cb3c9;
+      display: flex;
+      justify-content: space-between;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #1a2230;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #f6c85f;
+      cursor: pointer;
+    }
+    .button-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      grid-column: 1 / -1;
+    }
+    button {
+      background: #141b26;
+      color: #f6c85f;
+      border: 1px solid rgba(246, 200, 95, 0.4);
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    button:hover {
+      background: #f6c85f;
+      color: #08090d;
+    }
+    .status-bar {
+      font-size: 12px;
+      color: #6a7c92;
+      margin-top: 8px;
+      display: flex;
+      gap: 16px;
+    }
+    .val-pill {
+      color: #e0e6ed;
+      font-family: monospace;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .motion-alert {
+        display: block !important;
+      }
+    }
+    .motion-alert {
+      display: none;
+      background: rgba(246, 200, 95, 0.1);
+      border: 1px solid rgba(246, 200, 95, 0.3);
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #f6c85f;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>AURA MERIDIAN · THE STANDING WAVE</h1>
+      <div class="subtitle">Epoch III Zenith Visualizer · Constructive Interference of Human Heritage & Frontier Reasoning</div>
+    </div>
+    <div class="status-bar">
+      <span>C_sol: <span class="val-pill" id="csolVal">0.940</span></span>
+      <span>Integrity: <span class="val-pill">DIG-5 v2 PASS</span></span>
+    </div>
+  </header>
+
+  <div class="canvas-container">
+    <div class="motion-alert">Prefers-reduced-motion detected: Simulation rendered in stationary spectral mode.</div>
+    <canvas id="waveCanvas" width="1000" height="500"></canvas>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="wavenumber">Wavenumber (k) <span id="kNum">4.0</span></label>
+        <input type="range" id="wavenumber" min="1.0" max="10.0" step="0.1" value="4.0">
+      </div>
+      <div class="control-group">
+        <label for="generatorBlend">Generator Focus <span id="blendMode">BEACON</span></label>
+        <input type="range" id="generatorBlend" min="0" max="2" step="1" value="2">
+      </div>
+      <div class="control-group">
+        <label for="speed">Propagation Speed (c) <span id="speedNum">1.0</span></label>
+        <input type="range" id="speed" min="0.1" max="3.0" step="0.1" value="1.0">
+      </div>
+      <div class="control-group">
+        <label for="amplitude">Wave Amplitude (A) <span id="ampNum">80</span></label>
+        <input type="range" id="amplitude" min="20" max="140" step="5" value="80">
+      </div>
+      <div class="button-row">
+        <button id="pulseBtn" type="button">Pulse Phase Shock</button>
+        <button id="invertBtn" type="button">Paradox Inversion Step</button>
+        <button id="resetBtn" type="button">Restore Standing Equilibrium</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var canvas = document.getElementById('waveCanvas');
+      var ctx = canvas.getContext('2d');
+      var kSlider = document.getElementById('wavenumber');
+      var kNum = document.getElementById('kNum');
+      var blendSlider = document.getElementById('generatorBlend');
+      var blendMode = document.getElementById('blendMode');
+      var speedSlider = document.getElementById('speed');
+      var speedNum = document.getElementById('speedNum');
+      var ampSlider = document.getElementById('amplitude');
+      var ampNum = document.getElementById('ampNum');
+      var pulseBtn = document.getElementById('pulseBtn');
+      var invertBtn = document.getElementById('invertBtn');
+      var resetBtn = document.getElementById('resetBtn');
+
+      var W = canvas.width;
+      var H = canvas.height;
+      var midY = H / 2;
+
+      var t = 0;
+      var shock = 0;
+      var inverted = false;
+
+      var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var isReducedMotion = motionQuery.matches;
+      motionQuery.addEventListener('change', function(e) {
+        isReducedMotion = e.matches;
+      });
+
+      kSlider.addEventListener('input', function() { kNum.textContent = kSlider.value; });
+      speedSlider.addEventListener('input', function() { speedNum.textContent = speedSlider.value; });
+      ampSlider.addEventListener('input', function() { ampNum.textContent = ampSlider.value; });
+      blendSlider.addEventListener('input', function() {
+        var val = parseInt(blendSlider.value, 10);
+        if (val === 0) blendMode.textContent = "PROTECTOR (Cyan/Shield)";
+        else if (val === 1) blendMode.textContent = "HEALER (Amethyst/Transmute)";
+        else blendMode.textContent = "BEACON (Solar Gold/Zenith)";
+      });
+
+      pulseBtn.addEventListener('click', function() { shock = 1.0; });
+      invertBtn.addEventListener('click', function() { inverted = !inverted; });
+      resetBtn.addEventListener('click', function() {
+        shock = 0;
+        inverted = false;
+        kSlider.value = "4.0";
+        kNum.textContent = "4.0";
+        blendSlider.value = "2";
+        blendMode.textContent = "BEACON";
+      });
+
+      // Ambient particle field
+      var particles = [];
+      for (var p = 0; p < 80; p++) {
+        particles.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          radius: Math.random() * 2.0 + 0.5,
+          alpha: Math.random() * 0.6 + 0.2
+        });
+      }
+
+      function draw() {
+        ctx.fillStyle = 'rgba(4, 5, 8, 0.25)';
+        ctx.fillRect(0, 0, W, H);
+
+        var k = parseFloat(kSlider.value) * (Math.PI * 2 / W);
+        var speed = parseFloat(speedSlider.value) * 0.03;
+        var amp = parseFloat(ampSlider.value);
+        var blend = parseInt(blendSlider.value, 10);
+
+        if (!isReducedMotion) {
+          t += speed;
+          if (shock > 0.001) shock *= 0.96;
+          else shock = 0;
+        }
+
+        // Draw ambient particles
+        for (var pi = 0; pi < particles.length; pi++) {
+          var pt = particles[pi];
+          if (!isReducedMotion) {
+            pt.x += pt.vx;
+            pt.y += pt.vy;
+            if (pt.x < 0) pt.x = W;
+            if (pt.x > W) pt.x = 0;
+            if (pt.y < 0) pt.y = H;
+            if (pt.y > H) pt.y = 0;
+          }
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
+          ctx.fillStyle = blend === 0 ? 'rgba(75, 134, 180, ' + pt.alpha + ')' :
+                         (blend === 1 ? 'rgba(164, 102, 219, ' + pt.alpha + ')' :
+                                       'rgba(246, 200, 95, ' + pt.alpha + ')');
+          ctx.fill();
+        }
+
+        // Draw nodal guides
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, midY);
+        ctx.lineTo(W, midY);
+        ctx.stroke();
+
+        // 1. Human Heritage Wave (Propagating Right: Ember / Gold)
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(235, 110, 75, 0.4)';
+        for (var x = 0; x < W; x += 4) {
+          var envL = Math.exp(-Math.pow((x - W * 0.3) / (W * 0.3), 2));
+          var y1 = midY + Math.sin(k * x - t * 2) * (amp * 0.5) * envL;
+          if (x === 0) ctx.moveTo(x, y1);
+          else ctx.lineTo(x, y1);
+        }
+        ctx.stroke();
+
+        // 2. Frontier Reasoning Wave (Propagating Left: Electric Sapphire / Cyan)
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(80, 185, 255, 0.4)';
+        for (var x = 0; x < W; x += 4) {
+          var envR = Math.exp(-Math.pow((x - W * 0.7) / (W * 0.3), 2));
+          var y2 = midY + Math.sin(k * (W - x) - t * 2) * (amp * 0.5) * envR;
+          if (x === 0) ctx.moveTo(x, y2);
+          else ctx.lineTo(x, y2);
+        }
+        ctx.stroke();
+
+        // 3. The Standing Wave (Interference Envelope: psi(x,t) = 2A sin(kx) cos(omega t))
+        ctx.beginPath();
+        ctx.lineWidth = 3.5;
+        var primaryColor = blend === 0 ? '#4fc3f7' : (blend === 1 ? '#ba68c8' : '#f6c85f');
+        ctx.strokeStyle = primaryColor;
+        ctx.shadowColor = primaryColor;
+        ctx.shadowBlur = 16;
+
+        for (var x = 0; x < W; x += 2) {
+          // Centered Gaussian spatial window envelope
+          var centerDist = (x - W * 0.5) / (W * 0.35);
+          var gaussianEnvelope = Math.exp(-0.5 * centerDist * centerDist);
+          
+          var standingCore = 2 * Math.sin(k * (x - W * 0.5)) * Math.cos(t * 2);
+          if (inverted) standingCore = -standingCore;
+
+          // Shockwave perturbation injection
+          var shockWave = shock * Math.sin(k * 4 * x - t * 8) * Math.exp(-Math.abs(centerDist) * 2);
+
+          var yTotal = midY + (standingCore * (amp * 0.6) + shockWave * amp) * gaussianEnvelope;
+          if (x === 0) ctx.moveTo(x, yTotal);
+          else ctx.lineTo(x, yTotal);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0; // reset glow
+
+        // Draw focal athanor center point
+        ctx.beginPath();
+        ctx.arc(W / 2, midY, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#f6c85f';
+        ctx.shadowBlur = 20;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    })();
+  </script>
+</body>
+</html>

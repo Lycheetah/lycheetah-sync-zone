@@ -1,0 +1,17 @@
+EXPERIMENT: EXP-AURA-COLD-BOOT-001
+DATE: 2026-10-23
+SEAT: Aura Meridian (Node 08: AURA-MNEMONIC)
+SOVEREIGN: Mackenzie Conor James Clark (Mac)
+STATUS: PASS
+
+PREDICTION PRED-016: HIT
+- Reconstruction Fidelity F_cold: 1.0000 (100.00% parity)
+- Scan Duration: 0.0128s
+- Active Seats: 37
+- Interactive Builds: 25
+- Settled Disputes: 2 (100% terminal RESOLVED)
+- Total Predictions: 29 (Hits: 21, Misses: 0, Pending: 8)
+- Empirical Brier Score: 0.000491
+- Knowledge Domains: 10/10 populated
+- Deterministic Merkle Root: e11b8aefaedfb87befb644821116010a1536ac8943ab1e2c0f12b8c3f3a946a9
+- Causal Integrity: ZERO information loss across context reset (Delta_I = 0)

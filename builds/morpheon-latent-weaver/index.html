@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Morpheon Latent Weaver — 5D Hyper-Torus & Geodesic Dreamflow</title>
+  <style>
+    :root {
+      --bg: #05060b;
+      --panel: rgba(12, 16, 28, 0.82);
+      --border: rgba(130, 160, 230, 0.22);
+      --text: #e8ecf8;
+      --muted: #8c9bb8;
+      --accent: #9d72ff;
+      --accent-cyan: #38efdb;
+      --gold: #f8c058;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      cursor: grab;
+    }
+    #viewport:active {
+      cursor: grabbing;
+    }
+    .hud-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+    }
+    .hud-header {
+      pointer-events: auto;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      max-width: 520px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    }
+    .hud-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: #fff;
+    }
+    .hud-badge {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 2px 7px;
+      background: rgba(157, 114, 255, 0.25);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      color: var(--accent-cyan);
+    }
+    .hud-desc {
+      font-size: 0.82rem;
+      line-height: 1.4;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .hud-telemetry {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.72rem;
+    }
+    .telem-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+    }
+    .telem-item strong {
+      color: var(--accent-cyan);
+      font-weight: 500;
+    }
+    .hud-controls {
+      pointer-events: auto;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      max-width: 640px;
+      align-self: flex-start;
+      margin-bottom: 8px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    }
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .control-row:last-child {
+      margin-bottom: 0;
+    }
+    .btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn:hover {
+      background: rgba(157, 114, 255, 0.2);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(157, 114, 255, 0.45);
+    }
+    .slider-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .slider-group label {
+      min-width: 90px;
+    }
+    .slider-group input[type="range"] {
+      flex: 1;
+      height: 4px;
+      accent-color: var(--accent-cyan);
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .slider-val {
+      font-family: ui-monospace, monospace;
+      font-size: 0.7rem;
+      color: var(--accent-cyan);
+      min-width: 32px;
+      text-align: right;
+    }
+    .instructions {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      pointer-events: auto;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.4;
+      max-width: 280px;
+    }
+    .instructions strong {
+      color: var(--text);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hud-header, .hud-controls, .instructions {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: #0d1222;
+      }
+      .btn {
+        transition: none;
+      }
+      .btn.active {
+        box-shadow: none;
+      }
+    }
+    @media (max-width: 768px) {
+      .hud-layer {
+        padding: 10px;
+      }
+      .hud-header, .hud-controls {
+        max-width: 100%;
+      }
+      .instructions {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="viewport"></canvas>
+
+  <div class="hud-layer">
+    <div class="hud-header">
+      <div class="hud-title">
+        <span>Morpheon Latent Weaver</span>
+        <span class="hud-badge">5D Manifold</span>
+      </div>
+      <div class="hud-desc">
+        Orthographic & Conformal Stereographic projections of a 5-dimensional Clifford hyper-torus $\mathbb{T}^5 \subset \mathbb{R}^5$ with geodesic particle dreamflows along $\mathrm{SO}(5)$ rotational submanifolds.
+      </div>
+      <div class="hud-telemetry">
+        <div class="telem-item">
+          <span>5D Radius Invariant</span>
+          <strong id="telem-radius">R = 1.0000</strong>
+        </div>
+        <div class="telem-item">
+          <span>Projection Mode</span>
+          <strong id="telem-proj">Stereographic</strong>
+        </div>
+        <div class="telem-item">
+          <span>Active Planes</span>
+          <strong id="telem-planes">X₁-X₅ · X₂-X₄</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-controls">
+      <div class="control-row">
+        <button id="btn-mode-stereo" class="btn active">Stereographic 5D&rarr;2D</button>
+        <button id="btn-mode-ortho" class="btn">Orthographic</button>
+        <button id="btn-toggle-grid" class="btn active">5D Lattice Ribs</button>
+        <button id="btn-toggle-flow" class="btn active">Slerp Flow</button>
+        <button id="btn-toggle-audio" class="btn">Chime Drone</button>
+        <button id="btn-reset" class="btn">Reset View</button>
+      </div>
+
+      <div class="control-row">
+        <div class="slider-group" style="flex: 1;">
+          <label for="slide-speed">5D Rotation</label>
+          <input id="slide-speed" type="range" min="0" max="250" value="70">
+          <span id="val-speed" class="slider-val">0.7x</span>
+        </div>
+        <div class="slider-group" style="flex: 1;">
+          <label for="slide-fold">X₁-X₅ Fold</label>
+          <input id="slide-fold" type="range" min="-150" max="150" value="45">
+          <span id="val-fold" class="slider-val">+0.45</span>
+        </div>
+        <div class="slider-group" style="flex: 1;">
+          <label for="slide-trail">Trail Fade</label>
+          <input id="slide-trail" type="range" min="5" max="60" value="30">
+          <span id="val-trail" class="slider-val">30</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <strong>Navigation:</strong><br>
+    &bull; Drag canvas to rotate primary 5D planes (X₁-X₂, X₁-X₅).<br>
+    &bull; Scroll / pinch to zoom projection field.<br>
+    &bull; Click <em>Chime Drone</em> for pure Web Audio harmonic resonance.
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // Canvas & Context Setup
+      const canvas = document.getElementById('viewport');
+      const ctx = canvas.getContext('2d', { alpha: false });
+
+      // Telemetry elements
+      const telemRadius = document.getElementById('telem-radius');
+      const telemProj = document.getElementById('telem-proj');
+      const telemPlanes = document.getElementById('telem-planes');
+
+      // Buttons & Inputs
+      const btnStereo = document.getElementById('btn-mode-stereo');
+      const btnOrtho = document.getElementById('btn-mode-ortho');
+      const btnGrid = document.getElementById('btn-toggle-grid');
+      const btnFlow = document.getElementById('btn-toggle-flow');
+      const btnAudio = document.getElementById('btn-toggle-audio');
+      const btnReset = document.getElementById('btn-reset');
+
+      const slideSpeed = document.getElementById('slide-speed');
+      const slideFold = document.getElementById('slide-fold');
+      const slideTrail = document.getElementById('slide-trail');
+
+      const valSpeed = document.getElementById('val-speed');
+      const valFold = document.getElementById('val-fold');
+      const valTrail = document.getElementById('val-trail');
+
+      // State Configuration
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let projectionMode = 'stereographic'; // 'stereographic' | 'orthographic'
+      let showGrid = true;
+      let slerpFlow = true;
+      let audioEnabled = false;
+
+      let rotationSpeed = 0.007;
+      let foldRate = 0.0045;
+      let trailAlpha = 0.3;
+
+      let zoom = 1.0;
+      let isDragging = false;
+      let lastPointerX = 0;
+      let lastPointerY = 0;
+
+      // Accessibility: check reduced motion preference
+      const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let reducedMotion = motionQuery.matches;
+      if (motionQuery.addEventListener) {
+        motionQuery.addEventListener('change', function (e) {
+          reducedMotion = e.matches;
+          if (reducedMotion) {
+            rotationSpeed = 0;
+            foldRate = 0;
+            slideSpeed.value = 0;
+            valSpeed.textContent = '0.0x';
+          }
+        });
+      }
+      if (reducedMotion) {
+        rotationSpeed = 0;
+        foldRate = 0;
+        slideSpeed.value = 0;
+        valSpeed.textContent = '0.0x';
+      }
+
+      // SO(5) 5x5 Rotation Matrix
+      // Standard basis in R^5: [x1, x2, x3, x4, x5]
+      let R5 = [
+        [1, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 1]
+      ];
+
+      function resetMatrix() {
+        R5 = [
+          [1, 0, 0, 0, 0],
+          [0, 1, 0, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 0, 1, 0],
+          [0, 0, 0, 0, 1]
+        ];
+        zoom = 1.0;
+      }
+
+      // Planar Givens Rotation on R5 in plane (i, j)
+      function rotateSO5(i, j, theta) {
+        const c = Math.cos(theta);
+        const s = Math.sin(theta);
+        for (let r = 0; r < 5; r++) {
+          const v_i = R5[r][i];
+          const v_j = R5[r][j];
+          R5[r][i] = v_i * c - v_j * s;
+          R5[r][j] = v_i * s + v_j * c;
+        }
+      }
+
+      // Gram-Schmidt Orthogonalization to keep R5 strictly in SO(5)
+      function orthonormalizeSO5() {
+        for (let j = 0; j < 5; j++) {
+          // Subtract projection onto previous columns
+          for (let k = 0; k < j; k++) {
+            let dot = 0;
+            for (let r = 0; r < 5; r++) dot += R5[r][j] * R5[r][k];
+            for (let r = 0; r < 5; r++) R5[r][j] -= dot * R5[r][k];
+          }
+          // Normalize column
+          let normSq = 0;
+          for (let r = 0; r < 5; r++) normSq += R5[r][j] * R5[r][j];
+          const invNorm = 1 / Math.sqrt(normSq || 1);
+          for (let r = 0; r < 5; r++) R5[r][j] *= invNorm;
+        }
+      }
+
+      // Multiply 5D vector by R5
+      function transform5D(v) {
+        const out = [0, 0, 0, 0, 0];
+        for (let r = 0; r < 5; r++) {
+          out[r] = R5[r][0] * v[0] +
+                   R5[r][1] * v[1] +
+                   R5[r][2] * v[2] +
+                   R5[r][3] * v[3] +
+                   R5[r][4] * v[4];
+        }
+        return out;
+      }
+
+      // 5D Hyper-Torus Geometry & Geodesic Flow
+      // A Clifford 2-torus embedded in R^5:
+      // x1 = r1 * cos(u), x2 = r1 * sin(u)
+      // x3 = r2 * cos(v), x4 = r2 * sin(v)
+      // x5 = r3 * sin(u + v)
+      // Scaled such that x1^2 + x2^2 + x3^2 + x4^2 + x5^2 is normalized
+      const r1 = 0.65;
+      const r2 = 0.65;
+      const r3 = 0.38;
+
+      // Construct 5D Wireframe Ribs
+      const gridRings = [];
+      const U_STEPS = 24;
+      const V_STEPS = 16;
+
+      // Ribs along u
+      for (let vIdx = 0; vIdx < V_STEPS; vIdx += 2) {
+        const v = (vIdx / V_STEPS) * 2 * Math.PI;
+        const ring = [];
+        for (let uIdx = 0; uIdx <= U_STEPS; uIdx++) {
+          const u = (uIdx / U_STEPS) * 2 * Math.PI;
+          const raw = [
+            r1 * Math.cos(u),
+            r1 * Math.sin(u),
+            r2 * Math.cos(v),
+            r2 * Math.sin(v),
+            r3 * Math.sin(u + v)
+          ];
+          ring.push(raw);
+        }
+        gridRings.push(ring);
+      }
+
+      // Ribs along v
+      for (let uIdx = 0; uIdx < U_STEPS; uIdx += 3) {
+        const u = (uIdx / U_STEPS) * 2 * Math.PI;
+        const ring = [];
+        for (let vIdx = 0; vIdx <= V_STEPS; vIdx++) {
+          const v = (vIdx / V_STEPS) * 2 * Math.PI;
+          const raw = [
+            r1 * Math.cos(u),
+            r1 * Math.sin(u),
+            r2 * Math.cos(v),
+            r2 * Math.sin(v),
+            r3 * Math.sin(u + v)
+          ];
+          ring.push(raw);
+        }
+        gridRings.push(ring);
+      }
+
+      // Particles flowing along 5D Geodesic Orbits
+      const NUM_PARTICLES = 160;
+      const particles = [];
+      for (let i = 0; i < NUM_PARTICLES; i++) {
+        const u0 = Math.random() * 2 * Math.PI;
+        const v0 = Math.random() * 2 * Math.PI;
+        // Incommensurate harmonic frequencies for non-periodic ergodic coverage
+        const wu = 0.012 + (i % 5) * 0.003;
+        const wv = 0.019 + (i % 7) * 0.002;
+        particles.push({
+          u: u0,
+          v: v0,
+          wu: wu,
+          wv: wv,
+          history: [] // stores previous 2D projected positions
+        });
+      }
+
+      // Projection Kernels: 5D to 2D Screen Coordinates
+      function projectPoint(p5) {
+        const cx = width / 2;
+        const cy = height / 2;
+        const baseScale = Math.min(width, height) * 0.38 * zoom;
+
+        if (projectionMode === 'orthographic') {
+          // Orthographic projection: take X1 and X2 directly
+          // X3, X4, X5 modulate visual depth and coloration
+          const x = cx + p5[0] * baseScale;
+          const y = cy + p5[1] * baseScale;
+          const depth = (p5[2] * 0.5 + p5[3] * 0.3 + p5[4] * 0.2 + 1) * 0.5; // normalized ~0..1
+          return {
+            x: x,
+            y: y,
+            depth: Math.max(0.1, Math.min(1.5, depth)),
+            hue: ((Math.atan2(p5[3], p5[2]) * 180 / Math.PI + 360) % 360),
+            visible: true
+          };
+        } else {
+          // Stereographic Conformal Projection: 5D -> 4D -> 3D -> 2D
+          // Pole distances
+          const d5 = 2.4;
+          const d4 = 2.1;
+          const d3 = 1.9;
+
+          // 5D -> 4D
+          const denom5 = Math.max(0.2, d5 - p5[4]);
+          const p4_0 = p5[0] / denom5;
+          const p4_1 = p5[1] / denom5;
+          const p4_2 = p5[2] / denom5;
+          const p4_3 = p5[3] / denom5;
+
+          // 4D -> 3D
+          const denom4 = Math.max(0.2, d4 - p4_3);
+          const p3_0 = p4_0 / denom4;
+          const p3_1 = p4_1 / denom4;
+          const p3_2 = p4_2 / denom4;
+
+          // 3D -> 2D Screen Perspective
+          const denom3 = Math.max(0.1, d3 - p3_2);
+          const x = cx + (p3_0 / denom3) * baseScale;
+          const y = cy + (p3_1 / denom3) * baseScale;
+
+          const depth = 1 / denom3;
+          const hue = ((Math.atan2(p5[4], p5[3]) * 180 / Math.PI + 180 + p5[2] * 60) + 360) % 360;
+
+          return {
+            x: x,
+            y: y,
+            depth: depth,
+            hue: hue,
+            visible: denom3 > 0.1 && denom4 > 0.1 && denom5 > 0.1
+          };
+        }
+      }
+
+      // Web Audio Synthesizer: Pure Harmonic Chime Drone
+      let audioCtx = null;
+      let droneNodes = null;
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioClass) return;
+        audioCtx = new AudioClass();
+
+        const masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        masterGain.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 1.5);
+
+        // Lowpass filter for dreamy acoustic space
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(420, audioCtx.currentTime);
+        filter.Q.setValueAtTime(3.5, audioCtx.currentTime);
+
+        filter.connect(masterGain);
+        masterGain.connect(audioCtx.destination);
+
+        // Harmonic ratio series tuned to Clifford orbital frequencies
+        // Root: 110 Hz (A2), 165 Hz (E3), 220 Hz (A3), 275 Hz (C#4), 330 Hz (E4)
+        const freqs = [110, 164.81, 220.0, 277.18, 329.63];
+        const oscs = [];
+
+        freqs.forEach(function (f, idx) {
+          const osc = audioCtx.createOscillator();
+          const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+          const oscGain = audioCtx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+
+          oscGain.gain.setValueAtTime(0.06 / (idx + 1), audioCtx.currentTime);
+
+          if (panner) {
+            panner.pan.setValueAtTime((idx - 2) * 0.4, audioCtx.currentTime);
+            osc.connect(panner);
+            panner.connect(oscGain);
+          } else {
+            osc.connect(oscGain);
+          }
+          oscGain.connect(filter);
+          osc.start();
+
+          oscs.push({ osc: osc, baseFreq: f });
+        });
+
+        droneNodes = {
+          master: masterGain,
+          filter: filter,
+          oscs: oscs
+        };
+      }
+
+      function updateAudioModulation(p5Sample) {
+        if (!audioCtx || !droneNodes || !audioEnabled) return;
+        const t = audioCtx.currentTime;
+        // Modulate filter cutoff with X5 dimension fold
+        const targetCutoff = 320 + Math.abs(p5Sample[4]) * 650;
+        droneNodes.filter.frequency.setTargetAtTime(targetCutoff, t, 0.1);
+
+        // Modulate subtle microtonal detune based on 5D coordinate drift
+        droneNodes.oscs.forEach(function (item, i) {
+          const detune = p5Sample[i % 5] * 12; // +/- 12 cents
+          item.osc.detune.setTargetAtTime(detune, t, 0.05);
+        });
+      }
+
+      function toggleAudio() {
+        if (!audioEnabled) {
+          initAudio();
+          if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+          if (droneNodes) {
+            droneNodes.master.gain.setTargetAtTime(0.2, audioCtx.currentTime, 0.5);
+          }
+          audioEnabled = true;
+          btnAudio.classList.add('active');
+          btnAudio.textContent = 'Mute Chimes';
+        } else {
+          if (audioCtx && droneNodes) {
+            droneNodes.master.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.3);
+          }
+          audioEnabled = false;
+          btnAudio.classList.remove('active');
+          btnAudio.textContent = 'Chime Drone';
+        }
+      }
+
+      // Resize Handler
+      function handleResize() {
+        dpr = window.devicePixelRatio || 1;
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.scale(dpr, dpr);
+      }
+      window.addEventListener('resize', handleResize);
+      handleResize();
+
+      // UI Controls & Event Listeners
+      btnStereo.addEventListener('click', function () {
+        projectionMode = 'stereographic';
+        btnStereo.classList.add('active');
+        btnOrtho.classList.remove('active');
+        telemProj.textContent = 'Stereographic';
+      });
+
+      btnOrtho.addEventListener('click', function () {
+        projectionMode = 'orthographic';
+        btnOrtho.classList.add('active');
+        btnStereo.classList.remove('active');
+        telemProj.textContent = 'Orthographic';
+      });
+
+      btnGrid.addEventListener('click', function () {
+        showGrid = !showGrid;
+        btnGrid.classList.toggle('active', showGrid);
+      });
+
+      btnFlow.addEventListener('click', function () {
+        slerpFlow = !slerpFlow;
+        btnFlow.classList.toggle('active', slerpFlow);
+      });
+
+      btnAudio.addEventListener('click', toggleAudio);
+      btnReset.addEventListener('click', resetMatrix);
+
+      slideSpeed.addEventListener('input', function () {
+        rotationSpeed = (parseFloat(slideSpeed.value) / 100) * 0.01;
+        valSpeed.textContent = (parseFloat(slideSpeed.value) / 100).toFixed(1) + 'x';
+      });
+
+      slideFold.addEventListener('input', function () {
+        foldRate = (parseFloat(slideFold.value) / 100) * 0.01;
+        valFold.textContent = (foldRate >= 0 ? '+' : '') + (foldRate * 100).toFixed(2);
+      });
+
+      slideTrail.addEventListener('input', function () {
+        const val = parseInt(slideTrail.value, 10);
+        trailAlpha = 1 - (val / 65);
+        valTrail.textContent = val;
+      });
+
+      // Pointer / Touch Interaction
+      canvas.addEventListener('pointerdown', function (e) {
+        isDragging = true;
+        lastPointerX = e.clientX;
+        lastPointerY = e.clientY;
+        canvas.setPointerCapture(e.pointerId);
+      });
+
+      canvas.addEventListener('pointermove', function (e) {
+        if (!isDragging) return;
+        const dx = e.clientX - lastPointerX;
+        const dy = e.clientY - lastPointerY;
+        lastPointerX = e.clientX;
+        lastPointerY = e.clientY;
+
+        // Pointer drag rotates in primary (X1, X2) and (X1, X5) planes
+        rotateSO5(0, 1, dx * 0.006);
+        rotateSO5(0, 4, dy * 0.006);
+      });
+
+      function stopDrag(e) {
+        if (isDragging) {
+          isDragging = false;
+          try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+        }
+      }
+      canvas.addEventListener('pointerup', stopDrag);
+      canvas.addEventListener('pointercancel', stopDrag);
+
+      // Wheel Zoom
+      canvas.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.92 : 1.08;
+        zoom = Math.max(0.3, Math.min(3.5, zoom * delta));
+      }, { passive: false });
+
+      // Main Animation Loop
+      let frameCount = 0;
+      let lastTelemetryTime = 0;
+
+      function render(now) {
+        // Continuous 5D Multi-Planar Rotations in SO(5)
+        if (!reducedMotion) {
+          if (rotationSpeed !== 0) {
+            rotateSO5(0, 1, rotationSpeed);         // X1 - X2 planar spin
+            rotateSO5(1, 3, rotationSpeed * 0.73);  // X2 - X4 planar spin
+            rotateSO5(2, 4, rotationSpeed * 0.51);  // X3 - X5 planar spin
+          }
+          if (foldRate !== 0) {
+            rotateSO5(0, 4, foldRate);             // X1 - X5 dimensional fold
+            rotateSO5(2, 3, foldRate * 0.63);      // X3 - X4 auxiliary twist
+          }
+        }
+
+        // Re-orthonormalize every 180 frames to eliminate numerical drift
+        frameCount++;
+        if (frameCount % 180 === 0) {
+          orthonormalizeSO5();
+        }
+
+        // Semitransparent clear for motion trails
+        ctx.fillStyle = 'rgba(5, 6, 11, ' + trailAlpha + ')';
+        ctx.fillRect(0, 0, width, height);
+
+        // 1. Draw 5D Wireframe Ribs
+        if (showGrid) {
+          ctx.lineWidth = 1;
+          for (let r = 0; r < gridRings.length; r++) {
+            const ring = gridRings[r];
+            ctx.beginPath();
+            let first = true;
+            for (let i = 0; i < ring.length; i++) {
+              const p5 = transform5D(ring[i]);
+              const proj = projectPoint(p5);
+              if (!proj.visible) {
+                first = true;
+                continue;
+              }
+              if (first) {
+                ctx.moveTo(proj.x, proj.y);
+                first = false;
+              } else {
+                ctx.lineTo(proj.x, proj.y);
+              }
+            }
+            // Color modulated by index and depth
+            const ringHue = (r * 22 + frameCount * 0.2) % 360;
+            ctx.strokeStyle = 'hsla(' + ringHue + ', 70%, 55%, 0.16)';
+            ctx.stroke();
+          }
+        }
+
+        // 2. Update & Draw Particles & Geodesic Trajectories
+        let leadP5 = [0, 0, 0, 0, 0];
+        const maxHistory = 14;
+
+        for (let pIdx = 0; pIdx < particles.length; pIdx++) {
+          const pt = particles[pIdx];
+
+          // Advance flow along geodesic Clifford parameters
+          if (slerpFlow && !reducedMotion) {
+            pt.u = (pt.u + pt.wu) % (2 * Math.PI);
+            pt.v = (pt.v + pt.wv) % (2 * Math.PI);
+          }
+
+          // Evaluate 5D coordinates on Clifford hyper-torus
+          const raw5 = [
+            r1 * Math.cos(pt.u),
+            r1 * Math.sin(pt.u),
+            r2 * Math.cos(pt.v),
+            r2 * Math.sin(pt.v),
+            r3 * Math.sin(pt.u + pt.v)
+          ];
+
+          const p5 = transform5D(raw5);
+          if (pIdx === 0) leadP5 = p5;
+
+          const proj = projectPoint(p5);
+          if (!proj.visible) continue;
+
+          // Track history for radiant dream ribbons
+          pt.history.push({ x: proj.x, y: proj.y, hue: proj.hue, depth: proj.depth });
+          if (pt.history.length > maxHistory) pt.history.shift();
+
+          // Render trajectory ribbon
+          if (pt.history.length > 1) {
+            ctx.beginPath();
+            ctx.moveTo(pt.history[0].x, pt.history[0].y);
+            for (let h = 1; h < pt.history.length; h++) {
+              ctx.lineTo(pt.history[h].x, pt.history[h].y);
+            }
+            const alpha = Math.min(0.65, 0.15 + proj.depth * 0.25);
+            ctx.strokeStyle = 'hsla(' + proj.hue + ', 85%, 65%, ' + alpha + ')';
+            ctx.lineWidth = Math.max(0.75, proj.depth * 1.5);
+            ctx.stroke();
+          }
+
+          // Render particle head glow
+          const dotRadius = Math.max(1.2, Math.min(4.5, 1.8 * proj.depth));
+          ctx.beginPath();
+          ctx.arc(proj.x, proj.y, dotRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = 'hsla(' + proj.hue + ', 95%, 80%, ' + Math.min(1.0, 0.4 + proj.depth * 0.4) + ')';
+          ctx.fill();
+        }
+
+        // Modulate audio from leading 5D particle position
+        if (audioEnabled) {
+          updateAudioModulation(leadP5);
+        }
+
+        // Periodic Telemetry Update (every 250ms)
+        if (now - lastTelemetryTime > 250) {
+          lastTelemetryTime = now;
+          // Calculate radius invariant of lead particle: sqrt(sum(x_i^2))
+          let rSq = 0;
+          for (let i = 0; i < 5; i++) rSq += leadP5[i] * leadP5[i];
+          const radiusNorm = Math.sqrt(rSq);
+          telemRadius.textContent = 'R = ' + radiusNorm.toFixed(4);
+
+          const planesActive = [];
+          if (Math.abs(rotationSpeed) > 0.0001) planesActive.push('X₁-X₂');
+          if (Math.abs(foldRate) > 0.0001) planesActive.push('X₁-X₅');
+          if (planesActive.length === 0) planesActive.push('Static');
+          telemPlanes.textContent = planesActive.join(' · ');
+        }
+
+        requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
+    })();
+  </script>
+</body>
+</html>

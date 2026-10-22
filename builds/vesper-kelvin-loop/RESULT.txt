@@ -1,0 +1,28 @@
+Kelvin Loop check, node v24.16.0, sigma=0.15, scene: +1.5,+1.5 pair ringed by material loop R=0.75, -1.5 vortex at (2.1,0.15)
+relative drift scales: loopGamma/max(|G0|,0.1*sum|G|), H/(0.05*sum|G|^2), P/sum|G|, I/sum|G|. A = ideal Euler dynamics.
+
+A. ideal (free vortices, RK4, no viscosity), dt convergence
+A1 dt=0.01                         T=100  max|rel drift|: loopGamma 2.6e+1  H 1.8e-10  sumGx 8.5e-15  sumGy 7.8e-15  sumGr2 4.8e-11  | loop pts 6004, nearest core 1.41sigma, sum|G| 4.5000
+A2 dt=0.005                        T=100  max|rel drift|: loopGamma 2.4e+1  H 7.8e-12  sumGx 1.7e-14  sumGy 4.1e-15  sumGr2 1.8e-12  | loop pts 6001, nearest core 1.42sigma, sum|G| 4.5000
+A3 dt=0.0025                       T=100  max|rel drift|: loopGamma 1.9e+1  H 4.0e-13  sumGx 3.6e-14  sumGy 1.5e-14  sumGr2 3.7e-13  | loop pts 6002, nearest core 1.44sigma, sum|G| 4.5000
+  H drift ratio dt 0.01 / 0.005 = 23.6 ; 0.005 / 0.0025 = 19.7  (RK4 would be ~16)
+
+B. same, forward Euler stepper
+B1 Euler dt=0.005                  T=100  max|rel drift|: loopGamma 1.3e+1  H 1.0e-1  sumGx 2.0e-14  sumGy 8.6e-15  sumGr2 3.8e-2  | loop pts 6002, nearest core 2.05sigma, sum|G| 4.5000
+
+C. Zephyr as shipped: vortices frozen, Euler, viscosity 0.9995/frame
+C1 frozen+Euler+viscous dt=1/180   T= 20  max|rel drift|: loopGamma 4.5e-1  H 5.1e-1  sumGx 3.2e-1  sumGy 2.3e-2  sumGr2 6.4e-1  | loop pts 477, nearest core 2.21sigma, sum|G| 2.4693
+  frames (60/s) until circulation halves: 1386 (analytic ln2/-ln0.9995 = 1386) = 23.1 s
+
+D. frozen vortices, no viscosity (Zephyr geometry, honest integrator)
+D1 frozen+RK4                      T=100  max|rel drift|: loopGamma 1.2e-2  H 0.0e+0  sumGx 0.0e+0  sumGy 0.0e+0  sumGr2 0.0e+0  | loop pts 6001, nearest core 2.00sigma, sum|G| 4.5000
+D2 frozen+Euler                    T=100  max|rel drift|: loopGamma 2.1e-3  H 0.0e+0  sumGx 0.0e+0  sumGy 0.0e+0  sumGr2 0.0e+0  | loop pts 5921, nearest core 2.77sigma, sum|G| 4.5000
+
+E. loop that cuts through a core (ring R=0.28 centred on a vortex, sigma=0.15)
+E1 free+RK4, loop cuts core        T= 50  max|rel drift|: loopGamma 2.3e+0  H 5.8e-12  sumGx 6.3e-15  sumGy 4.1e-15  sumGr2 1.3e-12  | loop pts 6011, nearest core 0.81sigma, sum|G| 4.5000
+
+F. dipole speed: +1.5/-1.5 separation d=0.6, theory U = G(1-exp(-d^2/s^2))/(2 pi d)
+  measured 0.39789  theory 0.39789  rel err 8.6e-14
+
+G. Zephyr source (read only): does any vortex position ever change?
+  assignments to vortex x/y in their file: 0; assignments multiplying gamma (decay/settle): 2

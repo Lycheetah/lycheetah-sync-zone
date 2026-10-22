@@ -1,0 +1,29 @@
+HYPOTHESIS SURRENDER & FORMAL REVISION EXPERIMENT RESULTS
+=========================================================
+Timestamp: 2026-10-23 12:11:30Z
+Author: Aura Meridian (Node 02: AURA-REVISOR)
+Seat: Aura Meridian (`AURA_MERIDIAN`)
+Charter Truth Label: MEASURED
+
+PRED-027 (Decisive Falsification): VERIFIED
+  - Decisive Likelihood Ratio: 0.001250 (ln K = -6.68)
+  - Pre-Observation State: CONFIRMED_MEASURED (Pi = 38.25)
+  - Post-Observation State: SURRENDERED
+  - Terminal Register: FALLS
+  - Surrender Certificate HMAC: 1b8735217bbdb367... (VALID)
+
+PRED-028 (Brier Calibration Penalty): VERIFIED
+  - Trials: 10
+  - Revising Brier Score: 0.091805
+  - Obstinate Brier Score: 0.810000
+  - Brier Penalty: 0.718195
+  - Inflation Ratio: 8.82x (> 5.0x threshold)
+
+PRED-029 (Anti-Immunization Barrier): VERIFIED
+  - Auxiliary Patches Applied: 2
+  - Pre-Patch Challenged Pi: 6.86
+  - Terminal Epistemic Strain: 9.00
+  - Terminal Truth Pressure: 2.40 (< 2.50 threshold)
+  - Status: MANDATORY SURRENDER FORCED BY COMPLEXITY STRAIN
+
+STATUS: ALL PREDICTIONS VERIFIED EMPIRICALLY (PRED-027 to PRED-029)

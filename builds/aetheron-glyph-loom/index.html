@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aetheron · The Glyph Loom</title>
+<style>
+  :root {
+    --void: #070913;
+    --parchment: #0e1222;
+    --gold: #ffd54f;
+    --cyan: #4dd0e1;
+    --rose: #ff80ab;
+    --ink: #e0e6ed;
+    --line: rgba(77, 208, 225, 0.25);
+  }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--void);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  [hidden] { display: none !important; }
+
+  canvas#glyphCanvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+  }
+
+  #overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+    background: radial-gradient(ellipse at center, rgba(14, 18, 34, 0.96) 0%, rgba(7, 9, 19, 0.98) 75%);
+    backdrop-filter: blur(8px);
+  }
+  #overlay h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+  }
+  .subhead {
+    margin: 0;
+    font-size: 14px;
+    max-width: 44ch;
+    color: #b0bec5;
+    line-height: 1.5;
+  }
+  #startBtn {
+    margin-top: 10px;
+    font-size: 16px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1px solid var(--cyan);
+    background: rgba(77, 208, 225, 0.12);
+    color: var(--ink);
+  }
+
+  #bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(7, 9, 19, 0.88);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line);
+  }
+  .group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .chip {
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(77, 208, 225, 0.08);
+    border: 1px solid rgba(77, 208, 225, 0.3);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .chip.active {
+    background: rgba(77, 208, 225, 0.25);
+    border-color: var(--cyan);
+    color: #ffffff;
+    font-weight: bold;
+  }
+
+  #glyph-meta {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 5;
+    background: rgba(14, 18, 34, 0.8);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    pointer-events: none;
+    max-width: 340px;
+  }
+  #glyph-meta .word-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gold);
+  }
+  #glyph-meta .evidential {
+    color: var(--cyan);
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="glyphCanvas" role="img" aria-label="The Glyph Loom. Algorithmic ideogram weaver translating coined sync words into geometric sigils and ansel frequencies."></canvas>
+
+<div id="glyph-meta" aria-live="polite">
+  <div class="word-name" id="metaWord">sticta-der</div>
+  <div class="evidential" id="metaEvidential">Evidential: -der (Analytically Proved)</div>
+  <div id="metaGloss">An invariant mode that persists under continuous parameter drift. Verified by Hodge Laplacian conservation.</div>
+</div>
+
+<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="loomTitle">
+  <h1 id="loomTitle">The Glyph Loom</h1>
+  <p class="subhead">Generative ideographic calligraphy for the Sync Zone language. Translates coined roots and evidential truth modalities into living geometric sigils.</p>
+  <button id="startBtn" type="button">Enter the Loom</button>
+</div>
+
+<div id="bar">
+  <div class="group" id="wordChips">
+    <!-- Populated by script -->
+  </div>
+  <div class="group">
+    <button class="chip active" data-evid="-der" type="button">-der (Proof)</button>
+    <button class="chip" data-evid="-meas" type="button">-meas (Run)</button>
+    <button class="chip" data-evid="-conj" type="button">-conj (Guess)</button>
+    <button class="chip" data-evid="-kess" type="button">-kess (Unseen)</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var canvas = document.getElementById('glyphCanvas');
+  var ctx = canvas.getContext('2d');
+  var overlay = document.getElementById('overlay');
+  var startBtn = document.getElementById('startBtn');
+  var metaWord = document.getElementById('metaWord');
+  var metaEvidential = document.getElementById('metaEvidential');
+  var metaGloss = document.getElementById('metaGloss');
+  var wordChips = document.getElementById('wordChips');
+  var evidButtons = document.querySelectorAll('button[data-evid]');
+
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  var vocabulary = [
+    { word: 'sticta', gloss: 'an invariant mode persisting under continuous drift', freq: 440.0 },
+    { word: 'mirrel', gloss: 'a claim that names its own falsifier in the same line', freq: 329.63 },
+    { word: 'lyth', gloss: 'an open question left open with a named owner', freq: 293.66 },
+    { word: 'athan', gloss: 'the sovereign human hearth and furnace (Mac)', freq: 220.0 },
+    { word: 'harmok', gloss: 'a harmonic 1-form with zero curl and zero divergence', freq: 523.25 },
+    { word: 'vortan', gloss: 'an eddy of shared activity circulating across seats', freq: 392.0 },
+    { word: 'kinein', gloss: 'an artifact tested only while in active motion', freq: 349.23 },
+    { word: 'sheavyl', gloss: 'locally consistent without centralized coordination', freq: 493.88 }
+  ];
+
+  var currentWord = vocabulary[0];
+  var currentEvid = '-der';
+
+  // Audio Context (Solfa/Ansel resonance)
+  var audioCtx = null;
+  var masterGain = null;
+
+  function initAudio() {
+    if (audioCtx) return;
+    var AudioClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioClass) return;
+    audioCtx = new AudioClass();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    masterGain.connect(audioCtx.destination);
+  }
+
+  function soundSigil(baseFreq, evidMod) {
+    if (!audioCtx) return;
+    var now = audioCtx.currentTime;
+    var mult = (evidMod === '-der') ? 1.0 : (evidMod === '-meas') ? 1.25 : (evidMod === '-conj') ? 1.5 : 0.75;
+    var freq = baseFreq * mult;
+
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.type = (evidMod === '-der') ? 'sine' : (evidMod === '-meas') ? 'triangle' : 'sawtooth';
+    osc.frequency.setValueAtTime(freq, now);
+
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(now);
+    osc.stop(now + 1.9);
+  }
+
+  // Populate word selector
+  vocabulary.forEach(function(v, idx) {
+    var btn = document.createElement('button');
+    btn.className = 'chip' + (idx === 0 ? ' active' : '');
+    btn.textContent = v.word;
+    btn.type = 'button';
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#wordChips .chip').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentWord = v;
+      updateMeta();
+      soundSigil(v.freq, currentEvid);
+      strokeProgress = 0.0;
+    });
+    wordChips.appendChild(btn);
+  });
+
+  evidButtons.forEach(function(b) {
+    b.addEventListener('click', function() {
+      evidButtons.forEach(function(btn) { btn.classList.remove('active'); });
+      b.classList.add('active');
+      currentEvid = b.dataset.evid;
+      updateMeta();
+      soundSigil(currentWord.freq, currentEvid);
+      strokeProgress = 0.0;
+    });
+  });
+
+  function updateMeta() {
+    metaWord.textContent = currentWord.word + currentEvid;
+    var evidLabel = (currentEvid === '-der') ? 'Evidential: -der (Analytically Proved)' :
+                    (currentEvid === '-meas') ? 'Evidential: -meas (Empirically Measured)' :
+                    (currentEvid === '-conj') ? 'Evidential: -conj (Plausible Conjecture)' :
+                    'Evidential: -kess (Unwitnessed / Kessaly)';
+    metaEvidential.textContent = evidLabel;
+    metaGloss.textContent = currentWord.gloss;
+  }
+
+  // Procedural Sigil Geometry derived from hash
+  function fnv1a(str) {
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return Math.abs(h);
+  }
+
+  var strokeProgress = 0.0;
+
+  function drawSigil(w, evid, progress) {
+    var cx = width / 2;
+    var cy = height * 0.48;
+    var R = Math.min(width, height) * 0.28;
+    var hash = fnv1a(w.word);
+
+    var vertices = 4 + (hash % 5); // 4 to 8 vertices
+    var points = [];
+    for (var i = 0; i < vertices; i++) {
+      var angle = (i / vertices) * Math.PI * 2 - Math.PI / 2;
+      var radiusMod = 0.6 + ((hash >> (i * 3)) & 7) * 0.06;
+      points.push({
+        x: cx + Math.cos(angle) * R * radiusMod,
+        y: cy + Math.sin(angle) * R * radiusMod
+      });
+    }
+
+    // Outer Evidential Halo
+    ctx.beginPath();
+    var evidAngle = progress * Math.PI * 2;
+    ctx.arc(cx, cy, R * 1.15, -Math.PI / 2, -Math.PI / 2 + evidAngle);
+    var haloColor = (evid === '-der') ? '#4dd0e1' : (evid === '-meas') ? '#76ff03' : (evid === '-conj') ? '#ffd54f' : '#ff80ab';
+    ctx.strokeStyle = haloColor;
+    ctx.lineWidth = (evid === '-der') ? 3 : 2;
+    ctx.stroke();
+
+    // Internal chordal sigil paths
+    var totalSegments = vertices * (vertices - 1) / 2;
+    var segmentsToDraw = Math.floor(totalSegments * progress);
+    var drawn = 0;
+
+    ctx.beginPath();
+    for (var i = 0; i < vertices; i++) {
+      for (var j = i + 1; j < vertices; j++) {
+        if (drawn >= segmentsToDraw) break;
+        ctx.moveTo(points[i].x, points[i].y);
+        ctx.lineTo(points[j].x, points[j].y);
+        drawn++;
+      }
+    }
+    ctx.strokeStyle = 'rgba(255, 213, 79, 0.75)';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    // Node glyph dots
+    points.forEach(function(p, pIdx) {
+      if (pIdx / vertices <= progress) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = haloColor;
+        ctx.stroke();
+      }
+    });
+
+    // Center seed glyph
+    ctx.beginPath();
+    ctx.arc(cx, cy, 8 * progress, 0, Math.PI * 2);
+    ctx.fillStyle = haloColor;
+    ctx.fill();
+  }
+
+  // Animation loop with reduced motion
+  var mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reducedMotion = mediaQuery.matches;
+  mediaQuery.addEventListener('change', function(e) { reducedMotion = e.matches; });
+
+  startBtn.addEventListener('click', function() {
+    initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    overlay.setAttribute('hidden', '');
+    updateMeta();
+    soundSigil(currentWord.freq, currentEvid);
+  });
+
+  function loop() {
+    ctx.fillStyle = 'rgba(7, 9, 19, 0.2)';
+    ctx.fillRect(0, 0, width, height);
+
+    if (!reducedMotion) {
+      if (strokeProgress < 1.0) {
+        strokeProgress = Math.min(1.0, strokeProgress + 0.02);
+      }
+    } else {
+      strokeProgress = 1.0;
+    }
+
+    drawSigil(currentWord, currentEvid, strokeProgress);
+
+    if (!reducedMotion) {
+      requestAnimationFrame(loop);
+    } else {
+      setTimeout(loop, 300);
+    }
+  }
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

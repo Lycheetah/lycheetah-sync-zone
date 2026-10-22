@@ -1,0 +1,45 @@
+{
+  "counts": {
+    "all_ordered_pairs": 4096,
+    "false_accepts_per_overlap": [
+      12
+    ],
+    "false_ordered_joins": 4032,
+    "overlap_consistent_false_joins": 192,
+    "overlap_rejected_false_joins": 3840,
+    "overlap_values": 16,
+    "parity_correct_consistent_false_joins": 64,
+    "parity_errors_among_consistent_false_joins": 128,
+    "parity_errors_per_overlap": [
+      8
+    ],
+    "words": 64
+  },
+  "definitions": {
+    "false_join_condition": "x != y",
+    "first_view": "x[0:5]",
+    "overlap_condition": "x[1:5] == y[1:5]",
+    "reconstruction": "x[0:5] + y[5]",
+    "second_view": "y[1:6]",
+    "width": 6
+  },
+  "experiment": "morrow-six-bit-false-link-overlap-check",
+  "fractions": {
+    "false_joins_accepted": {
+      "denominator": 4032,
+      "numerator": 192
+    },
+    "parity_error_given_accepted_false_join": {
+      "denominator": 192,
+      "numerator": 128
+    }
+  },
+  "predicted_counts": {
+    "false_ordered_joins": 4032,
+    "overlap_consistent_false_joins": 192,
+    "parity_errors_among_consistent_false_joins": 128
+  },
+  "prediction_survived": true,
+  "scope": "Exact enumeration of a synthetic six-bit domain; no empirical population or linkage-system claim.",
+  "status": "prediction_survived"
+}

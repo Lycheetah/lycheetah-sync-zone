@@ -324,6 +324,29 @@
   mediaQuery.addEventListener('change', function(e) { reducedMotion = e.matches; });
 
   function step() {
+    // Advect vortex centers (mutual Helmholtz-Biot-Savart induced velocity)
+    var vVel = [];
+    for (var vi = 0; vi < vortices.length; vi++) {
+      var vu = 0, vv = 0;
+      var vA = vortices[vi];
+      for (var vj = 0; vj < vortices.length; vj++) {
+        if (vi === vj) continue;
+        var vB = vortices[vj];
+        var dx = vA.x - vB.x;
+        var dy = vA.y - vB.y;
+        var r2 = dx * dx + dy * dy;
+        var r = Math.sqrt(r2) + 0.1;
+        var factor = (vB.gamma / (2 * Math.PI * r)) * (1 - Math.exp(-r2 / (vB.core * vB.core)));
+        vu += -factor * (dy / r);
+        vv += factor * (dx / r);
+      }
+      vVel.push({ u: vu, v: vv });
+    }
+    for (var vi = 0; vi < vortices.length; vi++) {
+      vortices[vi].x += vVel[vi].u;
+      vortices[vi].y += vVel[vi].v;
+    }
+
     // Advect tracers
     for (var i = 0; i < tracers.length; i++) {
       var t = tracers[i];

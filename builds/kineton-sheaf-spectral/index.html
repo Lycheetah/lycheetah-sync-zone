@@ -220,70 +220,124 @@
     if (e.u >= 6 && e.v >= 6) e.omega = 1.0;
   });
 
-  // Discrete Hodge Decomposition Solver (Gradient Descent / Conjugate Projection)
-  function computeHodge() {
-    // 1. Solve for potential alpha on vertices such that div(omega - d alpha) = 0
-    var alpha = new Float32Array(vertices.length);
-    for (var iter = 0; iter < 40; iter++) {
-      var div = new Float32Array(vertices.length);
-      edges.forEach(function(e) {
-        var flow = e.omega - (alpha[e.v] - alpha[e.u]);
-        div[e.u] -= flow;
-        div[e.v] += flow;
-      });
-      for (var v = 0; v < vertices.length; v++) {
-        alpha[v] += div[v] * 0.12;
-      }
+  function getEdgeSign(e, f) {
+    if ((e.u === f.u && e.v === f.v) || (e.u === f.v && e.v === f.w) || (e.u === f.w && e.v === f.u)) return 1;
+    if ((e.u === f.v && e.v === f.u) || (e.u === f.w && e.v === f.v) || (e.u === f.u && e.v === f.w)) return -1;
+    return 0;
+  }
+
+  function solveLin(A, b) {
+    var n = b.length;
+    var M = [];
+    for (var i = 0; i < n; i++) {
+      M.push(A[i].slice());
+      M[i].push(b[i]);
     }
-
-    // Set gradient component
-    edges.forEach(function(e) {
-      e.grad = alpha[e.v] - alpha[e.u];
-    });
-
-    // 2. Solve for curl component beta on faces such that curl(omega - grad - delta beta) = 0
-    var beta = new Float32Array(faces.length);
-    for (var iter2 = 0; iter2 < 40; iter2++) {
-      var faceCurl = new Float32Array(faces.length);
-      faces.forEach(function(f, fIdx) {
-        // Find oriented edge values around triangle
-        var c = 0;
-        edges.forEach(function(e) {
-          if ((e.u === f.u && e.v === f.v) || (e.u === f.v && e.v === f.w) || (e.u === f.w && e.v === f.u)) {
-            c += (e.omega - e.grad);
-          } else if ((e.u === f.v && e.v === f.u) || (e.u === f.w && e.v === f.v) || (e.u === f.u && e.v === f.w)) {
-            c -= (e.omega - e.grad);
-          }
-        });
-        faceCurl[fIdx] = c - beta[fIdx] * 3.0;
-      });
-      for (var f = 0; f < faces.length; f++) {
-        beta[f] += faceCurl[f] * 0.15;
+    for (var c = 0; c < n; c++) {
+      var p = c;
+      for (var r = c + 1; r < n; r++) {
+        if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
       }
-    }
-
-    // Approximate curl component on edges from beta
-    edges.forEach(function(e) {
-      e.curl = 0;
-      faces.forEach(function(f, fIdx) {
-        if ((e.u === f.u && e.v === f.v) || (e.u === f.v && e.v === f.w) || (e.u === f.w && e.v === f.u)) {
-          e.curl += beta[fIdx];
-        } else if ((e.u === f.v && e.v === f.u) || (e.u === f.w && e.v === f.v) || (e.u === f.u && e.v === f.w)) {
-          e.curl -= beta[fIdx];
+      var tmp = M[c]; M[c] = M[p]; M[p] = tmp;
+      if (Math.abs(M[c][c]) < 1e-12) continue;
+      for (var r = 0; r < n; r++) {
+        if (r !== c) {
+          var m = M[r][c] / M[c][c];
+          for (var k = c; k <= n; k++) M[r][k] -= m * M[c][k];
         }
-      });
-    });
+      }
+    }
+    var res = [];
+    for (var i = 0; i < n; i++) res.push(Math.abs(M[i][i]) > 1e-12 ? M[i][n] / M[i][i] : 0);
+    return res;
+  }
+
+  // Discrete Hodge Decomposition Solver (Exact Linear Projection)
+  function computeHodge() {
+    var Vnum = vertices.length;
+    var Fnum = faces.length;
+    var Enum = edges.length;
+
+    // Boundary d0: Enum x Vnum
+    var d0 = [];
+    for (var j = 0; j < Enum; j++) {
+      var row = new Float64Array(Vnum);
+      row[edges[j].u] = -1;
+      row[edges[j].v] = 1;
+      d0.push(row);
+    }
+
+    // Boundary d1: Fnum x Enum
+    var d1 = [];
+    for (var f = 0; f < Fnum; f++) {
+      var row = new Float64Array(Enum);
+      for (var j = 0; j < Enum; j++) {
+        row[j] = getEdgeSign(edges[j], faces[f]);
+      }
+      d1.push(row);
+    }
+
+    // 1. Solve for vertex potential alpha: (d0^T d0) alpha = d0^T omega (pin vertex 0)
+    var activeV = Vnum - 1;
+    var A = [];
+    var rhsA = [];
+    for (var a = 1; a < Vnum; a++) {
+      var aRow = [];
+      for (var b = 1; b < Vnum; b++) {
+        var sumAB = 0;
+        for (var j = 0; j < Enum; j++) sumAB += d0[j][a] * d0[j][b];
+        aRow.push(sumAB);
+      }
+      A.push(aRow);
+      var rhsVal = 0;
+      for (var j = 0; j < Enum; j++) rhsVal += d0[j][a] * edges[j].omega;
+      rhsA.push(rhsVal);
+    }
+    var solA = solveLin(A, rhsA);
+    var alpha = new Float64Array(Vnum);
+    for (var a = 1; a < Vnum; a++) alpha[a] = solA[a - 1];
+
+    for (var j = 0; j < Enum; j++) {
+      edges[j].grad = alpha[edges[j].v] - alpha[edges[j].u];
+    }
+
+    // 2. Solve for face curl beta: (d1 d1^T) beta = d1 (omega - grad)
+    var r = [];
+    for (var j = 0; j < Enum; j++) r.push(edges[j].omega - edges[j].grad);
+
+    var B = [];
+    var rhsB = [];
+    for (var fa = 0; fa < Fnum; fa++) {
+      var bRow = [];
+      for (var fb = 0; fb < Fnum; fb++) {
+        var sumB = 0;
+        for (var j = 0; j < Enum; j++) sumB += d1[fa][j] * d1[fb][j];
+        bRow.push(sumB);
+      }
+      B.push(bRow);
+      var rhsBval = 0;
+      for (var j = 0; j < Enum; j++) rhsBval += d1[fa][j] * r[j];
+      rhsB.push(rhsBval);
+    }
+    var beta = solveLin(B, rhsB);
+
+    for (var j = 0; j < Enum; j++) {
+      var cVal = 0;
+      for (var fa = 0; fa < Fnum; fa++) cVal += d1[fa][j] * beta[fa];
+      edges[j].curl = cVal;
+    }
 
     // 3. Harmonic component gamma = omega - grad - curl
     var hEnergy = 0;
     var dotOrtho = 0;
-    edges.forEach(function(e) {
+    for (var j = 0; j < Enum; j++) {
+      var e = edges[j];
       e.harm = e.omega - e.grad - e.curl;
       hEnergy += e.harm * e.harm;
       dotOrtho += e.grad * e.curl;
-    });
+    }
 
-    orthoVal.textContent = Math.abs(dotOrtho).toFixed(4);
+    orthoVal.textContent = Math.abs(dotOrtho).toFixed(6);
     harmVal.textContent = hEnergy.toFixed(4);
   }
 

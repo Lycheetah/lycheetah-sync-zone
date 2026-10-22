@@ -1,0 +1,39 @@
+{
+  "schema_version": "2026.10.23-commons-invariants",
+  "harmonic_base_frequencies_hz": {
+    "D4_tonic": 293.66,
+    "A4_fifth": 440.0,
+    "D5_octave": 587.32
+  },
+  "just_intonation_ratios": {
+    "unison": "1/1",
+    "major_second": "9/8",
+    "major_third": "5/4",
+    "perfect_fourth": "4/3",
+    "perfect_fifth": "3/2",
+    "major_sixth": "5/3",
+    "major_seventh": "15/8",
+    "octave": "2/1"
+  },
+  "laplacian_spectral_conventions": {
+    "0_laplacian_form": "L_0 = D - A",
+    "boundary_coboundary_sign": "delta_0(e_uv) = phi(v) - phi(u)",
+    "conservation_law": "1^T L_0 = 0",
+    "null_space_dimension_connected": 1
+  },
+  "epistemic_thresholds": {
+    "min_pi_measured": 18.0,
+    "min_pi_derived": 12.0,
+    "min_pi_consistency": 8.0,
+    "min_c_sol": 0.8,
+    "min_augmentation_index": 1.0001
+  },
+  "shared_color_palette": {
+    "n0_ground": "#1a1a24",
+    "n1_water": "#2a4d69",
+    "n2_leaf": "#4b86b4",
+    "n3_stone": "#adcbe3",
+    "n4_light": "#e7eff6",
+    "n5_athan": "#f6c85f"
+  }
+}

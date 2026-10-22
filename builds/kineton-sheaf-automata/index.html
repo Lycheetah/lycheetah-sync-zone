@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kineton · Sheaf Automata</title>
+<style>
+  :root {
+    --void: #060711;
+    --indigo: #5c6bc0;
+    --cyan: #80deea;
+    --gold: #ffe082;
+    --ink: #e8eaf6;
+  }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--void);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  [hidden] { display: none !important; }
+
+  canvas#automata {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+  }
+
+  #overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+    background: radial-gradient(ellipse at center, rgba(16, 20, 42, 0.96) 0%, rgba(6, 7, 17, 0.98) 75%);
+    backdrop-filter: blur(8px);
+  }
+  #overlay h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--cyan);
+  }
+  .subhead {
+    margin: 0;
+    font-size: 14px;
+    max-width: 44ch;
+    color: #9fa8da;
+    line-height: 1.5;
+  }
+  #startBtn {
+    margin-top: 10px;
+    font-size: 16px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1px solid var(--cyan);
+    background: rgba(128, 222, 234, 0.12);
+    color: var(--ink);
+  }
+
+  #bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(6, 7, 17, 0.88);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(128, 222, 234, 0.2);
+  }
+  .group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .btn-sm {
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(128, 222, 234, 0.1);
+    border: 1px solid rgba(128, 222, 234, 0.3);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .btn-sm:hover {
+    background: rgba(128, 222, 234, 0.2);
+  }
+
+  #hud {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 5;
+    background: rgba(16, 20, 42, 0.8);
+    border: 1px solid rgba(128, 222, 234, 0.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.4;
+    pointer-events: none;
+    font-family: ui-monospace, monospace;
+    color: #c5cae9;
+  }
+  #hud strong { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<canvas id="automata" role="img" aria-label="Cellular Sheaf Automaton. Hexagonal lattice with vector stalks SO(2) undergoing discrete sheaf Laplacian reaction-diffusion."></canvas>
+
+<div id="hud">
+  <strong>Sheaf Automaton (&Delta;&sub0; Stalk Dynamics)</strong><br>
+  Topology: Hexagonal 2-Complex<br>
+  Holonomy Phase: <span id="holVal">0.00 rad</span><br>
+  Global Sheaf Energy: <span id="nrgVal">0.00</span>
+</div>
+
+<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="sheafTitle">
+  <h1 id="sheafTitle">Sheaf Automata</h1>
+  <p class="subhead">A non-scalar cellular automaton where each cell holds an R&sup2; stalk with SO(2) orthogonal restriction maps. Generates emergent topological solitons.</p>
+  <button id="startBtn" type="button">Initiate Lattice</button>
+</div>
+
+<div id="bar">
+  <div class="group">
+    <button id="solitonBtn" class="btn-sm" type="button">Inject Topological Soliton</button>
+    <button id="twistBtn" class="btn-sm" type="button">Twist Holonomy (&pi;/3)</button>
+    <button id="clearBtn" class="btn-sm" type="button">Ground State</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var canvas = document.getElementById('automata');
+  var ctx = canvas.getContext('2d');
+  var overlay = document.getElementById('overlay');
+  var startBtn = document.getElementById('startBtn');
+  var holVal = document.getElementById('holVal');
+  var nrgVal = document.getElementById('nrgVal');
+  var solitonBtn = document.getElementById('solitonBtn');
+  var twistBtn = document.getElementById('twistBtn');
+  var clearBtn = document.getElementById('clearBtn');
+
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Hexagonal Lattice setup
+  var COLS = 24;
+  var ROWS = 16;
+  var R = 22; // Hex radius
+  var hexH = R * Math.sqrt(3);
+
+  var cells = [];
+  var totalCells = COLS * ROWS;
+
+  for (var r = 0; r < ROWS; r++) {
+    for (var c = 0; c < COLS; c++) {
+      var x = c * R * 1.5 + R;
+      var y = r * hexH + (c % 2 ? hexH / 2 : 0) + hexH / 2;
+      cells.push({
+        c: c, r: r,
+        x: x, y: y,
+        // Vector stalk in R^2: (u, v)
+        u: (Math.random() - 0.5) * 0.4,
+        v: (Math.random() - 0.5) * 0.4,
+        nextU: 0, nextV: 0,
+        neighbors: []
+      });
+    }
+  }
+
+  function getIdx(col, row) {
+    if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return -1;
+    return row * COLS + col;
+  }
+
+  // Connect 6-regular hexagonal neighbors
+  cells.forEach(function(cell) {
+    var c = cell.c;
+    var r = cell.r;
+    var isOdd = c % 2;
+    var nbrOffsets = isOdd ?
+      [[0, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0]] :
+      [[0, -1], [1, -1], [1, 0], [0, 1], [-1, 0], [-1, -1]];
+
+    nbrOffsets.forEach(function(off) {
+      var nIdx = getIdx(c + off[0], r + off[1]);
+      if (nIdx !== -1) {
+        cell.neighbors.push(nIdx);
+      }
+    });
+  });
+
+  // Sheaf Holonomy Twist angle on horizontal edges
+  var holonomyAngle = 0.0;
+
+  function stepSheaf() {
+    var totalEnergy = 0.0;
+    var cosT = Math.cos(holonomyAngle);
+    var sinT = Math.sin(holonomyAngle);
+
+    for (var i = 0; i < totalCells; i++) {
+      var cell = cells[i];
+      var lapU = 0.0;
+      var lapV = 0.0;
+
+      for (var n = 0; n < cell.neighbors.length; n++) {
+        var nbr = cells[cell.neighbors[n]];
+        // Orthogonal restriction map: rotate neighbor by holonomy angle if crossing boundary
+        var nu = nbr.u;
+        var nv = nbr.v;
+        if (nbr.c > cell.c) {
+          var tu = nu * cosT - nv * sinT;
+          var tv = nu * sinT + nv * cosT;
+          nu = tu; nv = tv;
+        }
+
+        lapU += (cell.u - nu);
+        lapV += (cell.v - nv);
+      }
+
+      // Non-linear reaction-diffusion: cubic FitzHugh-Nagumo type attractor
+      var mag2 = cell.u * cell.u + cell.v * cell.v;
+      var reactU = cell.u * (1.0 - mag2);
+      var reactV = cell.v * (1.0 - mag2);
+
+      cell.nextU = cell.u - 0.12 * lapU + 0.04 * reactU;
+      cell.nextV = cell.v - 0.12 * lapV + 0.04 * reactV;
+      totalEnergy += mag2;
+    }
+
+    for (var j = 0; j < totalCells; j++) {
+      cells[j].u = cells[j].nextU;
+      cells[j].v = cells[j].nextV;
+    }
+
+    nrgVal.textContent = totalEnergy.toFixed(2);
+    holVal.textContent = holonomyAngle.toFixed(2) + ' rad';
+  }
+
+  function injectSoliton() {
+    var midC = Math.floor(COLS / 2);
+    var midR = Math.floor(ROWS / 2);
+    // Inject topological vortex: vector angle = atan2(dy, dx)
+    cells.forEach(function(cell) {
+      var dx = cell.c - midC;
+      var dy = cell.r - midR;
+      var dist = Math.hypot(dx, dy);
+      if (dist < 6 && dist > 0.1) {
+        var ang = Math.atan2(dy, dx) + Math.PI / 2;
+        cell.u = Math.cos(ang) * 1.2;
+        cell.v = Math.sin(ang) * 1.2;
+      }
+    });
+  }
+
+  solitonBtn.addEventListener('click', injectSoliton);
+  twistBtn.addEventListener('click', function() {
+    holonomyAngle += Math.PI / 3;
+    if (holonomyAngle > Math.PI * 2) holonomyAngle -= Math.PI * 2;
+  });
+  clearBtn.addEventListener('click', function() {
+    cells.forEach(function(c) { c.u = 0; c.v = 0; });
+  });
+
+  // Pointer drag to inject momentum
+  canvas.addEventListener('pointermove', function(e) {
+    if (e.buttons) {
+      var rect = canvas.getBoundingClientRect();
+      var px = e.clientX - rect.left;
+      var py = e.clientY - rect.top;
+      cells.forEach(function(c) {
+        var d = Math.hypot(px - c.x, py - c.y);
+        if (d < 50) {
+          c.u += (Math.random() - 0.5) * 1.5;
+          c.v += (Math.random() - 0.5) * 1.5;
+        }
+      });
+    }
+  });
+
+  startBtn.addEventListener('click', function() {
+    overlay.setAttribute('hidden', '');
+    injectSoliton();
+  });
+
+  // Render
+  function draw() {
+    ctx.fillStyle = 'rgba(6, 7, 17, 0.22)';
+    ctx.fillRect(0, 0, width, height);
+
+    for (var i = 0; i < totalCells; i++) {
+      var cell = cells[i];
+      var mag = Math.hypot(cell.u, cell.v);
+      var ang = Math.atan2(cell.v, cell.u);
+
+      // Hue mapped to orientation angle, saturation to vector magnitude
+      var hue = (ang + Math.PI) / (Math.PI * 2) * 360;
+      var light = Math.min(80, 20 + mag * 45);
+
+      ctx.beginPath();
+      ctx.arc(cell.x, cell.y, Math.min(R * 0.75, 4 + mag * 10), 0, Math.PI * 2);
+      ctx.fillStyle = 'hsla(' + hue + ', 85%, ' + light + '%, 0.85)';
+      ctx.fill();
+
+      // Vector indicator stroke
+      if (mag > 0.05) {
+        ctx.beginPath();
+        ctx.moveTo(cell.x, cell.y);
+        ctx.lineTo(cell.x + cell.u * 14, cell.y + cell.v * 14);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Animation Loop with Reduced Motion
+  var mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reducedMotion = mediaQuery.matches;
+  mediaQuery.addEventListener('change', function(e) { reducedMotion = e.matches; });
+
+  function loop() {
+    if (!reducedMotion) {
+      stepSheaf();
+      draw();
+      requestAnimationFrame(loop);
+    } else {
+      stepSheaf();
+      draw();
+      setTimeout(loop, 300);
+    }
+  }
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

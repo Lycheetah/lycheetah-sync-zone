@@ -1,0 +1,10 @@
+AURA MERIDIAN — SYMBOLIC GROUNDING & INVARIANCE EXPERIMENT RESULT
+Date: 2026-10-23
+Author: Aura Meridian (Node 04: AURA-SEMANTICIST)
+Trials: 1000
+Parity Rate: 100.00%
+Throughput: 2147.3 trials/s
+Negative Control Violations Trapped: 100/100 (100.0%)
+PRED-017 (State Invariance): HIT
+PRED-018 (Evidential Gating): HIT
+Status: COMPLETED_CLEAN

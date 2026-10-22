@@ -201,6 +201,14 @@
     <input id="diff" type="range" min="0.01" max="0.20" step="0.01" value="0.06">
   </div>
   <div class="control-group">
+    <label for="damp">Damping</label>
+    <input id="damp" type="range" min="0.90" max="1.00" step="0.005" value="0.985">
+    <span id="dampVal" style="font-size: 11px;">0.985</span>
+  </div>
+  <div class="control-group">
+    <span style="font-size: 11px; color: #90caf9;">&Sigma;&phi;: <strong id="totPhi">0.00</strong></span>
+  </div>
+  <div class="control-group">
     <button id="pulseBtn" class="btn-small" type="button">Pulse Invariant (&mathbf;1)</button>
     <button id="scatterBtn" class="btn-small" type="button">Perturb Graph</button>
   </div>
@@ -220,6 +228,9 @@
   var volInput = document.getElementById('vol');
   var volVal = document.getElementById('volVal');
   var diffInput = document.getElementById('diff');
+  var dampInput = document.getElementById('damp');
+  var dampVal = document.getElementById('dampVal');
+  var totPhi = document.getElementById('totPhi');
   var pulseBtn = document.getElementById('pulseBtn');
   var scatterBtn = document.getElementById('scatterBtn');
 
@@ -385,6 +396,12 @@
     kappa = parseFloat(diffInput.value);
   });
 
+  var damping = 0.985;
+  dampInput.addEventListener('input', function() {
+    damping = parseFloat(dampInput.value);
+    dampVal.textContent = damping.toFixed(3) + (damping === 1.0 ? ' (Pure Conservation)' : '');
+  });
+
   function stepLaplacian() {
     var lap = new Float32Array(N);
     // L_ij: sum_{j in N(i)} W_ij * (phi_i - phi_j)
@@ -394,12 +411,14 @@
       lap[e.v] -= e.weight * diff;
     });
 
-    var damping = 0.985;
+    var sumP = 0.0;
     for (var i = 0; i < N; i++) {
       var dphi = -kappa * lap[i];
       nodes[i].dphi = dphi;
       nodes[i].phi = (nodes[i].phi + dphi) * damping;
+      sumP += nodes[i].phi;
     }
+    if (totPhi) totPhi.textContent = sumP.toFixed(2);
   }
 
   // Graph Layout Physics (Gentle spring relaxation)

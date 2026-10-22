@@ -1,0 +1,1123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oikos · Mycelial Resource Allocation Mesh</title>
+<style>
+  :root {
+    --bg-deep: #070b09;
+    --bg-panel: rgba(14, 24, 18, 0.85);
+    --border-line: rgba(52, 211, 153, 0.25);
+    --text-main: #e2f1e8;
+    --text-muted: #85a894;
+    --accent-hypha: #10b981;
+    --accent-cord: #6ee7b7;
+    --accent-anast: #c084fc;
+    --accent-nutrient: #f59e0b;
+    --accent-cut: #f43f5e;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--bg-deep);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  #canvas-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  canvas#mesh-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* HUD Header */
+  .hud-header {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .title-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-line);
+    border-radius: 8px;
+    padding: 10px 14px;
+    pointer-events: auto;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .title-card h1 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--accent-cord);
+  }
+
+  .title-card p {
+    margin: 0;
+    font-size: 11px;
+    color: var(--text-muted);
+    max-width: 320px;
+    line-height: 1.4;
+  }
+
+  /* Metrics Panel */
+  .metrics-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-line);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    gap: 16px;
+    pointer-events: auto;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .metric-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  .metric-val {
+    font-size: 15px;
+    font-weight: 700;
+    font-family: ui-monospace, monospace;
+    color: var(--text-main);
+  }
+
+  .metric-val.anast {
+    color: var(--accent-anast);
+  }
+
+  .metric-val.flux {
+    color: var(--accent-cord);
+  }
+
+  /* Control Dock */
+  .control-dock {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-panel);
+    border: 1px solid var(--border-line);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
+    z-index: 10;
+    max-width: 95vw;
+    overflow-x: auto;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 4px;
+  }
+
+  button.tool-btn {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--text-main);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  button.tool-btn:hover {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: var(--accent-cord);
+  }
+
+  button.tool-btn.active {
+    background: var(--accent-hypha);
+    color: #042f1d;
+    border-color: var(--accent-cord);
+  }
+
+  button.tool-btn.cut-mode.active {
+    background: var(--accent-cut);
+    color: #fff;
+    border-color: #fda4af;
+  }
+
+  .divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border-line);
+  }
+
+  .slider-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .slider-item label {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .slider-item input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 80px;
+    height: 4px;
+    background: rgba(52, 211, 153, 0.2);
+    border-radius: 2px;
+    outline: none;
+  }
+
+  .slider-item input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent-cord);
+    cursor: pointer;
+  }
+
+  /* Help Overlay */
+  .tooltip-panel {
+    position: absolute;
+    bottom: 74px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(7, 11, 9, 0.85);
+    border: 1px dashed var(--border-line);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--text-muted);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Reduced Motion Compliance */
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hud-header {
+      flex-direction: column;
+      gap: 8px;
+    }
+    .metrics-card {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      width: fit-content;
+    }
+    .control-dock {
+      flex-wrap: wrap;
+      bottom: 8px;
+      padding: 6px 8px;
+    }
+    .slider-item {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-container">
+  <canvas id="mesh-canvas"></canvas>
+</div>
+
+<!-- Header HUD -->
+<header class="hud-header">
+  <div class="title-card">
+    <h1>OIKOS · MYCELIAL MESH</h1>
+    <p>Poiseuille hydraulic transport, adaptive anastomosis (hyphal fusion), and decentralized token routing without a central controller.</p>
+  </div>
+
+  <div class="metrics-card">
+    <div class="metric-item">
+      <span class="metric-label">Nodes |V|</span>
+      <span class="metric-val" id="metric-nodes">0</span>
+    </div>
+    <div class="metric-item">
+      <span class="metric-label">Hyphae |E|</span>
+      <span class="metric-val" id="metric-edges">0</span>
+    </div>
+    <div class="metric-item">
+      <span class="metric-label">Loops (b₁)</span>
+      <span class="metric-val anast" id="metric-loops">0</span>
+    </div>
+    <div class="metric-item">
+      <span class="metric-label">Net Flux Σ|Q|</span>
+      <span class="metric-val flux" id="metric-flux">0.0</span>
+    </div>
+    <div class="metric-item">
+      <span class="metric-label">Active Tips</span>
+      <span class="metric-val" id="metric-tips">0</span>
+    </div>
+  </div>
+</header>
+
+<!-- Tooltip Banner -->
+<div class="tooltip-panel" id="hint-banner">
+  Click canvas to plant nutrient resources. Hyphae steer toward food and fuse into loops.
+</div>
+
+<!-- Bottom Control Dock -->
+<nav class="control-dock" aria-label="Simulation Controls">
+  <div class="btn-group">
+    <button class="tool-btn active" id="tool-nutrient" data-mode="nutrient" title="Click on canvas to drop nutrient resources">
+      ● Plant Nutrient
+    </button>
+    <button class="tool-btn" id="tool-spore" data-mode="spore" title="Click on canvas to plant a new mycelial colony spore">
+      ✦ Inoculate Spore
+    </button>
+    <button class="tool-btn cut-mode" id="tool-cut" data-mode="cut" title="Drag line across hyphae to sever conduits and test rerouting">
+      ✂ Sever Conduits
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="btn-group">
+    <button class="tool-btn" id="btn-burst" title="Inject nutrient pulse across all food caches">
+      ⚡ Pulse Flux
+    </button>
+    <button class="tool-btn" id="btn-fuse" title="Force proximity anastomosis between adjacent hyphae">
+      ☍ Induce Fusion
+    </button>
+    <button class="tool-btn" id="btn-prune" title="Prune low-conductance starved hyphal strands">
+      ⌫ Prune Idle
+    </button>
+    <button class="tool-btn" id="btn-reset" title="Reset colony to initial spore inoculant">
+      ↺ Reset
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="slider-item">
+    <label for="slider-speed">Elongation <span id="val-speed">1.0x</span></label>
+    <input type="range" id="slider-speed" min="0.2" max="2.5" step="0.1" value="1.0">
+  </div>
+
+  <div class="slider-item">
+    <label for="slider-anast">Fusion Affinity <span id="val-anast">1.0x</span></label>
+    <input type="range" id="slider-anast" min="0.2" max="2.5" step="0.1" value="1.0">
+  </div>
+</nav>
+
+<script>
+// Oikos: Mycelial Resource Allocation Engine
+// Pure vanilla HTML5 Canvas implementation. Zero external dependencies.
+(function() {
+  'use strict';
+
+  const canvas = document.getElementById('mesh-canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Metrics DOM
+  const elNodes = document.getElementById('metric-nodes');
+  const elEdges = document.getElementById('metric-edges');
+  const elLoops = document.getElementById('metric-loops');
+  const elFlux = document.getElementById('metric-flux');
+  const elTips = document.getElementById('metric-tips');
+  const hintBanner = document.getElementById('hint-banner');
+
+  // Sliders DOM
+  const sliderSpeed = document.getElementById('slider-speed');
+  const valSpeed = document.getElementById('val-speed');
+  const sliderAnast = document.getElementById('slider-anast');
+  const valAnast = document.getElementById('val-anast');
+
+  let growthSpeedMult = 1.0;
+  let anastAffinityMult = 1.0;
+
+  sliderSpeed.addEventListener('input', (e) => {
+    growthSpeedMult = parseFloat(e.target.value);
+    valSpeed.textContent = growthSpeedMult.toFixed(1) + 'x';
+  });
+
+  sliderAnast.addEventListener('input', (e) => {
+    anastAffinityMult = parseFloat(e.target.value);
+    valAnast.textContent = anastAffinityMult.toFixed(1) + 'x';
+  });
+
+  // Check prefers-reduced-motion
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Active Tool Mode
+  let activeTool = 'nutrient'; // 'nutrient', 'spore', 'cut'
+  const toolBtns = document.querySelectorAll('.tool-btn[data-mode]');
+  toolBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      toolBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTool = btn.getAttribute('data-mode');
+      if (activeTool === 'nutrient') {
+        hintBanner.textContent = 'Click on canvas to drop nutrient resources. Hyphae steer toward food and fuse into loops.';
+      } else if (activeTool === 'spore') {
+        hintBanner.textContent = 'Click on canvas to plant a new colony spore. Outward hyphae will expand and forage.';
+      } else if (activeTool === 'cut') {
+        hintBanner.textContent = 'Drag a cutting line across hyphal strands to sever them and witness real-time rerouting!';
+      }
+    });
+  });
+
+  // Canvas Resize
+  let width = 0;
+  let height = 0;
+  let dpr = 1;
+
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // State
+  let nextNodeId = 1;
+  let nextEdgeId = 1;
+
+  const nodes = [];        // { id, x, y, type: 'spore'|'junction'|'tip', pressure, source, edges: [] }
+  const edges = [];        // { id, u: nodeA, v: nodeB, length, radius, conductance, flux, pulses: [] }
+  const tips = [];         // { x, y, angle, speed, parentNode, energy, age, active: true }
+  const nutrients = [];    // { id, x, y, amount, maxAmount, radius }
+  const anastFlares = [];  // { x, y, r, maxR, alpha }
+  const backgroundSpores = []; // subtle drifting background spores
+
+  // Init subtle background spores
+  for (let i = 0; i < 40; i++) {
+    backgroundSpores.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      size: Math.random() * 1.5 + 0.5,
+      alpha: Math.random() * 0.3 + 0.1
+    });
+  }
+
+  // Node & Edge helpers
+  function createNode(x, y, type, source = 0) {
+    const n = {
+      id: nextNodeId++,
+      x,
+      y,
+      type,
+      pressure: 0,
+      source,
+      edges: []
+    };
+    nodes.push(n);
+    return n;
+  }
+
+  function createEdge(nodeA, nodeB) {
+    if (nodeA === nodeB) return null;
+    // Check if edge already exists
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      if ((e.u === nodeA && e.v === nodeB) || (e.u === nodeB && e.v === nodeA)) {
+        return e;
+      }
+    }
+    const dx = nodeA.x - nodeB.x;
+    const dy = nodeA.y - nodeB.y;
+    const len = Math.max(1, Math.hypot(dx, dy));
+    const r = 1.2;
+    // Poiseuille conductance: C = r^4 / len
+    const conductance = Math.pow(r, 4) / len;
+
+    const e = {
+      id: nextEdgeId++,
+      u: nodeA,
+      v: nodeB,
+      length: len,
+      radius: r,
+      conductance: conductance,
+      flux: 0,
+      pulses: []
+    };
+    edges.push(e);
+    nodeA.edges.push(e);
+    nodeB.edges.push(e);
+    return e;
+  }
+
+  function removeEdge(edge) {
+    const idx = edges.indexOf(edge);
+    if (idx !== -1) edges.splice(idx, 1);
+    const uIdx = edge.u.edges.indexOf(edge);
+    if (uIdx !== -1) edge.u.edges.splice(uIdx, 1);
+    const vIdx = edge.v.edges.indexOf(edge);
+    if (vIdx !== -1) edge.v.edges.splice(vIdx, 1);
+  }
+
+  // Add Spore (Inoculant)
+  function inoculateSpore(x, y) {
+    const sporeNode = createNode(x, y, 'spore', -2.0); // Spore acts as metabolic sink
+    const numInitialTips = 5;
+    for (let i = 0; i < numInitialTips; i++) {
+      const angle = (Math.PI * 2 / numInitialTips) * i + (Math.random() - 0.5) * 0.3;
+      tips.push({
+        x: x + Math.cos(angle) * 3,
+        y: y + Math.sin(angle) * 3,
+        angle: angle,
+        speed: 1.0,
+        parentNode: sporeNode,
+        energy: 100,
+        age: 0,
+        branchCooldown: Math.floor(Math.random() * 20) + 20,
+        active: true
+      });
+    }
+  }
+
+  // Add Nutrient
+  function addNutrient(x, y, amount = 100) {
+    nutrients.push({
+      id: Date.now() + Math.random(),
+      x,
+      y,
+      amount,
+      maxAmount: amount,
+      radius: Math.min(32, 14 + Math.sqrt(amount) * 1.5)
+    });
+  }
+
+  // Initialize Colony
+  function initSimulation() {
+    nodes.length = 0;
+    edges.length = 0;
+    tips.length = 0;
+    nutrients.length = 0;
+    anastFlares.length = 0;
+    nextNodeId = 1;
+    nextEdgeId = 1;
+
+    const cx = width * 0.5;
+    const cy = height * 0.5;
+
+    // Plant initial spore at center
+    inoculateSpore(cx, cy);
+
+    // Plant initial surrounding nutrient clusters
+    const rDist = Math.min(width, height) * 0.28;
+    addNutrient(cx + Math.cos(0.5) * rDist, cy + Math.sin(0.5) * rDist, 140);
+    addNutrient(cx + Math.cos(2.6) * rDist, cy + Math.sin(2.6) * rDist, 180);
+    addNutrient(cx + Math.cos(4.7) * rDist, cy + Math.sin(4.7) * rDist, 150);
+    addNutrient(cx + (Math.random() - 0.5) * rDist * 0.7, cy + (Math.random() - 0.5) * rDist * 0.7, 90);
+  }
+
+  // Calculate First Betti Number (Cycles / Loops): b1 = |E| - |V| + c
+  function calculateBettiNumber() {
+    if (nodes.length === 0) return 0;
+    // Count connected components
+    const visited = new Set();
+    let components = 0;
+
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      if (!visited.has(n.id)) {
+        components++;
+        // BFS / DFS
+        const queue = [n];
+        visited.add(n.id);
+        while (queue.length > 0) {
+          const curr = queue.shift();
+          for (let j = 0; j < curr.edges.length; j++) {
+            const e = curr.edges[j];
+            const neighbor = (e.u === curr) ? e.v : e.u;
+            if (!visited.has(neighbor.id)) {
+              visited.add(neighbor.id);
+              queue.push(neighbor);
+            }
+          }
+        }
+      }
+    }
+    const b1 = Math.max(0, edges.length - nodes.length + components);
+    return b1;
+  }
+
+  // Poiseuille Pressure & Flux Solver
+  // Solves (L_C P)_u = S_u via iterative Gauss-Seidel relaxation
+  function solvePressureAndFlux() {
+    if (nodes.length < 2) return;
+
+    // Update node sources based on proximity to nutrients
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      let source = (n.type === 'spore') ? -4.0 : -0.2; // Baseline sink
+
+      // Nutrient absorption at nodes
+      for (let j = 0; j < nutrients.length; j++) {
+        const nut = nutrients[j];
+        const dist = Math.hypot(n.x - nut.x, n.y - nut.y);
+        if (dist < nut.radius + 15) {
+          const factor = Math.max(0, 1 - dist / (nut.radius + 15));
+          source += factor * 8.0;
+        }
+      }
+      n.source = source;
+    }
+
+    // Gauss-Seidel iterations
+    const iterations = 8;
+    for (let iter = 0; iter < iterations; iter++) {
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        if (n.edges.length === 0) continue;
+
+        let weightedSum = n.source;
+        let totalConductance = 0;
+
+        for (let j = 0; j < n.edges.length; j++) {
+          const e = n.edges[j];
+          const neighbor = (e.u === n) ? e.v : e.u;
+          weightedSum += e.conductance * neighbor.pressure;
+          totalConductance += e.conductance;
+        }
+
+        if (totalConductance > 0.0001) {
+          n.pressure = n.pressure * 0.3 + (weightedSum / totalConductance) * 0.7;
+        }
+      }
+    }
+
+    // Calculate Edge Flux: Q_uv = C_uv * (P_u - P_v)
+    // and Conductance Adaptation (Murray's Law / Cord thickening)
+    let totalFlux = 0;
+    const dt = 0.05;
+
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      const pDiff = e.u.pressure - e.v.pressure;
+      e.flux = e.conductance * pDiff;
+      const absFlux = Math.abs(e.flux);
+      totalFlux += absFlux;
+
+      // Adaptive Conductance update: dC/dt = alpha * flux - gamma * (C - C_base)
+      const targetRadius = 1.0 + Math.min(3.5, Math.pow(absFlux * 0.4, 0.4));
+      e.radius = e.radius * 0.98 + targetRadius * 0.02;
+      e.conductance = Math.pow(e.radius, 4) / e.length;
+
+      // Pulse generation along high flux edges
+      if (!prefersReduced && absFlux > 0.3 && Math.random() < 0.08) {
+        e.pulses.push({
+          pos: (e.flux > 0) ? 0 : 1,
+          speed: ((e.flux > 0) ? 1 : -1) * (0.015 + Math.min(0.04, absFlux * 0.01)),
+          size: Math.min(3, 1 + e.radius * 0.4)
+        });
+      }
+
+      // Advance pulses
+      for (let p = e.pulses.length - 1; p >= 0; p--) {
+        const pulse = e.pulses[p];
+        pulse.pos += pulse.speed;
+        if (pulse.pos < 0 || pulse.pos > 1) {
+          e.pulses.splice(p, 1);
+        }
+      }
+    }
+
+    // Update HUD metrics
+    elNodes.textContent = nodes.length;
+    elEdges.textContent = edges.length;
+    elLoops.textContent = calculateBettiNumber();
+    elFlux.textContent = totalFlux.toFixed(1);
+    elTips.textContent = tips.filter(t => t.active).length;
+  }
+
+  // Hyphal Growth & Anastomosis Step
+  function updateHyphalGrowth() {
+    const activeTips = tips.filter(t => t.active);
+    const maxActiveTips = 75; // Bounded for silky 60fps performance
+
+    for (let i = 0; i < activeTips.length; i++) {
+      const tip = activeTips[i];
+      tip.age++;
+      tip.branchCooldown--;
+
+      // 1. Nutrient Chemotropism (Gradient Sensing)
+      let gradX = 0;
+      let gradY = 0;
+      for (let n = 0; n < nutrients.length; n++) {
+        const nut = nutrients[n];
+        const dx = nut.x - tip.x;
+        const dy = nut.y - tip.y;
+        const d = Math.hypot(dx, dy);
+        if (d > 0.1 && d < 350) {
+          const strength = (nut.amount / (d * d + 800));
+          gradX += (dx / d) * strength * 280;
+          gradY += (dy / d) * strength * 280;
+        }
+      }
+
+      // 2. Negative Autotropism (Avoid nearby sibling hyphae unless fusing)
+      let avoidX = 0;
+      let avoidY = 0;
+      for (let j = 0; j < nodes.length; j += 3) {
+        const node = nodes[j];
+        if (node === tip.parentNode) continue;
+        const dx = tip.x - node.x;
+        const dy = tip.y - node.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 2 && dist < 30) {
+          avoidX += (dx / dist) * (1 - dist / 30) * 0.8;
+          avoidY += (dy / dist) * (1 - dist / 30) * 0.8;
+        }
+      }
+
+      // 3. Adaptive Anastomosis (Homing towards nearby hyphae to fuse into a loop)
+      let targetNodeForFusion = null;
+      let minDist = 26 * anastAffinityMult;
+
+      if (tip.age > 15) {
+        for (let j = 0; j < nodes.length; j++) {
+          const candidate = nodes[j];
+          if (candidate === tip.parentNode) continue;
+          // Don't fuse with immediate neighbors of parent
+          let isSibling = false;
+          for (let e = 0; e < tip.parentNode.edges.length; e++) {
+            const ed = tip.parentNode.edges[e];
+            if (ed.u === candidate || ed.v === candidate) {
+              isSibling = true;
+              break;
+            }
+          }
+          if (isSibling) continue;
+
+          const dist = Math.hypot(tip.x - candidate.x, tip.y - candidate.y);
+          if (dist < minDist) {
+            minDist = dist;
+            targetNodeForFusion = candidate;
+          }
+        }
+      }
+
+      // Steer Angle
+      let targetAngle = tip.angle;
+
+      if (targetNodeForFusion) {
+        // Homing toward anastomosis target
+        const homeAngle = Math.atan2(targetNodeForFusion.y - tip.y, targetNodeForFusion.x - tip.x);
+        targetAngle = homeAngle;
+
+        // Collision check: Execute Anastomosis Fusion!
+        if (minDist < 6) {
+          // Connect anastomosis bridge!
+          createEdge(tip.parentNode, targetNodeForFusion);
+          anastFlares.push({
+            x: targetNodeForFusion.x,
+            y: targetNodeForFusion.y,
+            r: 3,
+            maxR: 16,
+            alpha: 1.0
+          });
+          tip.active = false;
+          continue;
+        }
+      } else {
+        // Normal chemotaxis + exploration
+        let steerX = Math.cos(tip.angle) + gradX * 0.6 + avoidX * 0.4 + (Math.random() - 0.5) * 0.25;
+        let steerY = Math.sin(tip.angle) + gradY * 0.6 + avoidY * 0.4 + (Math.random() - 0.5) * 0.25;
+        targetAngle = Math.atan2(steerY, steerX);
+      }
+
+      // Smooth turn
+      tip.angle = targetAngle;
+
+      // Elongate
+      const step = 1.6 * growthSpeedMult;
+      tip.x += Math.cos(tip.angle) * step;
+      tip.y += Math.sin(tip.angle) * step;
+
+      // Boundary bounce
+      const margin = 20;
+      if (tip.x < margin) { tip.x = margin; tip.angle = Math.PI - tip.angle; }
+      if (tip.x > width - margin) { tip.x = width - margin; tip.angle = Math.PI - tip.angle; }
+      if (tip.y < margin) { tip.y = margin; tip.angle = -tip.angle; }
+      if (tip.y > height - margin) { tip.y = height - margin; tip.angle = -tip.angle; }
+
+      // Check distance to parent node; lay down new node if exceeded
+      const distFromParent = Math.hypot(tip.x - tip.parentNode.x, tip.y - tip.parentNode.y);
+      if (distFromParent > 14) {
+        const newNode = createNode(tip.x, tip.y, 'junction');
+        createEdge(tip.parentNode, newNode);
+        tip.parentNode = newNode;
+
+        // Branching check (Lateral branching)
+        if (tip.branchCooldown <= 0 && activeTips.length < maxActiveTips && Math.random() < 0.22) {
+          tip.branchCooldown = Math.floor(Math.random() * 25) + 20;
+          const branchAngle = tip.angle + (Math.random() > 0.5 ? 1 : -1) * (0.6 + Math.random() * 0.3);
+          tips.push({
+            x: tip.x,
+            y: tip.y,
+            angle: branchAngle,
+            speed: tip.speed,
+            parentNode: newNode,
+            energy: 80,
+            age: 0,
+            branchCooldown: 30,
+            active: true
+          });
+        }
+      }
+    }
+  }
+
+  // Interactive Cutting Mechanics (Severing hyphae)
+  let isDragging = false;
+  let cutStart = { x: 0, y: 0 };
+  let cutEnd = { x: 0, y: 0 };
+
+  function lineIntersects(x1, y1, x2, y2, x3, y3, x4, y4) {
+    const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+    if (Math.abs(denom) < 0.00001) return false;
+    const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+    const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+    return (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1);
+  }
+
+  function handleCut() {
+    let severed = 0;
+    for (let i = edges.length - 1; i >= 0; i--) {
+      const e = edges[i];
+      if (lineIntersects(cutStart.x, cutStart.y, cutEnd.x, cutEnd.y, e.u.x, e.u.y, e.v.x, e.v.y)) {
+        removeEdge(e);
+        severed++;
+      }
+    }
+    if (severed > 0) {
+      hintBanner.textContent = `Severed ${severed} conduits! Hagen-Poiseuille flux immediately redistributes through remaining loops.`;
+    }
+  }
+
+  // Pointer Events
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    const p = getPos(e);
+    isDragging = true;
+    cutStart = p;
+    cutEnd = p;
+
+    if (activeTool === 'nutrient') {
+      addNutrient(p.x, p.y, 120);
+    } else if (activeTool === 'spore') {
+      inoculateSpore(p.x, p.y);
+    }
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const p = getPos(e);
+    cutEnd = p;
+  });
+
+  window.addEventListener('pointerup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    if (activeTool === 'cut') {
+      handleCut();
+    }
+  });
+
+  // Action Buttons
+  document.getElementById('btn-burst').addEventListener('click', () => {
+    for (let i = 0; i < nutrients.length; i++) {
+      nutrients[i].amount += 80;
+    }
+    hintBanner.textContent = 'Nutrient pulse triggered! High osmotic gradients drive accelerated hyphal cord thickening.';
+  });
+
+  document.getElementById('btn-fuse').addEventListener('click', () => {
+    // Induce immediate proximity anastomosis across any nearby nodes
+    let fused = 0;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i];
+        const b = nodes[j];
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d > 5 && d < 28) {
+          const edge = createEdge(a, b);
+          if (edge) {
+            fused++;
+            anastFlares.push({ x: (a.x + b.x) * 0.5, y: (a.y + b.y) * 0.5, r: 3, maxR: 18, alpha: 1.0 });
+          }
+        }
+      }
+    }
+    hintBanner.textContent = `Induced ${fused} anastomotic fusions! Topological loops b₁ updated.`;
+  });
+
+  document.getElementById('btn-prune').addEventListener('click', () => {
+    let pruned = 0;
+    for (let i = edges.length - 1; i >= 0; i--) {
+      const e = edges[i];
+      if (Math.abs(e.flux) < 0.08 && e.radius < 1.3) {
+        removeEdge(e);
+        pruned++;
+      }
+    }
+    hintBanner.textContent = `Pruned ${pruned} idle hyphal strands. Conserved energy redirected to main cords.`;
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    initSimulation();
+    hintBanner.textContent = 'Colony reset to single spore inoculant and initial nutrient caches.';
+  });
+
+  // Render Loop
+  let lastTime = performance.now();
+
+  function render(time) {
+    requestAnimationFrame(render);
+
+    const dt = Math.min(32, time - lastTime);
+    lastTime = time;
+
+    // Simulation Updates
+    updateHyphalGrowth();
+    solvePressureAndFlux();
+
+    // Clear Canvas with deep organic tone
+    ctx.fillStyle = '#070b09';
+    ctx.fillRect(0, 0, width, height);
+
+    // Render subtle background spore drift
+    for (let i = 0; i < backgroundSpores.length; i++) {
+      const sp = backgroundSpores[i];
+      sp.x += sp.vx;
+      sp.y += sp.vy;
+      if (sp.x < 0) sp.x = width;
+      if (sp.x > width) sp.x = 0;
+      if (sp.y < 0) sp.y = height;
+      if (sp.y > height) sp.y = 0;
+
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(52, 211, 153, ${sp.alpha})`;
+      ctx.fill();
+    }
+
+    // Render Nutrients
+    for (let i = 0; i < nutrients.length; i++) {
+      const nut = nutrients[i];
+      const pulseR = prefersReduced ? nut.radius : nut.radius + Math.sin(time * 0.003 + nut.id) * 2;
+
+      // Outer glow
+      const grad = ctx.createRadialGradient(nut.x, nut.y, 2, nut.x, nut.y, pulseR * 2.5);
+      grad.addColorStop(0, 'rgba(245, 158, 11, 0.4)');
+      grad.addColorStop(0.5, 'rgba(245, 158, 11, 0.1)');
+      grad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+
+      ctx.beginPath();
+      ctx.arc(nut.x, nut.y, pulseR * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Nutrient core
+      ctx.beginPath();
+      ctx.arc(nut.x, nut.y, pulseR, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.85)';
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#fde68a';
+      ctx.stroke();
+    }
+
+    // Render Hyphal Edges (Conduits)
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      const absFlux = Math.abs(e.flux);
+
+      ctx.beginPath();
+      ctx.moveTo(e.u.x, e.u.y);
+      ctx.lineTo(e.v.x, e.v.y);
+
+      // Color and line width scale with conductance and flux
+      const isHighFlux = absFlux > 1.2;
+      const lineWidth = Math.max(1.0, e.radius * 1.5);
+
+      if (isHighFlux) {
+        ctx.strokeStyle = '#6ee7b7'; // Glowing phosphor cyan/mint
+        ctx.shadowColor = 'rgba(110, 231, 183, 0.6)';
+        ctx.shadowBlur = 6;
+      } else {
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.65)'; // Organic forest emerald
+        ctx.shadowBlur = 0;
+      }
+
+      ctx.lineWidth = lineWidth;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Render Poiseuille flow pulses
+      if (!prefersReduced && e.pulses.length > 0) {
+        for (let p = 0; p < e.pulses.length; p++) {
+          const pulse = e.pulses[p];
+          const px = e.u.x + (e.v.x - e.u.x) * pulse.pos;
+          const py = e.u.y + (e.v.y - e.u.y) * pulse.pos;
+
+          ctx.beginPath();
+          ctx.arc(px, py, pulse.size, 0, Math.PI * 2);
+          ctx.fillStyle = '#fef08a'; // Warm amber/yellow metabolic pulse
+          ctx.fill();
+        }
+      }
+    }
+
+    // Render Anastomosis Flares
+    for (let i = anastFlares.length - 1; i >= 0; i--) {
+      const flare = anastFlares[i];
+      flare.r += 0.8;
+      flare.alpha -= 0.03;
+
+      if (flare.alpha <= 0) {
+        anastFlares.splice(i, 1);
+        continue;
+      }
+
+      ctx.beginPath();
+      ctx.arc(flare.x, flare.y, flare.r, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(192, 132, 252, ${flare.alpha})`;
+      ctx.lineWidth = 2.0;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(flare.x, flare.y, flare.r * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(216, 180, 254, ${flare.alpha * 0.7})`;
+      ctx.fill();
+    }
+
+    // Render Nodes (Spores, Tips, Anastomosis Junctions)
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      if (n.type === 'spore') {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#34d399';
+        ctx.fill();
+        ctx.strokeStyle = '#a7f3d0';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      } else if (n.edges.length >= 3) {
+        // Anastomosis loop junction point
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#c084fc';
+        ctx.fill();
+      }
+    }
+
+    // Render Active Tips
+    for (let i = 0; i < tips.length; i++) {
+      const tip = tips[i];
+      if (!tip.active) continue;
+      ctx.beginPath();
+      ctx.arc(tip.x, tip.y, 2.8, 0, Math.PI * 2);
+      ctx.fillStyle = '#a7f3d0';
+      ctx.fill();
+    }
+
+    // Render Scalpel Cut Line
+    if (isDragging && activeTool === 'cut') {
+      ctx.beginPath();
+      ctx.moveTo(cutStart.x, cutStart.y);
+      ctx.lineTo(cutEnd.x, cutEnd.y);
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.arc(cutStart.x, cutStart.y, 4, 0, Math.PI * 2);
+      ctx.arc(cutEnd.x, cutEnd.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#f43f5e';
+      ctx.fill();
+    }
+  }
+
+  // Initialize
+  initSimulation();
+  requestAnimationFrame(render);
+})();
+</script>
+
+</body>
+</html>
