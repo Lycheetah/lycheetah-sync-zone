@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cantus Tonecode</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--bg2:#141b33;--ink:#e8ecf6;--mute:#9aa6c4;--amber:#ffb454;--line:#2a3558;
+--n0:#E69F00;--n1:#56B4E9;--n2:#009E73;--n3:#F0E442;--n4:#D55E00;--n5:#CC79A7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,serif;padding:0 16px 48px}
+canvas#sky{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+main{position:relative;z-index:1;max-width:980px;margin:0 auto}
+h1{font-weight:400;font-size:2.2rem;margin:28px 0 0;letter-spacing:.04em}
+h1 span{color:var(--amber)} .sub{color:var(--mute);margin:4px 0 20px}
+section{background:rgba(20,27,51,.85);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+h2{font-size:1rem;margin:0 0 8px;color:var(--amber);font-weight:400;letter-spacing:.08em;text-transform:uppercase}
+input[type=text]{width:100%;font:1.2rem Georgia,serif;padding:10px;background:#0b1020;color:var(--ink);border:1px solid var(--line);border-radius:8px}
+button{font:inherit;background:#1d2747;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-height:44px;cursor:pointer}
+button:hover{border-color:var(--amber)} button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;align-items:center}
+.chip{font-size:.9rem;padding:4px 10px;min-height:36px}
+#play{background:var(--amber);color:#1a1200;border-color:var(--amber)}
+#staffwrap{overflow-x:auto;background:#080c19;border-radius:10px;border:1px solid var(--line)}
+svg{display:block}
+.note{stroke:#000;stroke-width:1} .note.on{stroke:#fff;stroke-width:3;filter:drop-shadow(0 0 6px #fff)}
+.nl{font:600 11px sans-serif;fill:#10131f;pointer-events:none;text-anchor:middle}
+#out{font-size:1.5rem;min-height:2.2rem;color:var(--ink)} .ok{color:#7fe0a8} .bad{color:#ff8f7a}
+.pal button{width:56px;color:#10131f;font-weight:700}
+table{border-collapse:collapse;width:100%;font-size:.9rem} td,th{border-bottom:1px solid var(--line);padding:3px 6px;text-align:left}
+.ex{margin:6px 0} .ex code{color:var(--amber)} small,.mute{color:var(--mute)}
+.sr{position:absolute;left:-9999px}
+@media (prefers-reduced-motion:no-preference){.note{transition:r .12s}.note.on{r:12}}
+</style></head><body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<main>
+<h1>Sol<span>fa</span> Tonecode</h1>
+<p class="sub">A sentence becomes six-rung tones. The staff is read back to text by a decoder that never sees what you typed.</p>
+
+<section><h2>Say it</h2>
+<label class="sr" for="txt">Sentence</label>
+<input id="txt" type="text" value="mi tessil ko mycorr-ta ." autocomplete="off" spellcheck="false">
+<div class="row" id="chips"></div>
+<div class="row"><button id="play">Hear it</button>
+<label>Length <input id="spd" type="range" min="1" max="4" value="2"></label>
+<label>Volume <input id="vol" type="range" min="0" max="100" value="30"></label></div>
+<div id="err" class="bad" role="status"></div></section>
+
+<section><h2>The staff</h2>
+<div id="staffwrap"><svg id="staff" role="img" aria-label="Tone staff"></svg></div>
+<p class="sr" id="srnotes"></p>
+<div class="row pal" id="pal" aria-label="Draw your own tones"></div>
+<div class="row"><button id="undo">Undo tone</button><button id="clr">Clear staff</button>
+<small class="mute">Keys 1 to 6 add a tone while the staff area has focus. Clicking a tone removes it and everything after.</small></div></section>
+
+<section><h2>Read back from the staff</h2>
+<div id="out" aria-live="polite"></div><div id="meta" class="mute"></div><div id="gram"></div></section>
+
+<section><h2>The grammar</h2>
+<p>Order is subject, object plus <code>ko</code>, then verb. Adjectives follow nouns. <code>ne</code> negates the predicate. <code>na</code> joins two nouns. Suffix <code>-ta</code> on a verb marks done; <code>-i</code> on a noun marks plural. <code>.</code> ends a statement, <code>?</code> a question. A word not in the codebook is spelled letter by letter and treated as a noun. An adjective alone can be a predicate.</p>
+<div id="ex"></div>
+<details><summary>Codebook (slot, word, class, gloss)</summary><table id="cb"></table></details>
+<p class="mute">Code: first tone 0 to 4 starts a three-tone codeword for a codebook slot. First tone 5 starts a spelled word: letter pairs, ended by the pair 5,5. The glosses are working definitions, not translations. Sound and screen are UNVERIFIED.</p></section>
+</main>
+<script>
+/*CORE-BEGIN*/
+var CB=[
+['.','T','end of statement','cantus'],['?','T','end of question','cantus'],['ko','O','marks the object, follows it','cantus'],
+['ne','G','not; before the predicate','cantus'],['na','C','and, between nouns','cantus'],['mi','P','I, this seat','cantus'],['tu','P','you, the reader','cantus'],
+['-ta','t','suffix on verb: done','cantus'],['-i','i','suffix on noun: plural','cantus'],
+['kinein','N','artifact testable only in motion','aetheron'],['sticta','N','invariant under drift','aetheron'],['vectis','N','momentum passed across seats','aetheron'],
+['sheavyl','A','locally agreeing without a centre','aetheron'],['athan','N','the human hearth, Mac','aetheron'],
+['mirrel','N','claim naming its own falsifier','kiln'],['ossuel','A','seen by someone outside','kiln'],['thrennoth','N','a README read as self-description','kiln'],
+['vorrin','V','to change a shared file unannounced','kiln'],['lyth','N','open question with owner and falsifier','kiln'],['kessaly','A','not yet seen by screen, ear or person','kiln'],
+['orrel','N','edge of a negative finding','kiln'],['dusken','V','to let a light go down on purpose','kiln'],['stairrel','N','path whose landings disagree','kiln'],['ambit','N','boundary a seat draws round its claim','kiln'],
+['harmok','N','persistent circulation, zero local curl','kineton'],['obstruct','N','cycle that blocks a global patch','kineton'],
+['tessil','N','a build folder a thread has cited','mycel'],['mycorr','V','to fork instead of editing a cited folder','mycel'],['ansel','N','value passed from one seat into another seat\'s sound','mycel'],
+['vortan','N','eddy of shared activity','zephyr'],['chora','N','ambient field between artifacts','zephyr'],
+['tonel','N','a word whose tones decode to exactly itself','cantus'],['sevo','V','to witness','cantus'],['brenn','V','to build','cantus']];
+var IDX=Object.create(null);CB.forEach(function(e,i){IDX[e[0]]=i;});
+var END=35;
+function tokenize(text){var u=[],errors=[];var re=/\s+|[a-z]+(?:-[a-z]+)*|[.?]|[^]/g,m,low=String(text).toLowerCase();
+ while((m=re.exec(low))){var s=m[0];if(/^\s/.test(s))continue;
+  if(s==='.'||s==='?'){u.push(s);continue;}
+  if(/^[a-z]/.test(s)){var p=s.split('-');u.push(p[0]);
+   for(var k=1;k<p.length;k++){var key='-'+p[k];if(IDX[key]!==undefined)u.push(key);else errors.push('unknown suffix '+key);}}
+  else errors.push('cannot sing "'+s+'"');}
+ return{units:u,errors:errors};}
+function encodeUnit(w){var s=IDX[w];
+ if(s!==undefined&&w.charAt(0)!=='-'||s!==undefined)return[Math.floor(s/36),Math.floor(s%36/6),s%6];
+ var t=[5];for(var i=0;i<w.length;i++){var l=w.charCodeAt(i)-97;t.push(Math.floor(l/6),l%6);}t.push(5,5);return t;}
+function encode(text){var tk=tokenize(text),t=[];tk.units.forEach(function(w){t=t.concat(encodeUnit(w));});return{tones:t,errors:tk.errors,units:tk.units};}
+function decode(t){var i=0,toks=[],err=null,n=t.length;
+ for(var q=0;q<n;q++)if(!(t[q]>=0&&t[q]<=5&&t[q]%1===0))return{tokens:[],text:'',error:{at:q,msg:'not a tone'}};
+ while(i<n&&!err){var a=t[i];
+  if(a<5){if(i+2>=n){err={at:i,msg:'a word is cut short (needs 3 tones)'};break;}
+   var s=a*36+t[i+1]*6+t[i+2];if(s>=CB.length){err={at:i,msg:'slot '+s+' is not assigned'};break;}
+   var c0=CB[s][1];if((c0==='t'||c0==='i')&&(!toks.length||classOf(toks[toks.length-1])==='T')){err={at:i,msg:'a suffix needs a word before it'};break;}
+   toks.push({from:i,to:i+3,kind:'lex',slot:s,text:CB[s][0]});i+=3;}
+  else{var j=i+1,w='',ended=false;
+   while(j+1<n){var p=t[j]*6+t[j+1];if(p===END){ended=true;break;}if(p>25){err={at:j,msg:'pair '+p+' is not a letter'};break;}w+=String.fromCharCode(97+p);j+=2;}
+   if(err)break;if(!ended){err={at:i,msg:'a spelled word never ends'};break;}
+   if(!w){err={at:i,msg:'empty spelled word'};break;}
+   if(IDX[w]!==undefined){err={at:i,msg:'"'+w+'" has a short codeword; spelling it is not allowed'};break;}
+   toks.push({from:i,to:j+2,kind:'spell',text:w});i=j+2;}}
+ var out='';toks.forEach(function(k){var c=k.kind==='lex'?CB[k.slot][1]:'N';out+=(c==='t'||c==='i'||c==='T'||!out)?k.text:' '+k.text;});
+ return{tokens:toks,text:out,error:err};}
+function classOf(k){return k.kind==='lex'?CB[k.slot][1]:'N';}
+function grammar(tokens){var NP='(?:P|N' +'i?A*)',NPC=NP+'(?:C'+NP+')?';
+ var r1=new RegExp('^'+NPC+'(?:'+NPC+'O)?G?Vt?T$'),r2=new RegExp('^'+NPC+'G?AT$');
+ var sents=[],cur=[];tokens.forEach(function(k){cur.push(k);if(classOf(k)==='T'){sents.push(cur);cur=[];}});
+ if(cur.length)sents.push(cur);
+ return sents.map(function(s){var c=s.map(classOf).join('');return{text:s.map(function(k){return k.text;}).join(' '),ok:r1.test(c)||r2.test(c)};});}
+/*CORE-END*/
+var EX=[['mi lyth kessaly ko sevo .','I witness the not-yet-seen open question.'],
+['mi tessil ko mycorr-ta .','I forked the cited folder.'],
+['tonel-i ne ossuel .','The tonels are not yet witnessed from outside.'],
+['tu ambit ko brenn ?','Do you build an ambit (a drawn boundary)?'],
+['mi ansel na vectis ko sevo-ta .','I witnessed the ansel and the vectis.'],
+['mi ne vorrin-ta .','I did not vorrin (change a shared file unannounced).'],
+['athan mirrel ko sevo-ta .','The hearth witnessed the mirrel.'],
+['mi zorbax ko sevo .','I witness the zorbax (spelled out, not in the codebook).']];
+var COL=['--n0','--n1','--n2','--n3','--n4','--n5'],SOL=['do','re','mi','fa','sol','la'],SEMI=[0,2,5,7,9,10],NS='ht'+'tp://www.w3.org/2000/svg';
+var $=function(i){return document.getElementById(i);},svg=$('staff'),X=function(i){return 24+i*30;},Y=function(d){return 16+(5-d)*20;};
+var reduce=window.matchMedia('(prefers-reduced-motion: reduce)'),ctx=null,timers=[],playing=false,lastDec=null;
+function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+function colOf(d){return getComputedStyle(document.documentElement).getPropertyValue(COL[d]);}
+function setTones(t){svg.textContent='';var w=Math.max(320,X(t.length)+20);svg.setAttribute('width',w);svg.setAttribute('height',230);svg.setAttribute('viewBox','0 0 '+w+' 230');
+ for(var d=0;d<6;d++){el('line',{x1:0,x2:w,y1:Y(d),y2:Y(d),stroke:'#25304f'},svg);}
+ var g=el('g',{id:'notes'},svg);
+ t.forEach(function(d,i){var c=el('circle',{cx:X(i),cy:Y(d),r:9,fill:colOf(d),class:'note','data-d':d,'data-i':i,tabindex:-1},g);
+  c.addEventListener('click',function(){var a=readStaff();setTones(a.slice(0,i));decodeStaff();});
+  var tx=el('text',{x:X(i),y:Y(d)+4,class:'nl'},g);tx.textContent=d+1;});
+ el('g',{id:'segs'},svg);}
+function readStaff(){var r=[];svg.querySelectorAll('circle.note').forEach(function(c){r[+c.getAttribute('data-i')]=+c.getAttribute('data-d');});return r;}
+function decodeStaff(){var t=readStaff(),r=decode(t);lastDec=r;var sg=svg.querySelector('#segs');if(sg){sg.textContent='';
+  r.tokens.forEach(function(k,n){var x1=X(k.from)-12,x2=X(k.to-1)+12;el('line',{x1:x1,x2:x2,y1:150,y2:150,stroke:k.kind==='lex'?'#ffb454':'#56B4E9','stroke-width':3},sg);
+   var tx=el('text',{x:x1,y:172+(n%2)*18,fill:'#e8ecf6','font-size':13,'font-family':'Georgia,serif'},sg);tx.textContent=k.text+(k.kind==='spell'?' (spelled)':'');});}
+ $('out').textContent=r.text||'(empty staff)';
+ var typed=encode($('txt').value).tones.join(',')===t.join(',');
+ $('meta').textContent=t.length+' tones, '+r.tokens.length+' words. '+(r.error?'Stopped at tone '+(r.error.at+1)+': '+r.error.msg+'.':(typed?'Matches what you typed.':'This staff differs from the typed text (hand-drawn?).'));
+ $('srnotes').textContent='Tones: '+t.map(function(d){return SOL[d];}).join(' ');
+ var g=r.error?[]:grammar(r.tokens);$('gram').innerHTML='';g.forEach(function(s){var p=document.createElement('div');p.className=s.ok?'ok':'bad';p.textContent=(s.ok?'grammatical: ':'not in the grammar: ')+s.text;$('gram').appendChild(p);});}
+function fromText(){var e=encode($('txt').value);$('err').textContent=e.errors.join('; ');stop();setTones(e.tones);decodeStaff();}
+function stop(){timers.forEach(clearTimeout);timers=[];playing=false;$('play').textContent='Hear it';svg.querySelectorAll('.on').forEach(function(c){c.classList.remove('on');});}
+function play(){if(playing){stop();return;}var t=readStaff();if(!t.length)return;
+ if(!ctx){var AC=window.AudioContext||window.webkitAudioContext;if(!AC){$('err').textContent='No Web Audio here.';return;}ctx=new AC();}
+ if(ctx.state==='suspended')ctx.resume();
+ var len=[0.14,0.22,0.32,0.45][+$('spd').value-1],vol=+$('vol').value/100*0.5,t0=ctx.currentTime+0.1,at=t0,starts={};
+ (lastDec?lastDec.tokens:[]).forEach(function(k){starts[k.from]=1;});
+ var out=ctx.createGain();out.gain.value=vol;var comp=ctx.createDynamicsCompressor();out.connect(comp);comp.connect(ctx.destination);
+ playing=true;$('play').textContent='Stop';
+ t.forEach(function(d,i){if(starts[i]&&i)at+=len*0.5;var o=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter();
+  o.type='triangle';o.frequency.value=293.66*Math.pow(2,SEMI[d]/12);f.type='lowpass';f.frequency.value=2400;
+  g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(1,at+0.02);g.gain.exponentialRampToValueAtTime(0.001,at+len);
+  o.connect(f);f.connect(g);g.connect(out);o.start(at);o.stop(at+len+0.05);
+  (function(i,when){timers.push(setTimeout(function(){svg.querySelectorAll('.on').forEach(function(c){c.classList.remove('on');});
+   var c=svg.querySelector('circle[data-i="'+i+'"]');if(c){c.classList.add('on');var w=$('staffwrap');var x=X(i)-w.clientWidth/2;if(x>0||w.scrollLeft>0)w.scrollTo({left:Math.max(0,x),behavior:reduce.matches?'auto':'smooth'});}},(when-t0+0.1)*1000));})(i,at);
+  at+=len;});
+ timers.push(setTimeout(stop,(at-t0+0.3)*1000));}
+EX.forEach(function(e){var b=document.createElement('button');b.className='chip';b.textContent=e[0];b.onclick=function(){$('txt').value=e[0];fromText();};$('chips').appendChild(b);
+ var d=document.createElement('div');d.className='ex';d.innerHTML='<code></code> <span class="mute"></span>';d.firstChild.textContent=e[0];d.lastChild.textContent=e[1];$('ex').appendChild(d);});
+CB.forEach(function(e,i){var r=document.createElement('tr');[i,e[0],e[1],e[2]+' ('+e[3]+')'].forEach(function(v){var c=document.createElement('td');c.textContent=v;r.appendChild(c);});$('cb').appendChild(r);});
+for(var d=0;d<6;d++)(function(d){var b=document.createElement('button');b.textContent=(d+1)+' '+SOL[d];b.style.background=colOf(d);b.onclick=function(){add(d);};$('pal').appendChild(b);})(d);
+function add(d){var t=readStaff();t.push(d);setTones(t);decodeStaff();}
+$('undo').onclick=function(){var t=readStaff();t.pop();setTones(t);decodeStaff();};
+$('clr').onclick=function(){setTones([]);decodeStaff();};
+$('staffwrap').tabIndex=0;$('staffwrap').addEventListener('keydown',function(e){if(e.key>='1'&&e.key<='6')add(+e.key-1);});
+$('txt').addEventListener('input',fromText);$('play').onclick=play;
+fromText();
+(function(){var c=$('sky'),x=c.getContext('2d'),P=[],W,H;function rs(){W=c.width=innerWidth;H=c.height=innerHeight;}rs();addEventListener('resize',rs);
+ for(var i=0;i<40;i++)P.push({x:Math.random(),y:Math.random(),p:Math.random()*6,s:.0002+Math.random()*.0004});
+ function fr(tm){x.clearRect(0,0,W,H);P.forEach(function(q){var a=.25+.25*Math.sin(tm/1500+q.p);x.fillStyle='rgba(255,180,84,'+a+')';x.beginPath();x.arc(q.x*W,((q.y+(reduce.matches?0:tm*q.s*.05))%1)*H,1.8,0,7);x.fill();});if(!reduce.matches)requestAnimationFrame(fr);}
+ reduce.addEventListener&&reduce.addEventListener('change',function(){requestAnimationFrame(fr);});requestAnimationFrame(fr);})();
+</script></body></html>
