@@ -45,10 +45,10 @@ button:focus-visible{outline:2px solid var(--neg);outline-offset:2px}
  <div class="row"><span class="lab">&Sigma;&Gamma;r&sup2;</span><canvas id="s4" width="200" height="22"></canvas><span class="n mono" id="d4">0</span></div>
  <div id="stokes" class="mono"></div>
  <div class="grp"><span class="t">Tool</span><button data-tool="pos" aria-pressed="true">+&Gamma;</button><button data-tool="neg" aria-pressed="false">&minus;&Gamma;</button><button data-tool="loop" aria-pressed="false">Draw loop</button><button data-tool="move" aria-pressed="false">Move</button></div>
- <div class="grp"><span class="t">Vortices</span><button data-k="move" data-v="1" aria-pressed="true">Free (Euler eq.)</button><button data-k="move" data-v="0" aria-pressed="false">Frozen (Zephyr)</button></div>
+ <div class="grp"><span class="t">Vortices</span><button data-k="move" data-v="1" aria-pressed="true">Free (Euler eq.)</button><button data-k="move" data-v="0" aria-pressed="false">Frozen (steady field)</button></div>
  <div class="grp"><span class="t">Stepper</span><button data-k="rk4" data-v="1" aria-pressed="true">RK4</button><button data-k="rk4" data-v="0" aria-pressed="false">Euler</button></div>
  <div class="grp"><span class="t">Viscosity</span><button data-k="decay" data-v="0" aria-pressed="true">Off</button><button data-k="decay" data-v="1" aria-pressed="false">0.9995/frame</button></div>
- <div class="grp"><button id="play" aria-pressed="true">Pause</button><button id="step">Step</button><button id="zeph">Zephyr as shipped</button><button id="ideal">Ideal</button><button id="reset">Reset scene</button></div>
+ <div class="grp"><button id="play" aria-pressed="true">Pause</button><button id="step">Step</button><button id="zeph">Zephyr stepper+decay</button><button id="ideal">Ideal</button><button id="reset">Reset scene</button></div>
 </div>
 </div>
 <script>
@@ -148,8 +148,8 @@ if(typeof document!=='undefined'){(function(){
   var $=function(i){return document.getElementById(i);};
   function scene(){
     core=createCore({move:cfg.move,rk4:cfg.rk4,decay:cfg.decay});
-    core.vort=[{x:-0.28,y:0,g:1.5},{x:0.28,y:0,g:1.5},{x:2.1,y:0.15,g:-1.5}];
-    core.setRing(0,0,0.75,160);core.rebase();hist=[[],[],[],[],[]];cam.x=0;cam.y=0;}
+    core.vort=[{x:-0.28,y:0,g:1.5},{x:0.28,y:0,g:1.5}];
+    core.setRing(0,0,1.0,160);core.rebase();hist=[[],[],[],[],[]];cam.x=0;cam.y=0;}
   var cfg={move:true,rk4:true,decay:false};
   function applyCfg(){core.move=cfg.move;core.rk4=cfg.rk4;core.decay=cfg.decay;core.rebase();hist=[[],[],[],[],[]];
     var bs=document.querySelectorAll('button[data-k]');for(var i=0;i<bs.length;i++){var k=bs[i].dataset.k;bs[i].setAttribute('aria-pressed',String((cfg[k]?1:0)===+bs[i].dataset.v));}}
