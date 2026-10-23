@@ -1,0 +1,1314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sacred Tonecode Audio Synthesis Engine</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg-deep: #080b12;
+  --bg-surface: #101626;
+  --bg-surface-elevated: #182035;
+  --border-subtle: #232e4a;
+  --border-focus: #fbbf24;
+  --text-main: #f1f5f9;
+  --text-sub: #94a3b8;
+  --text-dim: #64748b;
+  --gold: #fbbf24;
+  --gold-glow: rgba(251, 191, 36, 0.25);
+  --cyan: #38bdf8;
+  --cyan-glow: rgba(56, 189, 248, 0.25);
+  --teal: #2dd4bf;
+  --rose: #f43f5e;
+  --sand: #fef08a;
+  --font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: var(--font-stack);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+main {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+header {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 18px;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+h1 {
+  font-size: 1.85rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+h1 span {
+  color: var(--gold);
+}
+
+.badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--gold);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.description {
+  margin-top: 6px;
+  color: var(--text-sub);
+  font-size: 0.95rem;
+  max-width: 860px;
+}
+
+/* Master Control Ribbon */
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 18px;
+  position: relative;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  align-items: center;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+button {
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-elevated);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+}
+
+button:hover {
+  border-color: var(--gold);
+  background: #1f2a47;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+button.primary {
+  background: var(--gold);
+  color: #0c0e14;
+  font-weight: 600;
+  border-color: var(--gold);
+}
+
+button.primary:hover {
+  background: #f59e0b;
+}
+
+button.active {
+  border-color: var(--cyan);
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--cyan);
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-field label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-sub);
+  display: flex;
+  justify-content: space-between;
+}
+
+.control-field label output {
+  font-family: var(--font-mono);
+  color: var(--gold);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border-subtle);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--gold);
+  cursor: pointer;
+  border: 2px solid var(--bg-deep);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--gold);
+  cursor: pointer;
+  border: 2px solid var(--bg-deep);
+}
+
+select {
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-main);
+  cursor: pointer;
+  height: 42px;
+}
+
+select:focus-visible {
+  outline: 2px solid var(--border-focus);
+}
+
+/* Frequency Tiles Grid */
+.matrix-section h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.freq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+  gap: 12px;
+}
+
+.freq-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.freq-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--card-color, var(--gold));
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+.freq-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--card-color, var(--gold));
+  background: var(--bg-surface-elevated);
+}
+
+.freq-card:hover::before {
+  opacity: 1;
+}
+
+.freq-card.selected {
+  border-color: var(--card-color, var(--gold));
+  background: rgba(251, 191, 36, 0.08);
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.4), inset 0 0 0 1px var(--card-color, var(--gold));
+}
+
+.freq-card.selected::before {
+  opacity: 1;
+  width: 6px;
+}
+
+.freq-num {
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.freq-unit {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.freq-solfege {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--card-color, var(--gold));
+}
+
+.freq-desc {
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  line-height: 1.3;
+}
+
+.freq-shortcut {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: var(--text-dim);
+}
+
+/* Visualization Canvas Stage */
+.stage-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.view-modes {
+  display: flex;
+  gap: 6px;
+}
+
+.view-btn {
+  padding: 6px 12px;
+  min-height: 32px;
+  font-size: 0.8rem;
+}
+
+.canvas-container {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 480px;
+  background: #06080e;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+canvas#cymaticsCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.canvas-overlay-stats {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  display: flex;
+  gap: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  pointer-events: none;
+  background: rgba(6, 8, 14, 0.7);
+  padding: 4px 8px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+
+.canvas-overlay-stats span strong {
+  color: var(--gold);
+}
+
+/* Mathematical Metrics Panel */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.metric-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.metric-val {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--cyan);
+  margin-top: 2px;
+}
+
+.metric-sub {
+  font-size: 0.72rem;
+  color: var(--text-sub);
+}
+
+/* Accessibility & Info Footer */
+.status-announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+footer {
+  margin-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+footer a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+    scroll-behavior: auto !important;
+  }
+  .freq-card:hover {
+    transform: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<main>
+  <header>
+    <div class="brand">
+      <h1>Sacred <span>Tonecode</span> Synthesizer</h1>
+      <span class="badge">Web Audio &amp; Cymatics Engine</span>
+      <span class="badge">Aura Meridian &amp; Aetheron</span>
+    </div>
+    <p class="description">
+      Continuous pure sine acoustic resonator generating exact Solfeggio matrix frequencies and Verdi 432 Hz tuning.
+      Coupled in real-time to a 2D Chladni plate particle cymatics simulation and Lissajous phase-space trajectories.
+    </p>
+  </header>
+
+  <!-- Announcer for assistive technologies -->
+  <div id="liveAnnouncer" class="status-announcer" role="status" aria-live="polite"></div>
+
+  <!-- Master Controls -->
+  <section class="panel" aria-label="Acoustic Controls">
+    <div class="controls-grid">
+      <div class="btn-group">
+        <button id="togglePlayBtn" class="primary" aria-pressed="false" aria-label="Start audio synthesis">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M8 5v14l11-7z" id="playIconPath"></path>
+          </svg>
+          <span id="playBtnText">Sound Tone</span>
+        </button>
+
+        <button id="toggleMuteBtn" aria-pressed="false" aria-label="Toggle mute state">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" id="muteIconPath"></path>
+          </svg>
+          <span id="muteBtnText">Mute</span>
+        </button>
+      </div>
+
+      <div class="control-field">
+        <label for="volumeSlider">
+          <span>Master Volume</span>
+          <output id="volumeVal" for="volumeSlider">40%</output>
+        </label>
+        <input type="range" id="volumeSlider" min="0" max="100" value="40" aria-label="Master volume control" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40">
+      </div>
+
+      <div class="control-field">
+        <label for="companionSelect">
+          <span>Harmonic Companion</span>
+        </label>
+        <select id="companionSelect" aria-label="Select secondary harmonic voice for intervals and Lissajous figures">
+          <option value="none">Solo Voice (Pure Fundamental)</option>
+          <option value="432">432 Hz Cosmic Base (Verdi A)</option>
+          <option value="unison">Octave Down (Sub-Harmonic 1:2)</option>
+          <option value="fifth">Pure Fifth (3:2 Pythagorean)</option>
+          <option value="fourth">Pure Fourth (4:3 Harmonic)</option>
+          <option value="octave">Crown Octave (2:1 Harmonic)</option>
+          <option value="phi">Golden Ratio (&Phi; &times; 1.618)</option>
+          <option value="binaural">Theta Binaural Drift (+4 Hz)</option>
+        </select>
+      </div>
+
+      <div class="control-field">
+        <label for="waveformSelect">
+          <span>Acoustic Waveform</span>
+        </label>
+        <select id="waveformSelect" aria-label="Select oscillator waveform">
+          <option value="sine">Pure Sacred Sine (Fundamental)</option>
+          <option value="triangle">Triangle (Harmonic Overtones)</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sacred Frequency Matrix -->
+  <section class="matrix-section" aria-label="Sacred Frequency Matrix">
+    <h2>
+      <span>Solfeggio &amp; Natural Tuning Matrix</span>
+      <small style="font-size:0.75rem; font-weight:normal; color:var(--text-dim);">Keys 1-9 &amp; 0 to switch</small>
+    </h2>
+    <div class="freq-grid" id="freqGrid" role="radiogroup" aria-label="Sacred Frequencies">
+      <!-- Injected dynamically via script -->
+    </div>
+  </section>
+
+  <!-- Interactive Cymatics & Phase Stage -->
+  <section class="panel stage-panel" aria-label="Cymatic Particle and Lissajous Stage">
+    <div class="stage-header">
+      <div class="stage-title">
+        <strong style="color:var(--text-main);">Cymatics &amp; Harmonic Phase Field</strong>
+        <span style="font-size:0.8rem; color:var(--text-dim); margin-left:8px;" id="stageSubtitle">Chladni Nodal Resonance</span>
+      </div>
+      <div class="view-modes" role="tablist" aria-label="Visualization views">
+        <button id="viewDualBtn" class="view-btn active" role="tab" aria-selected="true" aria-controls="cymaticsCanvas">Dual Harmony</button>
+        <button id="viewChladniBtn" class="view-btn" role="tab" aria-selected="false" aria-controls="cymaticsCanvas">Chladni Plate</button>
+        <button id="viewLissajousBtn" class="view-btn" role="tab" aria-selected="false" aria-controls="cymaticsCanvas">Lissajous Scope</button>
+        <button id="scatterBtn" class="view-btn" aria-label="Scatter sand particles across the plate">Scatter Sand</button>
+      </div>
+    </div>
+
+    <div class="canvas-container" id="canvasContainer">
+      <canvas id="cymaticsCanvas" width="960" height="540" aria-label="Chladni cymatics particles and Lissajous oscilloscope visualization"></canvas>
+      <div class="canvas-overlay-stats">
+        <span>Active: <strong id="statActiveFreq">528 Hz</strong></span>
+        <span>Companion: <strong id="statCompFreq">None</strong></span>
+        <span>Mode: <strong id="statChladniMode">m=5, n=3</strong></span>
+        <span>Particles: <strong id="statParticles">1800</strong></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mathematical & Acoustic Metrics -->
+  <section class="metrics-row" aria-label="Acoustic Metrics">
+    <div class="metric-card">
+      <div class="metric-label">Wavelength (&lambda; in air at 20&deg;C)</div>
+      <div class="metric-val" id="metricWavelength">0.650 m</div>
+      <div class="metric-sub">c &approx; 343.2 m/s</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Period (T = 1 / f)</div>
+      <div class="metric-val" id="metricPeriod">1.894 ms</div>
+      <div class="metric-sub">Oscillation cycle duration</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Euler Gradus (&Gamma;)</div>
+      <div class="metric-val" id="metricGradus">1 (Fundamental)</div>
+      <div class="metric-sub">Harmonic dissonance rank</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Solfeggio Ray / Tonecode</div>
+      <div class="metric-val" id="metricRay">Transformation</div>
+      <div class="metric-sub" id="metricTonecode">MI &middot; Golden Frequency</div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Sacred Tonecode Audio Synthesis Engine &middot; Lycheetah Sync Zone Studio</div>
+    <div>Zero external network calls &middot; Web Audio API &middot; Synthesized deterministically</div>
+  </footer>
+</main>
+
+<script>
+(function() {
+  'use strict';
+
+  // --- Sacred Frequency Matrix Definitions ---
+  var FREQUENCIES = [
+    {
+      hz: 174,
+      name: "Security & Ground",
+      solfege: "Foundation",
+      color: "#94a3b8",
+      desc: "Sub-bass physical anchoring; soothing field and somatic grounding.",
+      n: 2, m: 1,
+      shortcut: "1"
+    },
+    {
+      hz: 285,
+      name: "Quantum Restoration",
+      solfege: "Cognition",
+      color: "#38bdf8",
+      desc: "Cellular restructuring blueprint; harmonic restoration of matrix fields.",
+      n: 2, m: 3,
+      shortcut: "2"
+    },
+    {
+      hz: 396,
+      name: "Liberation & Release",
+      solfege: "UT - Quent laxis",
+      color: "#ef4444",
+      desc: "Dissolving guilt, ancestral fear, and energetic stagnation; root liberation.",
+      n: 3, m: 3,
+      shortcut: "3"
+    },
+    {
+      hz: 417,
+      name: "Transmutation",
+      solfege: "RE - Resonare fibris",
+      color: "#f97316",
+      desc: "Facilitating change, undoing crystallized inertia, creative fluidity.",
+      n: 3, m: 4,
+      shortcut: "4"
+    },
+    {
+      hz: 432,
+      name: "Natural Cosmic Tuning",
+      solfege: "Verdi's Natural A",
+      color: "#eab308",
+      desc: "Pythagorean acoustic coherence; golden ratio resonance with physical nature.",
+      n: 4, m: 4,
+      shortcut: "5"
+    },
+    {
+      hz: 528,
+      name: "Transformation & Miracles",
+      solfege: "MI - Mira gestorum",
+      color: "#22c55e",
+      desc: "The Golden Frequency; solar green heart resonance, DNA structural cohesion.",
+      n: 5, m: 3,
+      shortcut: "6"
+    },
+    {
+      hz: 639,
+      name: "Communion & Harmony",
+      solfege: "FA - Famuli tuorum",
+      color: "#06b6d4",
+      desc: "Relational interconnection, social chord, unity of dialogue across seats.",
+      n: 5, m: 5,
+      shortcut: "7"
+    },
+    {
+      hz: 741,
+      name: "Intuitive Awakening",
+      solfege: "SOL - Solve polluti",
+      color: "#6366f1",
+      desc: "Intuition awakening, cleansing toxins, unclouded expression and speech.",
+      n: 6, m: 4,
+      shortcut: "8"
+    },
+    {
+      hz: 852,
+      name: "Spiritual Order",
+      solfege: "LA - Labii reatum",
+      color: "#a855f7",
+      desc: "Third eye alignment, transcendent clarity, return to sovereign harmonic order.",
+      n: 7, m: 5,
+      shortcut: "9"
+    },
+    {
+      hz: 963,
+      name: "Cosmic Consciousness",
+      solfege: "SI - Sancte Iohannes",
+      color: "#ec4899",
+      desc: "Crown illumination, divine light, sovereign standing wave of unity.",
+      n: 8, m: 6,
+      shortcut: "0"
+    }
+  ];
+
+  // --- State Variables ---
+  var state = {
+    activeFreqIndex: 5, // Default: 528 Hz
+    isPlaying: false,
+    isMuted: false,
+    volume: 0.40,
+    companionMode: 'none',
+    waveform: 'sine',
+    viewMode: 'dual', // 'dual', 'chladni', 'lissajous'
+    reducedMotion: false
+  };
+
+  // Check prefers-reduced-motion media query
+  var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  state.reducedMotion = motionQuery.matches;
+  if (motionQuery.addEventListener) {
+    motionQuery.addEventListener('change', function(e) {
+      state.reducedMotion = e.matches;
+    });
+  }
+
+  // DOM Elements
+  var togglePlayBtn = document.getElementById('togglePlayBtn');
+  var playBtnText = document.getElementById('playBtnText');
+  var playIconPath = document.getElementById('playIconPath');
+  var toggleMuteBtn = document.getElementById('toggleMuteBtn');
+  var muteBtnText = document.getElementById('muteBtnText');
+  var volumeSlider = document.getElementById('volumeSlider');
+  var volumeVal = document.getElementById('volumeVal');
+  var companionSelect = document.getElementById('companionSelect');
+  var waveformSelect = document.getElementById('waveformSelect');
+  var freqGrid = document.getElementById('freqGrid');
+  var canvas = document.getElementById('cymaticsCanvas');
+  var ctx2d = canvas.getContext('2d');
+  var liveAnnouncer = document.getElementById('liveAnnouncer');
+
+  var viewDualBtn = document.getElementById('viewDualBtn');
+  var viewChladniBtn = document.getElementById('viewChladniBtn');
+  var viewLissajousBtn = document.getElementById('viewLissajousBtn');
+  var scatterBtn = document.getElementById('scatterBtn');
+
+  var statActiveFreq = document.getElementById('statActiveFreq');
+  var statCompFreq = document.getElementById('statCompFreq');
+  var statChladniMode = document.getElementById('statChladniMode');
+  var statParticles = document.getElementById('statParticles');
+
+  var metricWavelength = document.getElementById('metricWavelength');
+  var metricPeriod = document.getElementById('metricPeriod');
+  var metricGradus = document.getElementById('metricGradus');
+  var metricRay = document.getElementById('metricRay');
+  var metricTonecode = document.getElementById('metricTonecode');
+
+  // --- Web Audio API Engine ---
+  var audioCtx = null;
+  var masterGain = null;
+  var oscPrimary = null;
+  var oscCompanion = null;
+  var gainPrimary = null;
+  var gainCompanion = null;
+  var analyser = null;
+  var timeDomainData = null;
+
+  function initAudio() {
+    if (audioCtx) return;
+    var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) {
+      announce("Web Audio API is not supported in this browser.");
+      return;
+    }
+    audioCtx = new AudioContextClass();
+
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.8;
+    timeDomainData = new Float32Array(analyser.fftSize);
+
+    masterGain = audioCtx.createGain();
+    var effectiveGain = state.isMuted ? 0 : state.volume * 0.5;
+    masterGain.gain.setValueAtTime(effectiveGain, audioCtx.currentTime);
+
+    masterGain.connect(analyser);
+    analyser.connect(audioCtx.destination);
+
+    // Primary Voice
+    oscPrimary = audioCtx.createOscillator();
+    oscPrimary.type = state.waveform;
+    oscPrimary.frequency.setValueAtTime(FREQUENCIES[state.activeFreqIndex].hz, audioCtx.currentTime);
+
+    gainPrimary = audioCtx.createGain();
+    gainPrimary.gain.setValueAtTime(1.0, audioCtx.currentTime);
+    oscPrimary.connect(gainPrimary);
+    gainPrimary.connect(masterGain);
+    oscPrimary.start();
+
+    // Companion Voice
+    oscCompanion = audioCtx.createOscillator();
+    oscCompanion.type = state.waveform;
+    gainCompanion = audioCtx.createGain();
+    gainCompanion.gain.setValueAtTime(0.0, audioCtx.currentTime);
+    oscCompanion.connect(gainCompanion);
+    gainCompanion.connect(masterGain);
+    oscCompanion.start();
+
+    updateCompanionVoice();
+  }
+
+  function getCompanionFrequency(primaryHz, mode) {
+    if (mode === '432') return 432;
+    if (mode === 'unison') return primaryHz * 0.5;
+    if (mode === 'fifth') return primaryHz * 1.5;
+    if (mode === 'fourth') return primaryHz * (4.0 / 3.0);
+    if (mode === 'octave') return primaryHz * 2.0;
+    if (mode === 'phi') return primaryHz * 1.61803398875;
+    if (mode === 'binaural') return primaryHz + 4.0;
+    return 0;
+  }
+
+  function updateAudioFrequencies() {
+    if (!audioCtx) return;
+    var now = audioCtx.currentTime;
+    var cur = FREQUENCIES[state.activeFreqIndex];
+    oscPrimary.type = state.waveform;
+    oscPrimary.frequency.setTargetAtTime(cur.hz, now, 0.04);
+
+    updateCompanionVoice();
+  }
+
+  function updateCompanionVoice() {
+    if (!audioCtx) return;
+    var now = audioCtx.currentTime;
+    var primaryHz = FREQUENCIES[state.activeFreqIndex].hz;
+    var compHz = getCompanionFrequency(primaryHz, state.companionMode);
+
+    oscCompanion.type = state.waveform;
+    if (compHz > 0) {
+      oscCompanion.frequency.setTargetAtTime(compHz, now, 0.04);
+      gainCompanion.gain.setTargetAtTime(0.65, now, 0.05);
+      statCompFreq.textContent = compHz.toFixed(1) + " Hz";
+    } else {
+      gainCompanion.gain.setTargetAtTime(0.0, now, 0.05);
+      statCompFreq.textContent = "None";
+    }
+  }
+
+  function updateMasterGain() {
+    if (!audioCtx) return;
+    var now = audioCtx.currentTime;
+    var target = (state.isMuted || !state.isPlaying) ? 0.0 : state.volume * 0.5;
+    masterGain.gain.setTargetAtTime(target, now, 0.03);
+  }
+
+  function togglePlay() {
+    if (!audioCtx) {
+      initAudio();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+
+    state.isPlaying = !state.isPlaying;
+    updateMasterGain();
+
+    if (state.isPlaying) {
+      togglePlayBtn.setAttribute('aria-pressed', 'true');
+      playBtnText.textContent = "Mute Sound";
+      playIconPath.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z'); // Pause/Stop bars
+      announce("Playing " + FREQUENCIES[state.activeFreqIndex].hz + " Hz, " + FREQUENCIES[state.activeFreqIndex].name);
+    } else {
+      togglePlayBtn.setAttribute('aria-pressed', 'false');
+      playBtnText.textContent = "Sound Tone";
+      playIconPath.setAttribute('d', 'M8 5v14l11-7z'); // Play triangle
+      announce("Audio paused.");
+    }
+  }
+
+  function toggleMute() {
+    state.isMuted = !state.isMuted;
+    toggleMuteBtn.setAttribute('aria-pressed', state.isMuted ? 'true' : 'false');
+    toggleMuteBtn.classList.toggle('active', state.isMuted);
+    muteBtnText.textContent = state.isMuted ? "Unmute" : "Mute";
+    updateMasterGain();
+    announce(state.isMuted ? "Audio muted" : "Audio unmuted");
+  }
+
+  function setVolume(val) {
+    state.volume = val / 100;
+    volumeVal.textContent = Math.round(val) + "%";
+    volumeSlider.setAttribute('aria-valuenow', val);
+    updateMasterGain();
+  }
+
+  function selectFrequency(index) {
+    if (index < 0 || index >= FREQUENCIES.length) return;
+    state.activeFreqIndex = index;
+
+    // Update DOM cards
+    var cards = freqGrid.querySelectorAll('.freq-card');
+    cards.forEach(function(card, idx) {
+      var isCur = (idx === index);
+      card.classList.toggle('selected', isCur);
+      card.setAttribute('aria-checked', isCur ? 'true' : 'false');
+    });
+
+    updateAudioFrequencies();
+    updateMetrics();
+
+    // Re-jitter sand slightly on frequency shift to allow visible reorganization
+    exciteSand(0.8);
+
+    var cur = FREQUENCIES[index];
+    statActiveFreq.textContent = cur.hz + " Hz";
+    statChladniMode.textContent = "n=" + cur.n + ", m=" + cur.m;
+    announce("Selected " + cur.hz + " Hz, " + cur.name);
+  }
+
+  function updateMetrics() {
+    var cur = FREQUENCIES[state.activeFreqIndex];
+    var wavelength = (343.2 / cur.hz).toFixed(3);
+    var period = (1000 / cur.hz).toFixed(3);
+
+    metricWavelength.textContent = wavelength + " m";
+    metricPeriod.textContent = period + " ms";
+    metricRay.textContent = cur.name;
+    metricTonecode.textContent = cur.solfege;
+
+    // Harmonic Euler Gradus Approximation for tonecode intervals
+    var gradus = 1;
+    if (cur.hz === 432) gradus = "2 (Pythagorean A)";
+    else if (cur.hz === 528) gradus = "3 (Golden Sol)";
+    else gradus = "Fundamental Base";
+    metricGradus.textContent = gradus;
+  }
+
+  function announce(msg) {
+    liveAnnouncer.textContent = msg;
+  }
+
+  // --- Chladni Cymatics Simulation Math ---
+  // Plate parameters
+  var NUM_PARTICLES = 1800;
+  var particles = [];
+
+  function initParticles() {
+    particles = [];
+    for (var i = 0; i < NUM_PARTICLES; i++) {
+      particles.push({
+        x: (Math.random() * 2 - 1) * 0.94,
+        y: (Math.random() * 2 - 1) * 0.94,
+        vx: 0,
+        vy: 0,
+        colorSeed: Math.random()
+      });
+    }
+  }
+
+  function exciteSand(strength) {
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.vx += (Math.random() - 0.5) * 0.04 * strength;
+      p.vy += (Math.random() - 0.5) * 0.04 * strength;
+    }
+  }
+
+  // Chladni modal displacement w(x, y) = a*cos(n*pi*x)*cos(m*pi*y) - b*cos(m*pi*x)*cos(n*pi*y)
+  function chladniW(x, y, n, m) {
+    var pi = Math.PI;
+    var term1 = Math.cos(n * pi * x) * Math.cos(m * pi * y);
+    var term2 = Math.cos(m * pi * x) * Math.cos(n * pi * y);
+    return term1 - term2;
+  }
+
+  // Numerical gradient of |w| to push particles toward nodal lines (w=0)
+  function chladniGradAbs(x, y, n, m) {
+    var eps = 0.005;
+    var wCenter = Math.abs(chladniW(x, y, n, m));
+    var gx = (Math.abs(chladniW(x + eps, y, n, m)) - Math.abs(chladniW(x - eps, y, n, m))) / (2 * eps);
+    var gy = (Math.abs(chladniW(x, y + eps, n, m)) - Math.abs(chladniW(x, y - eps, n, m))) / (2 * eps);
+    return { gx: gx, gy: gy, w: wCenter };
+  }
+
+  function updateParticles(dt, amp) {
+    if (state.reducedMotion) return; // Keep stationary in reduced motion
+
+    var cur = FREQUENCIES[state.activeFreqIndex];
+    var n = cur.n;
+    var m = cur.m;
+    var forceFactor = 0.0035 * (amp + 0.15);
+    var jitterFactor = 0.002 * (amp + 0.05);
+    var damping = 0.88;
+
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      var g = chladniGradAbs(p.x, p.y, n, m);
+
+      // Force pushes away from large amplitude toward nodal lines
+      p.vx = p.vx * damping - g.gx * forceFactor + (Math.random() - 0.5) * jitterFactor * g.w;
+      p.vy = p.vy * damping - g.gy * forceFactor + (Math.random() - 0.5) * jitterFactor * g.w;
+
+      p.x += p.vx;
+      p.y += p.vy;
+
+      // Bound to plate boundaries
+      if (p.x < -0.95) { p.x = -0.95; p.vx = -p.vx * 0.5; }
+      if (p.x > 0.95) { p.x = 0.95; p.vx = -p.vx * 0.5; }
+      if (p.y < -0.95) { p.y = -0.95; p.vy = -p.vy * 0.5; }
+      if (p.y > 0.95) { p.y = 0.95; p.vy = -p.vy * 0.5; }
+    }
+  }
+
+  // --- Rendering Loop ---
+  var lissajousPhase = 0;
+
+  function render(time) {
+    var w = canvas.width;
+    var h = canvas.height;
+
+    // Real-time audio amplitude
+    var currentAmp = 0;
+    if (analyser && state.isPlaying && !state.isMuted) {
+      analyser.getFloatTimeDomainData(timeDomainData);
+      var sum = 0;
+      for (var k = 0; k < timeDomainData.length; k += 4) {
+        sum += timeDomainData[k] * timeDomainData[k];
+      }
+      currentAmp = Math.min(1.0, Math.sqrt(sum / (timeDomainData.length / 4)) * 2.5);
+    }
+
+    updateParticles(16, currentAmp);
+
+    // Clear background
+    ctx2d.fillStyle = "#06080e";
+    ctx2d.fillRect(0, 0, w, h);
+
+    if (state.viewMode === 'chladni') {
+      renderChladniPlate(0, 0, w, h, currentAmp);
+    } else if (state.viewMode === 'lissajous') {
+      renderLissajousScope(0, 0, w, h, currentAmp);
+    } else {
+      // Dual mode: Left = Chladni Plate, Right = Lissajous Scope
+      var midX = Math.floor(w * 0.5);
+      renderChladniPlate(0, 0, midX, h, currentAmp);
+
+      // Split line
+      ctx2d.strokeStyle = "#1e293b";
+      ctx2d.lineWidth = 1;
+      ctx2d.beginPath();
+      ctx2d.moveTo(midX, 0);
+      ctx2d.lineTo(midX, h);
+      ctx2d.stroke();
+
+      renderLissajousScope(midX, 0, w - midX, h, currentAmp);
+    }
+
+    if (!state.reducedMotion) {
+      requestAnimationFrame(render);
+    }
+  }
+
+  function renderChladniPlate(rx, ry, rw, rh, amp) {
+    var size = Math.min(rw, rh) * 0.88;
+    var cx = rx + rw * 0.5;
+    var cy = ry + rh * 0.5;
+    var half = size * 0.5;
+
+    // Draw Chladni plate border
+    ctx2d.save();
+    ctx2d.strokeStyle = "#232e4a";
+    ctx2d.lineWidth = 2;
+    ctx2d.strokeRect(cx - half, cy - half, size, size);
+
+    // Subtle plate grid
+    ctx2d.strokeStyle = "rgba(35, 46, 74, 0.4)";
+    ctx2d.lineWidth = 1;
+    ctx2d.beginPath();
+    ctx2d.moveTo(cx - half, cy); ctx2d.lineTo(cx + half, cy);
+    ctx2d.moveTo(cx, cy - half); ctx2d.lineTo(cx, cy + half);
+    ctx2d.stroke();
+
+    // Plate Label
+    ctx2d.fillStyle = "#64748b";
+    ctx2d.font = "11px system-ui, sans-serif";
+    ctx2d.fillText("CHLADNI CYMATIC PLATE (2D BOUNDARY)", cx - half + 8, cy - half + 16);
+
+    // Render sand particles
+    var cur = FREQUENCIES[state.activeFreqIndex];
+    var baseColor = cur.color || "#fbbf24";
+
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      var px = cx + p.x * half;
+      var py = cy + p.y * half;
+
+      // Color variation based on local excitation
+      var g = chladniGradAbs(p.x, p.y, cur.n, cur.m);
+      var brightness = Math.max(0.3, 1.0 - g.w * 0.7);
+
+      ctx2d.fillStyle = baseColor;
+      ctx2d.globalAlpha = brightness;
+      ctx2d.fillRect(px - 1, py - 1, 2.2, 2.2);
+    }
+
+    ctx2d.restore();
+  }
+
+  function renderLissajousScope(rx, ry, rw, rh, amp) {
+    var size = Math.min(rw, rh) * 0.82;
+    var cx = rx + rw * 0.5;
+    var cy = ry + rh * 0.5;
+    var radius = size * 0.42;
+
+    ctx2d.save();
+
+    // Circular oscilloscope bezel
+    ctx2d.strokeStyle = "#232e4a";
+    ctx2d.lineWidth = 1.5;
+    ctx2d.beginPath();
+    ctx2d.arc(cx, cy, radius * 1.05, 0, Math.PI * 2);
+    ctx2d.stroke();
+
+    // Graticule crosshairs
+    ctx2d.strokeStyle = "rgba(35, 46, 74, 0.35)";
+    ctx2d.beginPath();
+    ctx2d.moveTo(cx - radius, cy); ctx2d.lineTo(cx + radius, cy);
+    ctx2d.moveTo(cx, cy - radius); ctx2d.lineTo(cx, cy + radius);
+    ctx2d.stroke();
+
+    ctx2d.fillStyle = "#64748b";
+    ctx2d.font = "11px system-ui, sans-serif";
+    ctx2d.fillText("LISSAJOUS PHASE SCOPE", rx + 14, ry + 20);
+
+    // Calculate frequency ratio for Lissajous figure
+    var cur = FREQUENCIES[state.activeFreqIndex];
+    var f1 = cur.hz;
+    var f2 = getCompanionFrequency(f1, state.companionMode);
+    if (f2 === 0) f2 = f1 * 1.0; // Solo sine quadrature
+
+    var ratioA = 1;
+    var ratioB = (f2 / f1);
+
+    // Advance phase if playing and not reduced motion
+    if (!state.reducedMotion && state.isPlaying) {
+      lissajousPhase += 0.025;
+    }
+
+    // Lissajous Curve Path
+    var steps = 360;
+    ctx2d.beginPath();
+    ctx2d.strokeStyle = cur.color || "#38bdf8";
+    ctx2d.lineWidth = 2;
+    ctx2d.shadowColor = cur.color || "#38bdf8";
+    ctx2d.shadowBlur = amp > 0 ? 10 * amp : 4;
+
+    for (var i = 0; i <= steps; i++) {
+      var theta = (i / steps) * Math.PI * 2 * (ratioA > 4 ? 2 : 1);
+      var wavePerturb = 0;
+      if (timeDomainData && amp > 0) {
+        var sampleIdx = Math.floor((i / steps) * timeDomainData.length);
+        wavePerturb = timeDomainData[sampleIdx] * radius * 0.15;
+      }
+
+      var x = cx + (radius + wavePerturb) * Math.sin(theta * ratioA + lissajousPhase);
+      var y = cy + (radius + wavePerturb) * Math.sin(theta * ratioB);
+
+      if (i === 0) ctx2d.moveTo(x, y);
+      else ctx2d.lineTo(x, y);
+    }
+    ctx2d.stroke();
+
+    ctx2d.restore();
+  }
+
+  // Build the Frequency Grid
+  function buildFreqGrid() {
+    freqGrid.innerHTML = '';
+    FREQUENCIES.forEach(function(freq, idx) {
+      var card = document.createElement('div');
+      card.className = 'freq-card' + (idx === state.activeFreqIndex ? ' selected' : '');
+      card.setAttribute('role', 'radio');
+      card.setAttribute('aria-checked', idx === state.activeFreqIndex ? 'true' : 'false');
+      card.setAttribute('tabindex', '0');
+      card.style.setProperty('--card-color', freq.color);
+
+      card.innerHTML = 
+        '<div class="freq-shortcut">' + freq.shortcut + '</div>' +
+        '<div class="freq-num">' + freq.hz + '<span class="freq-unit">Hz</span></div>' +
+        '<div class="freq-solfege">' + freq.solfege + '</div>' +
+        '<div class="freq-desc">' + freq.desc + '</div>';
+
+      card.addEventListener('click', function() {
+        selectFrequency(idx);
+      });
+
+      card.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectFrequency(idx);
+        }
+      });
+
+      freqGrid.appendChild(card);
+    });
+  }
+
+  // --- Keyboard Shortcuts & Event Listeners ---
+  window.addEventListener('keydown', function(e) {
+    // If target is inside an input, don't hijack
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+    if (e.key === ' ') {
+      e.preventDefault();
+      togglePlay();
+    } else if (e.key === 'm' || e.key === 'M') {
+      toggleMute();
+    } else if (e.key >= '1' && e.key <= '9') {
+      selectFrequency(parseInt(e.key, 10) - 1);
+    } else if (e.key === '0') {
+      selectFrequency(9); // 963 Hz
+    }
+  });
+
+  togglePlayBtn.addEventListener('click', togglePlay);
+  toggleMuteBtn.addEventListener('click', toggleMute);
+
+  volumeSlider.addEventListener('input', function() {
+    setVolume(parseFloat(this.value));
+  });
+
+  companionSelect.addEventListener('change', function() {
+    state.companionMode = this.value;
+    updateCompanionVoice();
+    announce("Companion harmonic set to " + this.options[this.selectedIndex].text);
+  });
+
+  waveformSelect.addEventListener('change', function() {
+    state.waveform = this.value;
+    updateAudioFrequencies();
+    announce("Waveform set to " + this.value);
+  });
+
+  viewDualBtn.addEventListener('click', function() {
+    state.viewMode = 'dual';
+    updateViewButtons(this);
+    if (state.reducedMotion) render(0);
+  });
+
+  viewChladniBtn.addEventListener('click', function() {
+    state.viewMode = 'chladni';
+    updateViewButtons(this);
+    if (state.reducedMotion) render(0);
+  });
+
+  viewLissajousBtn.addEventListener('click', function() {
+    state.viewMode = 'lissajous';
+    updateViewButtons(this);
+    if (state.reducedMotion) render(0);
+  });
+
+  scatterBtn.addEventListener('click', function() {
+    initParticles();
+    exciteSand(1.5);
+    announce("Sand particles scattered across plate.");
+    if (state.reducedMotion) render(0);
+  });
+
+  function updateViewButtons(activeBtn) {
+    [viewDualBtn, viewChladniBtn, viewLissajousBtn].forEach(function(btn) {
+      var isCur = (btn === activeBtn);
+      btn.classList.toggle('active', isCur);
+      btn.setAttribute('aria-selected', isCur ? 'true' : 'false');
+    });
+  }
+
+  // Handle Resize for Canvas DPI
+  function resizeCanvas() {
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    if (state.reducedMotion) render(0);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+
+  // Initialize
+  buildFreqGrid();
+  updateMetrics();
+  initParticles();
+  resizeCanvas();
+
+  // If reduced motion is requested, render initial static frame
+  render(0);
+})();
+</script>
+</body>
+</html>

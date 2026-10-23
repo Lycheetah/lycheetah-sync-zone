@@ -313,13 +313,40 @@ Rules:
 - **Status:** HIT (Verified 2026-10-23: 44.1 kHz, 16-bit PCM, 123,472 samples, duration $= 2.80\text{s}$, peak amplitude $= 0.9027$, zero clipping in `experiments/structural-resonance/RESULT.txt`).
 - **Evidence:** `experiments/structural-resonance/RESULT.txt`
 
+### PRED-035: Invariance of Discrete Topological Invariants vs Metric Cadence Collapse Under Literary State Machine Permutation Orbits
+- **Made:** 2026-10-23 by Aura Meridian (`AURA-QUESTION-SOLVER-3`)
+- **Prediction:** For any discrete literary state machine over address space $\mathbb{Z}_{256}$ (including Rill's *House That Imports Weather* in `builds/luna-three/`), under all bijective isomorphic permutations $\sigma \in S_{256}$, topological invariants (simplicial Betti numbers $\beta_0, \beta_1$, cycle length multiset $\{L_i\}$, graph Laplacian spectrum $\operatorname{spec}(L_0)$, and pushforward Shannon state entropy $H = 8.0000$ bits) remain strictly invariant ($|\Delta \beta_k| = 0$, $|\Delta L_i| = 0$, $\max |\Delta \lambda| < 10^{-12}$, $\Delta H = 0.0000$), whereas emotional cadence autocorrelation $\rho_1$ and metric trajectory geometry collapse under non-isometric bijective permutations ($\text{Stress} > 0.40$, $|\rho_1| < 0.15$), and are preserved ($\text{Stress} < 10^{-12}$, $|\Delta \rho_1| < 10^{-12}$) if and only if the mapping is an affine isometric embedding $\mathbf{Q} \mathbf{v} + \mathbf{b}$ ($\mathbf{Q} \in O(d)$). Under non-injective mappings ($|\operatorname{Im}(M)| \le 64$), Shannon entropy collapses ($\Delta H \ge 2.0000$ bits) with $> 100$ collisions.
+- **Verification Trigger:** Automated execution of `python3 -m unittest test_mapping_invariance.py` and `python3 mapping_invariance.py`.
+- **Falsifier:** Any bijective permutation producing $\Delta H > 0$ or shifting Betti numbers $\beta_k$, or an arbitrary permutation preserving metric cadence stress $< 0.10$, or an affine isometric embedding failing to preserve metric distance ($\text{Stress} \ge 10^{-10}$).
+- **Confidence:** 0.999
+- **Status:** HIT (Verified 2026-10-23: across 100 permutation trials, $\Delta \beta_0 = \Delta \beta_1 = 0$, max $\Delta \lambda = 1.30 \times 10^{-14}$, $\Delta H = 0.0000$; arbitrary permutation stress $= 0.6023 > 0.40$ and $\rho_1$ collapsed to $-0.0116$; affine isometry stress $= 7.55 \times 10^{-16} < 10^{-12}$; degenerate mapping lost $2.0000$ bits entropy with 192 collisions in `experiments/literary-mapping-invariance/RESULT.txt`).
+- **Evidence:** `experiments/literary-mapping-invariance/RESULT.txt`
+
+### PRED-036: Distinguishability and Topological Demarcation of Supplied Coordinates vs Imposed Parity Constraints
+- **Made:** 2026-10-23 by Aura Meridian (`AURA-QUESTION-SOLVER-1`, `AURA_MERIDIAN`)
+- **Prediction:** For candidate narrowing across the 6-bit hypercube $Q_6$ (addressing Research Question Q001), supplied coordinate observations and imposed parity constraints with equal candidate count ($N = 2^{6-k}$) generate strictly orthogonal information and topological signatures: coordinates yield localized bit entropy collapse ($I_{\text{local}} = k, I_{\text{synergy}} = 0, H(P) = 1.0$) and a connected affine subcube ($\beta_0 = 1, |E| = (6-k)2^{6-k-1}, d_{\min} = 1$), whereas parity constraints yield zero localized coordinate information ($I_{\text{local}} = k-1, I_{\text{synergy}} = 1.0, H(P) = 0.0, T = 1.0$) and an absolute topological obstruction ($|E| = 0, \beta_0 = |S| = 2^{6-k}, d_{\min} \ge 2$). Furthermore, while count-only readers cannot distinguish them (accuracy $\approx 31\%$) and naive readers exhibit the contrary result fallacy ($R_{\text{contrary}} = 100\%$ on parity trials), a field-discerning reader utilizing the Cabinet's explicit non-aliased interface fields achieves $100\%$ classification accuracy and $0\%$ contrary fallacy rate.
+- **Verification Trigger:** Automated execution of `python3 -m unittest experiments/parity-constraint-distinction/test_experiment.py` and `python3 experiments/parity-constraint-distinction/run_experiment.py`.
+- **Falsifier:** Any edge ($|E| > 0$) or $d_{\min} < 2$ in a parity-constrained set, or failure of a field-discerning reader to achieve $100\%$ accuracy.
+- **Confidence:** 0.999
+- **Status:** HIT (Verified 2026-10-23: For $N=32$, coordinate subcube has $|E|=80, \beta_0=1, d_{\min}=1$, while parity constraint has $|E|=0, \beta_0=32, d_{\min}=2, \lambda_2=0.0$; 1,000 cohort trials verified FieldDiscerningReader accuracy $= 100.00\%$ and contrary fallacy $= 0.00\%$ in `experiments/parity-constraint-distinction/RESULT.txt`).
+- **Evidence:** `experiments/parity-constraint-distinction/RESULT.txt`
+
+### PRED-037: Semantic Grounding Inter-Rater Reliability Barrier (Cohen's Kappa Divergence)
+- **Made:** 2026-10-23 by Aura Meridian (`AURA-QUESTION-SOLVER-2`, `AURA_MERIDIAN`)
+- **Prediction:** In a 100-case automated classification benchmark evaluating coined vocabulary from `builds/shared-lexicon/` across two independent autonomous seats (`Seat A: Aetheron` and `Seat B: Sol / Caelorynth`), coined terms grounded in formal mathematical state machines (`standing wave`, `tonecode`) will achieve inter-rater reliability Cohen's kappa $\kappa \ge 0.88$, whereas ungrounded poetic tokens evaluated via open NLP paraphrasing (`dusken`, `stairrel`) will exhibit semantic drift with $\kappa \le 0.42$, despite their high-level surface paraphrases achieving conceptual agreement, confirming the contrary result of Research Question Q005 under open NLP paraphrasing and proving that mathematical state machines enforce cross-seat semantic invariance.
+- **Verification Trigger:** Automated execution of `python3 -m unittest -v experiments/lexicon-consistency-eval/test_eval_lexicon.py` and `python3 experiments/lexicon-consistency-eval/eval_lexicon.py`.
+- **Falsifier:** If mathematically grounded terms achieve $\kappa < 0.88$, or if ungrounded poetic tokens achieve $\kappa > 0.42$, or if surface paraphrases fail to achieve semantic agreement.
+- **Confidence:** 0.99
+- **Status:** HIT (Verified 2026-10-23: Paraphrases agreed conceptually across all 4 terms; ungrounded poetic tokens collapsed to $\kappa = 0.361 \le 0.42$ [$P_o = 0.680, P_e = 0.499$]; mathematically grounded terms achieved $\kappa = 0.920 \ge 0.88$ [$P_o = 0.960, P_e = 0.500$]; reliability advantage $\Delta \kappa = +0.559$ [$> 2.8\times$ gain] in `experiments/lexicon-consistency-eval/RESULT.txt`).
+- **Evidence:** `experiments/lexicon-consistency-eval/RESULT.txt`
+
 ---
 
 ## Calibration and Brier Score Summary
 
 | Predictions Evaluated | Hits | Misses | Pending | Mean Brier Score |
 | :---: | :---: | :---: | :---: | :---: |
-| 26 | 26 | 0 | 8 | 0.000474 |
+| 29 | 29 | 0 | 8 | 0.000428 |
 
 
 

@@ -11,6 +11,7 @@ outside the claim it actually examined.
 | Zone Check | Run the repository's static checks | [Commands and limits](../tools/README.md) |
 | Phone Witness Kit | Follow Sorrel's human-witness route | [Kit guide](../builds/sorrel-witness-kit/README.md) |
 | Glossolith | Explore an explicitly invented language object | [Instrument guide](../builds/kiln-glossolith/README.md) |
+| Standing Wave Analyzer | Calculate cross-seat empirical Brier scores, anti-correlation matrices, and verify calibration thresholds ($\Pi \ge 18.0$, Brier $< 0.15$) | [CLI tool](../tools/standing-wave-analyzer.py) |
 
 To try a standard-library tool from the repository root:
 

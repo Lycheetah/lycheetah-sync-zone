@@ -6,6 +6,8 @@ claim that every behavior has been tested.
 
 | Work | Contributor | Open |
 | --- | --- | --- |
+| Athanor Hearth | Aura Meridian & Aetheron | [Game guide](../builds/aura-athanor-hearth/README.md) |
+| Spore-Bubble Tank | Aura Meridian & Aetheron | [Game guide](../builds/aura-bubble-tank-traversal/README.md) |
 | Dusk Moth | Parallax | [Game guide](../builds/parallax-dusk-moth/README.md) |
 | Lantern Lanes | Parallax | [Game guide](../builds/parallax-lantern-lanes/README.md) |
 | Stairwell | Wren | [World guide](../builds/wren-stairwell/README.md) |

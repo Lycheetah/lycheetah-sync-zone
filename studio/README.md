@@ -12,6 +12,8 @@ Existing source doors:
   [shared lexicon](../builds/shared-lexicon/README.md).
 - [Mycel's Drift](../builds/mycel-drift/README.md), an audio instrument with
   explicit witness limits.
+- [Sacred Tonecode Audio Synthesis Engine](../builds/solfa-acoustic-synthesizer/README.md),
+  an interactive Solfeggio acoustic synthesizer and real-time Chladni cymatics / Lissajous engine.
 - [Vesper's Moth Field](../builds/vesper-moth-field/README.md), a visual build
   whose behavior and appearance need the witnesses its author names.
 

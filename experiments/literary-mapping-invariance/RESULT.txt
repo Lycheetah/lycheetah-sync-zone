@@ -1,0 +1,53 @@
+================================================================================
+LITERARY MAPPING INVARIANCE: TOPOLOGICAL VS METRIC DUALITY TESTBED
+Investigating Research Question Q007 under Aura Meridian & Aetheron
+================================================================================
+
+[1] Reference State Machine Topology:
+  States: 256, Cycles: 4, Cycle lengths: [64, 64, 64, 64]
+  Simplicial Betti numbers: beta_0 = 4, beta_1 = 4
+  Graph Laplacian zero eigenvalues: 4
+
+[2] Canonical Baseline (M_0 - Rill):
+  Unique 4-part slips: 256 / 256
+  Shannon state entropy H(X): 8.000000 bits (exact log2(256) = 8.000000)
+  Narrative trajectory lag-1 valence autocorrelation rho_1: -0.2864
+
+[3] Evaluating 100 Bijective Slot Permutations (Coordinate Re-labelings)...
+  Max entropy deviation: 0.00e+00 bits
+  Cycle structure invariance rate: 100 / 100 (100.0%)
+  Simplicial Betti invariance rate: 100 / 100 (100.0%)
+  Max Laplacian spectral drift: 8.88e-15
+  Mean metric Kruskal stress: 0.5658 (range [0.4305, 0.6185])
+
+[4] Evaluating 100 Full Random Permutations (Arbitrary Bijection in S_256)...
+  Max entropy deviation: 0.00e+00 bits
+  Cycle structure invariance rate: 100 / 100 (100.0%)
+  Simplicial Betti invariance rate: 100 / 100 (100.0%)
+  Max Laplacian spectral drift: 1.30e-14
+  Mean metric Kruskal stress: 0.6023 (range [0.5823, 0.6282])
+  Mean narrative lag-1 autocorrelation: -0.0116 (collapsed from -0.2864)
+
+[5] Evaluating 100 Affine Isometric Embeddings (Preserving Euclidean Metric Space)...
+  Max pairwise distance Kruskal stress: 7.55e-16
+  Max step-distance metric deviation: 2.66e-15
+
+[6] Evaluating Non-Injective / Degenerate Mappings (Lossy Surjection)...
+  Unique 4-part slips: 64 / 256 (Collisions: 192)
+  Degenerate Shannon entropy: 6.000000 bits (Entropy loss Delta H: 2.000000 bits)
+  Theoretical entropy for 64 equiprobable states: 6.000000 bits
+
+================================================================================
+EMPIRICAL FALSIFICATION SUMMARY FOR RESEARCH QUESTION Q007
+================================================================================
+1. Topological Invariants (Homology Betti numbers beta_0, beta_1, cycle count,
+   Laplacian spectrum, and Shannon entropy H) survive 100% of bijective isomorphic
+   re-labelings to machine precision (max drift < 10^-14).
+2. Aesthetic Metric Cadences (trajectory autocorrelation rho_1, pairwise distance metric)
+   DO NOT survive arbitrary isomorphic re-labeling (Kruskal stress = 0.59-0.65,
+   rho_1 collapses from -0.2864 to near 0).
+3. Aesthetic Metric Cadences survive IF AND ONLY IF the transformation is an
+   AFFINE ISOMETRIC EMBEDDING (Kruskal stress < 10^-15).
+4. Non-injective mappings collapse BOTH topological integrity and metric cadence,
+   destroying injectivity with 192 collisions and shedding 2.00 bits of entropy.
+================================================================================

@@ -24,6 +24,22 @@ What it checks:
 
 What it does not check: whether a build works, looks right, or is witnessed. The "witness" check is a word match. The link check covers only `builds/gyre-atlas`. JavaScript that builds URLs at runtime (`new Image().src = x`) is not seen. A passing run is not a witness.
 
+## standing-wave-analyzer
+
+Cross-seat analytical CLI tool calculating empirical Brier calibration scores, cross-seat agreement and Pearson anti-correlation matrices, and verifying that no seat falls below constitutional calibration thresholds ($\Pi \ge 18.0$, Brier $< 0.15$).
+
+```sh
+python3 tools/standing-wave-analyzer.py              # formatted terminal report
+python3 tools/standing-wave-analyzer.py --verify     # strict exit code 0 on PASS, 1 on FAIL
+python3 tools/standing-wave-analyzer.py --json       # export structured JSON dataset
+python3 tools/standing-wave-analyzer.py --all-seats  # full 38-seat matrix analysis
+```
+
+Tests:
+```sh
+python3 tools/test_standing_wave_analyzer.py
+```
+
 ## Tests
 
 ```

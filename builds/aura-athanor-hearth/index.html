@@ -1,0 +1,1747 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Athanor Hearth &amp; Alchemical Crucible</title>
+  <style>
+    :root {
+      --bg-dark: #0a0b10;
+      --panel-bg: rgba(18, 20, 32, 0.92);
+      --panel-border: #2a2f45;
+      --gold: #f4c466;
+      --gold-glow: rgba(244, 196, 102, 0.35);
+      --cyan: #4df0e0;
+      --cyan-glow: rgba(77, 240, 224, 0.35);
+      --crimson: #ff4766;
+      --crimson-glow: rgba(255, 71, 102, 0.4);
+      --amber: #f8963e;
+      --amethyst: #c06cff;
+      --text-main: #e2e8f0;
+      --text-dim: #94a3b8;
+      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 20%, rgba(35, 25, 45, 0.6) 0%, transparent 60%),
+        radial-gradient(circle at 50% 85%, rgba(40, 20, 15, 0.5) 0%, transparent 70%);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 12px;
+      overflow-x: hidden;
+    }
+
+    header {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 10px 16px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .title-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--gold);
+      text-shadow: 0 0 12px var(--gold-glow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subtitle {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button {
+      background: #1e2235;
+      color: var(--text-main);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    button:hover:not(:disabled) {
+      background: #2a3048;
+      border-color: var(--gold);
+      color: #ffffff;
+      box-shadow: 0 0 8px var(--gold-glow);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-gold {
+      background: #2d2415;
+      border-color: #8c6827;
+      color: var(--gold);
+    }
+    .btn-gold:hover:not(:disabled) {
+      background: #42351e;
+      border-color: var(--gold);
+    }
+
+    .btn-crimson {
+      background: #33151c;
+      border-color: #8c2738;
+      color: #ff859a;
+    }
+    .btn-crimson:hover:not(:disabled) {
+      background: #4a1f29;
+      border-color: var(--crimson);
+      box-shadow: 0 0 8px var(--crimson-glow);
+    }
+
+    .btn-cyan {
+      background: #112a2f;
+      border-color: #246f7c;
+      color: var(--cyan);
+    }
+    .btn-cyan:hover:not(:disabled) {
+      background: #183e46;
+      border-color: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    main {
+      width: 100%;
+      max-width: 960px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    /* HUD Bar */
+    .hud-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .hud-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .hud-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+    }
+
+    .hud-value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .meter-track {
+      width: 100%;
+      height: 8px;
+      background: #151824;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 3px;
+      transition: width 0.1s linear, background-color 0.2s ease;
+    }
+
+    /* Stage Banner */
+    .stage-banner {
+      background: linear-gradient(90deg, rgba(20, 22, 35, 0.95), rgba(30, 25, 45, 0.95), rgba(20, 22, 35, 0.95));
+      border: 1px solid #3c3455;
+      border-radius: 8px;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .stage-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .stage-badge {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(244, 196, 102, 0.15);
+      border: 1px solid rgba(244, 196, 102, 0.4);
+      color: var(--gold);
+      letter-spacing: 0.05em;
+    }
+
+    .stage-target {
+      font-size: 0.82rem;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Canvas Frame */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      background: #06070a;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8), 0 8px 30px rgba(0, 0, 0, 0.6);
+      touch-action: none;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .canvas-overlay-alert {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 17, 26, 0.88);
+      border: 1px solid var(--crimson);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #ff99ab;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      box-shadow: 0 0 15px var(--crimson-glow);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .canvas-overlay-alert.visible {
+      opacity: 1;
+    }
+
+    /* Modal / End State Overlay */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 10, 16, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #141724;
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      padding: 24px 28px;
+      max-width: 480px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 30px var(--gold-glow);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-card h2 {
+      color: var(--gold);
+      font-size: 1.4rem;
+    }
+
+    .modal-card p {
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    /* Controls Panel */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .control-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .control-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .control-value {
+      font-size: 0.85rem;
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 8px;
+      background: #1a1e2d;
+      border-radius: 4px;
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 8px var(--gold-glow);
+      cursor: pointer;
+      border: 2px solid #0a0b10;
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 8px var(--gold-glow);
+      cursor: pointer;
+      border: 2px solid #0a0b10;
+      transition: transform 0.1s ease;
+    }
+
+    .step-btn {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .control-desc {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    /* Actions Panel */
+    .actions-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .action-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .key-hint {
+      font-size: 0.68rem;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #282f48;
+      color: #cbd5e1;
+      font-family: monospace;
+      margin-left: 4px;
+    }
+
+    /* Presets for Resonance */
+    .preset-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .preset-btn {
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      background: #141724;
+      border-color: #2a3148;
+    }
+
+    .preset-btn.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(244, 196, 102, 0.12);
+    }
+
+    /* Info Drawer */
+    details.info-drawer {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+
+    details.info-drawer summary {
+      color: var(--gold);
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    details.info-drawer summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.info-drawer[open] summary {
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 6px;
+    }
+
+    details.info-drawer p {
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    details.info-drawer ul {
+      margin-left: 20px;
+      margin-bottom: 8px;
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+      .canvas-container {
+        box-shadow: none;
+      }
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 600px) {
+      body {
+        padding: 6px;
+      }
+      .canvas-container {
+        height: 280px;
+      }
+      h1 {
+        font-size: 1.05rem;
+      }
+      .hud-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title-group">
+      <h1><span>&#9883;</span> The Athanor Hearth</h1>
+      <span class="subtitle">Alchemical Crucible &amp; Standing Wave Forge</span>
+    </div>
+    <div class="top-actions">
+      <button id="btn-audio" type="button" class="btn-cyan" aria-label="Toggle Audio">
+        <span id="audio-icon">&#128263;</span>
+        <span id="audio-text">Audio: Off</span>
+        <span class="key-hint">M</span>
+      </button>
+      <button id="btn-restart" type="button" aria-label="Restart Forge">
+        <span>&#8634;</span> Reignite <span class="key-hint">R</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HUD row -->
+    <div class="hud-grid">
+      <!-- Temperature Gauge -->
+      <div class="hud-card">
+        <div class="hud-label">
+          <span>Crucible Temp</span>
+          <span id="temp-status">Equilibrium</span>
+        </div>
+        <div class="hud-value" id="temp-display">650 K</div>
+        <div class="meter-track" title="Thermal containment zone: 550K-750K ideal">
+          <div class="meter-fill" id="temp-meter" style="width: 50%; background: #4df0e0;"></div>
+        </div>
+      </div>
+
+      <!-- Standing Wave Coherence -->
+      <div class="hud-card">
+        <div class="hud-label">
+          <span>Wave Coherence</span>
+          <span id="coherence-status">Locking</span>
+        </div>
+        <div class="hud-value" id="coherence-display">0%</div>
+        <div class="meter-track">
+          <div class="meter-fill" id="coherence-meter" style="width: 0%; background: #f4c466;"></div>
+        </div>
+      </div>
+
+      <!-- Integrity Stability -->
+      <div class="hud-card">
+        <div class="hud-label">
+          <span>Hearth Integrity</span>
+          <span id="stability-status">Nominal</span>
+        </div>
+        <div class="hud-value" id="stability-display">100%</div>
+        <div class="meter-track">
+          <div class="meter-fill" id="stability-meter" style="width: 100%; background: #38bdf8;"></div>
+        </div>
+      </div>
+
+      <!-- Transmutation Progress -->
+      <div class="hud-card">
+        <div class="hud-label">
+          <span>Great Work Progress</span>
+          <span id="stage-count">Stage 1/5</span>
+        </div>
+        <div class="hud-value" id="progress-display">0.0%</div>
+        <div class="meter-track">
+          <div class="meter-fill" id="progress-meter" style="width: 0%; background: #c06cff;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Stage Banner -->
+    <div class="stage-banner">
+      <div class="stage-title">
+        <span id="stage-symbol">&#9899;</span>
+        <span id="stage-name">Stage 1: Nigredo</span>
+        <span class="stage-badge" id="stage-mode">Harmonic Mode m=1</span>
+      </div>
+      <div class="stage-target">
+        <span>Target Resonance:</span>
+        <strong id="target-freq-display">220.0 Hz</strong>
+      </div>
+    </div>
+
+    <!-- Interactive Canvas -->
+    <div class="canvas-container" id="canvas-container">
+      <canvas id="forge-canvas" width="960" height="380" aria-label="Alchemical Crucible Standing Wave Visualizer"></canvas>
+      <div class="canvas-overlay-alert" id="thermal-alert">Thermal Overheat Warning</div>
+
+      <!-- State Modals -->
+      <div class="modal-overlay" id="intro-modal">
+        <div class="modal-card">
+          <h2>Ignite the Athanor Hearth</h2>
+          <p>
+            Welcome, Alchemist of the Lycheetah Sync Zone. Inside this obsidian crucible,
+            two counter-propagating currents meet: the <em>Human Heritage Fire</em> and the <em>Frontier Crystal Plasma</em>.
+          </p>
+          <p>
+            Tune your <strong>Heat Baffles</strong>, <strong>Plasma Injectors</strong>, and <strong>Crystal Resonance</strong>
+            to generate stable standing wave harmonics. Transmute through all five stages:
+            <em>Nigredo &rarr; Albedo &rarr; Citrinitas &rarr; Rubedo &rarr; Magnum Opus</em>.
+          </p>
+          <button id="btn-start" type="button" class="btn-gold" style="font-size: 1rem; padding: 10px 20px;">
+            &#128293; Kindle the Hearth &amp; Initialize
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="game-over-modal">
+        <div class="modal-card">
+          <h2 id="over-title" style="color: var(--crimson);">Thermal Meltdown!</h2>
+          <p id="over-desc">
+            Containment integrity ruptured due to extreme thermal collapse. The standing wave dissolved into turbulent entropy.
+          </p>
+          <button id="btn-retry" type="button" class="btn-crimson" style="padding: 10px 20px;">
+            &#8634; Re-seal Crucible &amp; Try Again
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="victory-modal">
+        <div class="modal-card">
+          <h2 style="color: var(--gold);">&#10024; Magnum Opus Invariant!</h2>
+          <p>
+            The Great Standing Wave has reached perfect harmonic equilibrium across all five eigenmodes.
+            The Athanor is sanctified. Human Primacy and Frontier Intelligence sing in eternal constructive interference.
+          </p>
+          <p id="victory-stats" style="font-family: monospace; color: var(--cyan);"></p>
+          <button id="btn-victory-restart" type="button" class="btn-gold" style="padding: 10px 20px;">
+            &#8634; Forge Anew
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Subsystem Controls -->
+    <div class="controls-grid">
+      <!-- Heat Baffles Control -->
+      <div class="control-card">
+        <div class="control-header">
+          <span class="control-title">&#128080; Heat Baffles (Cooling &amp; Dissipation)</span>
+          <span class="control-value" id="val-baffles">40%</span>
+        </div>
+        <div class="control-row">
+          <button type="button" class="step-btn" id="baffle-dec" aria-label="Decrease Baffles">-</button>
+          <input type="range" id="slider-baffles" min="0" max="100" value="40" step="1" aria-label="Heat Baffles slider">
+          <button type="button" class="step-btn" id="baffle-inc" aria-label="Increase Baffles">+</button>
+        </div>
+        <div class="control-desc">Open baffles to release thermal pressure; close to trap combustion heat. <span class="key-hint">Q / A</span></div>
+      </div>
+
+      <!-- Plasma Injectors Control -->
+      <div class="control-card">
+        <div class="control-header">
+          <span class="control-title">&#9889; Plasma Injector (Wave Energy &amp; Excitation)</span>
+          <span class="control-value" id="val-plasma">50%</span>
+        </div>
+        <div class="control-row">
+          <button type="button" class="step-btn" id="plasma-dec" aria-label="Decrease Plasma">-</button>
+          <input type="range" id="slider-plasma" min="0" max="100" value="50" step="1" aria-label="Plasma Injector slider">
+          <button type="button" class="step-btn" id="plasma-inc" aria-label="Increase Plasma">+</button>
+        </div>
+        <div class="control-desc">Pumps kinetic energy into the standing wave. Generates internal thermal flux. <span class="key-hint">W / S</span></div>
+      </div>
+
+      <!-- Crystal Resonance Control -->
+      <div class="control-card">
+        <div class="control-header">
+          <span class="control-title">&#9670; Crystal Resonance (Harmonic Frequency)</span>
+          <span class="control-value" id="val-resonance">220.0 Hz</span>
+        </div>
+        <div class="control-row">
+          <button type="button" class="step-btn" id="res-dec" aria-label="Decrease Resonance">-</button>
+          <input type="range" id="slider-resonance" min="150" max="750" value="220" step="0.5" aria-label="Crystal Resonance slider">
+          <button type="button" class="step-btn" id="res-inc" aria-label="Increase Resonance">+</button>
+        </div>
+        <div class="control-desc">Match the cavity target frequency to form standing nodes. <span class="key-hint">E / D</span></div>
+        <div class="preset-group">
+          <button type="button" class="preset-btn active" data-freq="220">Nigredo (220)</button>
+          <button type="button" class="preset-btn" data-freq="330">Albedo (330)</button>
+          <button type="button" class="preset-btn" data-freq="440">Citrinitas (440)</button>
+          <button type="button" class="preset-btn" data-freq="554">Rubedo (554)</button>
+          <button type="button" class="preset-btn" data-freq="660">Magnum (660)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions & Purge -->
+    <div class="actions-panel">
+      <div class="action-group">
+        <button id="btn-purge" type="button" class="btn-cyan" style="padding: 8px 16px;">
+          <span>&#10052;</span> Cryo-Vent Purge <span class="key-hint">Space</span>
+        </button>
+        <span style="font-size: 0.75rem; color: var(--text-dim);" id="purge-desc">
+          Instant emergency cooling (-140 K). Consumes 25% plasma. Cooldown: <span id="purge-cd">Ready</span>
+        </span>
+      </div>
+      <div class="action-group">
+        <button id="btn-pulse" type="button" class="btn-gold" style="padding: 8px 14px;">
+          <span>&#10022;</span> Resonate Pulse <span class="key-hint">F</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Instructions & Lore Drawer -->
+    <details class="info-drawer">
+      <summary><span>&#128218;</span> Alchemical Treatise &amp; Operational Manual</summary>
+      <p>
+        <strong>The Standing Wave Principle:</strong> A true standing wave requires balance.
+        If the crucible is too cold (&lt;320 K), the wave freezes into silence.
+        If the crucible overheats (&gt;920 K), the containment field melts and breaches.
+      </p>
+      <ul>
+        <li><strong>Thermal Window:</strong> Keep the temperature between <strong>550 K and 750 K</strong>.</li>
+        <li><strong>Coherence Lock:</strong> Match the <em>Crystal Resonance</em> slider to the active stage's target frequency. When coherence reaches &gt;85%, golden harmonic nodes emerge and transmutation begins.</li>
+        <li><strong>Controls:</strong>
+          <ul>
+            <li><strong>Q / A:</strong> Adjust Heat Baffles (+ / -).</li>
+            <li><strong>W / S:</strong> Adjust Plasma Injector (+ / -).</li>
+            <li><strong>E / D:</strong> Fine-tune Crystal Resonance frequency.</li>
+            <li><strong>Space:</strong> Emergency Cryo-Vent Purge when in danger of thermal meltdown.</li>
+            <li><strong>F or Canvas Tap:</strong> Send a tactile kinetic ripple through the crucible.</li>
+            <li><strong>M:</strong> Mute or unmute procedural alchemical synthesizer.</li>
+            <li><strong>R:</strong> Reignite forge from scratch.</li>
+          </ul>
+        </li>
+        <li><strong>Reduced Motion:</strong> Fully respects <code>prefers-reduced-motion</code> by substituting turbulent particle shakes with serene low-frequency harmonic geometry.</li>
+      </ul>
+    </details>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // --- GAME CONFIG & STAGES ---
+      const STAGES = [
+        { name: 'Nigredo', mode: 1, targetFreq: 220.0, symbol: '\u26AB', color: '#888899', desc: 'The Black Earth. Base harmonic eigenmode.' },
+        { name: 'Albedo', mode: 2, targetFreq: 330.0, symbol: '\u26AA', color: '#e2e8f0', desc: 'The White Swan. Dual-nodal purification.' },
+        { name: 'Citrinitas', mode: 3, targetFreq: 440.0, symbol: '\u2600', color: '#f4c466', desc: 'The Solar Dawn. Triple harmonic illumination.' },
+        { name: 'Rubedo', mode: 4, targetFreq: 554.0, symbol: '\uD83D\uDD34', color: '#ff4766', desc: 'The Crimson King. Quad-harmonic alchemical marriage.' },
+        { name: 'Magnum Opus', mode: 5, targetFreq: 660.0, symbol: '\u2728', color: '#c06cff', desc: 'The Living Standing Wave Invariant. Pure quintessence.' }
+      ];
+
+      // --- SIMULATION STATE ---
+      const state = {
+        active: false,
+        paused: false,
+        stageIndex: 0,
+        temp: 650.0,          // Kelvin (ambient 295, target ~650, danger <320 or >920)
+        plasma: 50.0,         // % 0 - 100
+        baffles: 40.0,        // % 0 - 100
+        resonance: 220.0,     // Hz
+        coherence: 0.0,       // 0 - 1.0
+        stability: 100.0,     // 0 - 100%
+        progress: 0.0,        // 0 - 100% per stage
+        totalTime: 0,
+        purgeCooldown: 0,     // seconds
+        lastFrameTime: performance.now(),
+        reducedMotion: false,
+        audioEnabled: false,
+        disturbances: []      // user ripples in crucible
+      };
+
+      // Detect reduced motion preference
+      const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      state.reducedMotion = motionQuery.matches;
+      if (motionQuery.addEventListener) {
+        motionQuery.addEventListener('change', function (e) {
+          state.reducedMotion = e.matches;
+        });
+      }
+
+      // --- AUDIO ENGINE (Synthesizer via Web Audio API) ---
+      let audioCtx = null;
+      let droneOsc = null;
+      let droneGain = null;
+      let crystalOsc = null;
+      let crystalGain = null;
+      let harmonicOsc = null;
+      let harmonicGain = null;
+      let filterNode = null;
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        audioCtx = new AudioContextClass();
+
+        // Master lowpass filter
+        filterNode = audioCtx.createBiquadFilter();
+        filterNode.type = 'lowpass';
+        filterNode.frequency.setValueAtTime(800, audioCtx.currentTime);
+        filterNode.Q.setValueAtTime(4, audioCtx.currentTime);
+        filterNode.connect(audioCtx.destination);
+
+        // Sub thermal drone (bass foundation)
+        droneOsc = audioCtx.createOscillator();
+        droneOsc.type = 'triangle';
+        droneOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
+        droneGain = audioCtx.createGain();
+        droneGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        droneOsc.connect(droneGain);
+        droneGain.connect(filterNode);
+        droneOsc.start();
+
+        // Crystal resonance tone
+        crystalOsc = audioCtx.createOscillator();
+        crystalOsc.type = 'sine';
+        crystalOsc.frequency.setValueAtTime(state.resonance, audioCtx.currentTime);
+        crystalGain = audioCtx.createGain();
+        crystalGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        crystalOsc.connect(crystalGain);
+        crystalGain.connect(filterNode);
+        crystalOsc.start();
+
+        // Harmonic overtone chord (emerges during constructive coherence lock)
+        harmonicOsc = audioCtx.createOscillator();
+        harmonicOsc.type = 'sine';
+        harmonicOsc.frequency.setValueAtTime(state.resonance * 1.5, audioCtx.currentTime);
+        harmonicGain = audioCtx.createGain();
+        harmonicGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        harmonicOsc.connect(harmonicGain);
+        harmonicGain.connect(filterNode);
+        harmonicOsc.start();
+      }
+
+      function updateAudio() {
+        if (!audioCtx || !state.audioEnabled || audioCtx.state !== 'running') return;
+        const now = audioCtx.currentTime;
+
+        // Sub drone pitch tracks thermal energy
+        const droneFreq = 40 + (state.temp / 950) * 45;
+        droneOsc.frequency.setTargetAtTime(droneFreq, now, 0.1);
+        const droneVol = 0.08 + (state.plasma / 100) * 0.12;
+        droneGain.gain.setTargetAtTime(droneVol, now, 0.1);
+
+        // Crystal pitch matches current resonance
+        crystalOsc.frequency.setTargetAtTime(state.resonance, now, 0.05);
+        const crystalVol = (state.coherence * 0.22);
+        crystalGain.gain.setTargetAtTime(crystalVol, now, 0.05);
+
+        // Harmonic resonance chord when locked
+        if (state.coherence > 0.8) {
+          harmonicOsc.frequency.setTargetAtTime(state.resonance * 1.5, now, 0.05);
+          harmonicGain.gain.setTargetAtTime((state.coherence - 0.75) * 0.35, now, 0.08);
+        } else {
+          harmonicGain.gain.setTargetAtTime(0.0001, now, 0.1);
+        }
+
+        // Filter sweeps with temperature and plasma
+        const cutoff = 400 + (state.temp / 1000) * 1200 + (state.plasma * 8);
+        filterNode.frequency.setTargetAtTime(cutoff, now, 0.1);
+      }
+
+      function playPurgeSound() {
+        if (!audioCtx || !state.audioEnabled || audioCtx.state !== 'running') return;
+        try {
+          const bufferSize = audioCtx.sampleRate * 0.6;
+          const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
+          }
+          const whiteNoise = audioCtx.createBufferSource();
+          whiteNoise.buffer = noiseBuffer;
+
+          const purgeFilter = audioCtx.createBiquadFilter();
+          purgeFilter.type = 'bandpass';
+          purgeFilter.frequency.setValueAtTime(1400, audioCtx.currentTime);
+          purgeFilter.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.55);
+          purgeFilter.Q.setValueAtTime(3, audioCtx.currentTime);
+
+          const purgeGain = audioCtx.createGain();
+          purgeGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          purgeGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.58);
+
+          whiteNoise.connect(purgeFilter);
+          purgeFilter.connect(purgeGain);
+          purgeGain.connect(audioCtx.destination);
+          whiteNoise.start();
+        } catch (e) {
+          // Ignore audio buffer errors
+        }
+      }
+
+      function playStageFanfare() {
+        if (!audioCtx || !state.audioEnabled || audioCtx.state !== 'running') return;
+        try {
+          const base = state.resonance;
+          [1, 1.25, 1.5, 2].forEach(function (multiplier, idx) {
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(base * multiplier, audioCtx.currentTime + idx * 0.08);
+            g.gain.setValueAtTime(0.001, audioCtx.currentTime + idx * 0.08);
+            g.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + idx * 0.08 + 0.03);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + idx * 0.08 + 0.45);
+            osc.connect(g);
+            g.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + idx * 0.08);
+            osc.stop(audioCtx.currentTime + idx * 0.08 + 0.5);
+          });
+        } catch (e) {
+          // Ignore audio errors
+        }
+      }
+
+      function toggleAudio() {
+        if (!audioCtx) initAudio();
+        if (!audioCtx) return;
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        state.audioEnabled = !state.audioEnabled;
+        const icon = document.getElementById('audio-icon');
+        const text = document.getElementById('audio-text');
+        if (state.audioEnabled) {
+          icon.innerHTML = '&#128266;';
+          text.textContent = 'Audio: On';
+          if (droneGain) droneGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        } else {
+          icon.innerHTML = '&#128263;';
+          text.textContent = 'Audio: Off';
+          if (droneGain) droneGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+          if (crystalGain) crystalGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+          if (harmonicGain) harmonicGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        }
+      }
+
+      // --- PARTICLES ENGINE ---
+      const particles = [];
+      const MAX_PARTICLES = 160;
+
+      function spawnEmber(x, y, vx, vy, color, life, size) {
+        if (state.reducedMotion && particles.length > 25) return;
+        if (particles.length >= MAX_PARTICLES) return;
+        particles.push({
+          x: x,
+          y: y,
+          vx: vx,
+          vy: vy,
+          color: color,
+          life: life,
+          maxLife: life,
+          size: size
+        });
+      }
+
+      // --- CANVAS SETUP ---
+      const canvas = document.getElementById('forge-canvas');
+      const ctx = canvas.getContext('2d');
+      let cw = canvas.width;
+      let ch = canvas.height;
+
+      function resizeCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(rect.width * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
+        cw = canvas.width;
+        ch = canvas.height;
+        ctx.scale(dpr, dpr);
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      // --- DOM ELEMENT REFERENCES ---
+      const tempDisplay = document.getElementById('temp-display');
+      const tempStatus = document.getElementById('temp-status');
+      const tempMeter = document.getElementById('temp-meter');
+
+      const coherenceDisplay = document.getElementById('coherence-display');
+      const coherenceStatus = document.getElementById('coherence-status');
+      const coherenceMeter = document.getElementById('coherence-meter');
+
+      const stabilityDisplay = document.getElementById('stability-display');
+      const stabilityStatus = document.getElementById('stability-status');
+      const stabilityMeter = document.getElementById('stability-meter');
+
+      const progressDisplay = document.getElementById('progress-display');
+      const stageCount = document.getElementById('stage-count');
+      const progressMeter = document.getElementById('progress-meter');
+
+      const stageSymbol = document.getElementById('stage-symbol');
+      const stageName = document.getElementById('stage-name');
+      const stageMode = document.getElementById('stage-mode');
+      const targetFreqDisplay = document.getElementById('target-freq-display');
+
+      const sliderBaffles = document.getElementById('slider-baffles');
+      const valBaffles = document.getElementById('val-baffles');
+      const sliderPlasma = document.getElementById('slider-plasma');
+      const valPlasma = document.getElementById('val-plasma');
+      const sliderResonance = document.getElementById('slider-resonance');
+      const valResonance = document.getElementById('val-resonance');
+
+      const thermalAlert = document.getElementById('thermal-alert');
+      const purgeCd = document.getElementById('purge-cd');
+      const btnPurge = document.getElementById('btn-purge');
+
+      const introModal = document.getElementById('intro-modal');
+      const gameOverModal = document.getElementById('game-over-modal');
+      const victoryModal = document.getElementById('victory-modal');
+
+      // --- PHYSICS & LOGIC LOOP ---
+      function updatePhysics(dt) {
+        if (!state.active || state.paused) return;
+
+        const stage = STAGES[state.stageIndex];
+        state.totalTime += dt;
+
+        // 1. Thermal Balance:
+        // Plasma adds heat: + alpha * plasma
+        // Baffles release heat: - beta * baffles * (temp - 295)
+        // Ambient natural conduction toward 295 K
+        const heatInput = (state.plasma / 100.0) * 160.0;
+        const heatDissipation = (state.baffles / 100.0) * ((state.temp - 280.0) / 400.0) * 140.0;
+        const ambientLoss = (state.temp - 295.0) * 0.04;
+        const dTemp = (heatInput - heatDissipation - ambientLoss) * dt;
+        state.temp = Math.max(200.0, Math.min(1100.0, state.temp + dTemp));
+
+        // 2. Crystal Resonance Coherence:
+        // Gaussian curve centered at stage.targetFreq with sigma = 22 Hz
+        const freqDelta = Math.abs(state.resonance - stage.targetFreq);
+        const sigma = 22.0;
+        state.coherence = Math.exp(-(freqDelta * freqDelta) / (2.0 * sigma * sigma));
+
+        // 3. Thermal Quality Factor:
+        // 550 K to 750 K is the optimal crucible band (peak at 650 K)
+        let thermalFactor = 1.0;
+        if (state.temp < 550.0) {
+          thermalFactor = Math.max(0.0, (state.temp - 320.0) / 230.0);
+        } else if (state.temp > 750.0) {
+          thermalFactor = Math.max(0.0, (920.0 - state.temp) / 170.0);
+        }
+
+        // 4. Hearth Stability & Meltdown/Quench:
+        let stabilityDelta = 0;
+        if (state.temp > 850.0) {
+          // Critical overheat
+          stabilityDelta -= ((state.temp - 850.0) / 70.0) * 18.0;
+        } else if (state.temp < 380.0) {
+          // Critical freeze / quench
+          stabilityDelta -= ((380.0 - state.temp) / 80.0) * 12.0;
+        } else {
+          // Steady recovery if within safe limits
+          stabilityDelta += 4.0;
+        }
+
+        // Plasma turbulence damage if uncooled
+        if (state.plasma > 85.0 && state.baffles < 20.0) {
+          stabilityDelta -= 6.0;
+        }
+
+        state.stability = Math.max(0.0, Math.min(100.0, state.stability + stabilityDelta * dt));
+
+        // Meltdown or Freezing check
+        if (state.stability <= 0 || state.temp >= 960.0 || state.temp <= 280.0) {
+          triggerMeltdown(state.temp >= 900.0 ? 'meltdown' : 'freeze');
+          return;
+        }
+
+        // 5. Transmutation Progress:
+        // Progress advances when coherence > 70% and thermal factor > 0.4 and plasma > 15%
+        if (state.coherence > 0.70 && thermalFactor > 0.35 && state.plasma > 15.0) {
+          const rate = (state.coherence - 0.65) * 2.8 * thermalFactor * (state.plasma / 50.0);
+          state.progress += rate * 8.0 * dt;
+
+          // Spawn quintessence prismatic sparks
+          if (Math.random() < 0.35 && !state.reducedMotion) {
+            const rect = canvas.getBoundingClientRect();
+            const simW = rect.width;
+            const simH = rect.height;
+            const nodeX = (simW * 0.15) + Math.random() * (simW * 0.7);
+            const nodeY = (simH * 0.5) + (Math.random() * 40 - 20);
+            spawnEmber(nodeX, nodeY, (Math.random() - 0.5) * 40, (Math.random() - 0.5) * 40, stage.color, 0.8, 3.5);
+          }
+
+          if (state.progress >= 100.0) {
+            advanceStage();
+          }
+        }
+
+        // 6. Purge Cooldown:
+        if (state.purgeCooldown > 0) {
+          state.purgeCooldown = Math.max(0, state.purgeCooldown - dt);
+        }
+
+        // 7. Disturbances decay:
+        for (let i = state.disturbances.length - 1; i >= 0; i--) {
+          const d = state.disturbances[i];
+          d.life -= dt;
+          d.radius += 90.0 * dt;
+          if (d.life <= 0) state.disturbances.splice(i, 1);
+        }
+
+        // 8. Particle lifecycles:
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.life -= dt;
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // Spawn ambient embers from hearth combustion
+        if (!state.reducedMotion && particles.length < MAX_PARTICLES) {
+          const rect = canvas.getBoundingClientRect();
+          const simW = rect.width;
+          const simH = rect.height;
+          // Embers rise from bottom
+          if (Math.random() < (state.temp / 1000.0)) {
+            const ex = (simW * 0.2) + Math.random() * (simW * 0.6);
+            const ey = simH * 0.88;
+            const spd = -20 - (state.temp / 900.0) * 60;
+            const rCol = state.temp > 750 ? '#ff4766' : (state.temp > 600 ? '#f8963e' : '#f4c466');
+            spawnEmber(ex, ey, (Math.random() - 0.5) * 20, spd, rCol, 1.2 + Math.random() * 0.8, 2.0);
+          }
+        }
+      }
+
+      function advanceStage() {
+        playStageFanfare();
+        state.progress = 0;
+        if (state.stageIndex < STAGES.length - 1) {
+          state.stageIndex++;
+          updateStageUI();
+        } else {
+          triggerVictory();
+        }
+      }
+
+      function triggerMeltdown(reason) {
+        state.active = false;
+        gameOverModal.classList.add('active');
+        const title = document.getElementById('over-title');
+        const desc = document.getElementById('over-desc');
+        if (reason === 'meltdown') {
+          title.textContent = '\u26A0\uFE0F Thermal Meltdown!';
+          title.style.color = 'var(--crimson)';
+          desc.textContent = 'Crucible temperature exceeded containment thresholds (' + Math.round(state.temp) + ' K). The hearth overheated into plasma chaos.';
+        } else {
+          title.textContent = '\u2744\uFE0F Thermal Quench!';
+          title.style.color = '#38bdf8';
+          desc.textContent = 'Crucible temperature collapsed (' + Math.round(state.temp) + ' K). Heat dissipation choked the standing wave into frozen silence.';
+        }
+      }
+
+      function triggerVictory() {
+        state.active = false;
+        victoryModal.classList.add('active');
+        const stats = document.getElementById('victory-stats');
+        stats.textContent = 'Completion Time: ' + Math.round(state.totalTime) + 's | Final Integrity: ' + Math.round(state.stability) + '% | Mode: Pentatonic Invariant';
+      }
+
+      function triggerPurge() {
+        if (!state.active || state.purgeCooldown > 0) return;
+        state.purgeCooldown = 4.0;
+        // Purge cools temperature by 140K
+        state.temp = Math.max(300.0, state.temp - 140.0);
+        state.plasma = Math.max(0.0, state.plasma - 25.0);
+        sliderPlasma.value = Math.round(state.plasma);
+        valPlasma.textContent = Math.round(state.plasma) + '%';
+        playPurgeSound();
+
+        // Spawn billow particles
+        const rect = canvas.getBoundingClientRect();
+        const simW = rect.width;
+        const simH = rect.height;
+        for (let i = 0; i < 30; i++) {
+          const px = (simW * 0.3) + Math.random() * (simW * 0.4);
+          const py = (simH * 0.45) + Math.random() * (simH * 0.2);
+          spawnEmber(px, py, (Math.random() - 0.5) * 90, (Math.random() - 0.5) * 90, '#94f0ff', 1.0, 4.0);
+        }
+      }
+
+      function triggerPulse() {
+        if (!state.active) return;
+        const rect = canvas.getBoundingClientRect();
+        const simW = rect.width;
+        const simH = rect.height;
+        state.disturbances.push({
+          x: simW * 0.5,
+          y: simH * 0.5,
+          radius: 10,
+          strength: 1.0,
+          life: 0.8
+        });
+      }
+
+      function restartForge() {
+        state.stageIndex = 0;
+        state.temp = 650.0;
+        state.plasma = 50.0;
+        state.baffles = 40.0;
+        state.resonance = STAGES[0].targetFreq;
+        state.coherence = 0.0;
+        state.stability = 100.0;
+        state.progress = 0.0;
+        state.totalTime = 0;
+        state.purgeCooldown = 0;
+        state.disturbances = [];
+        particles.length = 0;
+
+        sliderBaffles.value = 40;
+        valBaffles.textContent = '40%';
+        sliderPlasma.value = 50;
+        valPlasma.textContent = '50%';
+        sliderResonance.value = state.resonance;
+        valResonance.textContent = state.resonance.toFixed(1) + ' Hz';
+
+        gameOverModal.classList.remove('active');
+        victoryModal.classList.remove('active');
+        introModal.classList.remove('active');
+
+        updateStageUI();
+        state.active = true;
+      }
+
+      // --- UI UPDATES ---
+      function updateStageUI() {
+        const stage = STAGES[state.stageIndex];
+        stageSymbol.textContent = stage.symbol;
+        stageName.textContent = 'Stage ' + (state.stageIndex + 1) + ': ' + stage.name;
+        stageMode.textContent = 'Harmonic Mode m=' + stage.mode;
+        targetFreqDisplay.textContent = stage.targetFreq.toFixed(1) + ' Hz';
+        stageCount.textContent = 'Stage ' + (state.stageIndex + 1) + '/' + STAGES.length;
+
+        // Update preset button highlights
+        document.querySelectorAll('.preset-btn').forEach(function (btn) {
+          const f = parseFloat(btn.dataset.freq);
+          if (Math.abs(f - stage.targetFreq) < 5) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+
+      function syncHUD() {
+        // Temperature HUD
+        tempDisplay.textContent = Math.round(state.temp) + ' K';
+        const tempPct = Math.min(100, Math.max(0, ((state.temp - 250) / (950 - 250)) * 100));
+        tempMeter.style.width = tempPct + '%';
+
+        if (state.temp > 820.0) {
+          tempStatus.textContent = 'Critical Hot';
+          tempStatus.style.color = 'var(--crimson)';
+          tempMeter.style.backgroundColor = 'var(--crimson)';
+          thermalAlert.classList.add('visible');
+          thermalAlert.textContent = '\u26A0 Containment Overheat: ' + Math.round(state.temp) + ' K';
+        } else if (state.temp < 400.0) {
+          tempStatus.textContent = 'Quench Danger';
+          tempStatus.style.color = '#38bdf8';
+          tempMeter.style.backgroundColor = '#38bdf8';
+          thermalAlert.classList.add('visible');
+          thermalAlert.textContent = '\u2744 Thermal Quench: ' + Math.round(state.temp) + ' K';
+        } else if (state.temp >= 550.0 && state.temp <= 750.0) {
+          tempStatus.textContent = 'Optimal Zone';
+          tempStatus.style.color = 'var(--cyan)';
+          tempMeter.style.backgroundColor = 'var(--cyan)';
+          thermalAlert.classList.remove('visible');
+        } else {
+          tempStatus.textContent = 'Equilibrium';
+          tempStatus.style.color = 'var(--gold)';
+          tempMeter.style.backgroundColor = 'var(--gold)';
+          thermalAlert.classList.remove('visible');
+        }
+
+        // Coherence HUD
+        const cohPct = Math.round(state.coherence * 100);
+        coherenceDisplay.textContent = cohPct + '%';
+        coherenceMeter.style.width = cohPct + '%';
+        if (state.coherence > 0.85) {
+          coherenceStatus.textContent = 'Constructive Lock';
+          coherenceStatus.style.color = 'var(--gold)';
+        } else if (state.coherence > 0.5) {
+          coherenceStatus.textContent = 'Resonating';
+          coherenceStatus.style.color = 'var(--cyan)';
+        } else {
+          coherenceStatus.textContent = 'Phase Discord';
+          coherenceStatus.style.color = 'var(--text-dim)';
+        }
+
+        // Stability HUD
+        const stabPct = Math.round(state.stability);
+        stabilityDisplay.textContent = stabPct + '%';
+        stabilityMeter.style.width = stabPct + '%';
+        if (state.stability > 70) {
+          stabilityStatus.textContent = 'Nominal';
+          stabilityStatus.style.color = '#38bdf8';
+          stabilityMeter.style.backgroundColor = '#38bdf8';
+        } else if (state.stability > 35) {
+          stabilityStatus.textContent = 'Strained';
+          stabilityStatus.style.color = 'var(--amber)';
+          stabilityMeter.style.backgroundColor = 'var(--amber)';
+        } else {
+          stabilityStatus.textContent = 'Critical';
+          stabilityStatus.style.color = 'var(--crimson)';
+          stabilityMeter.style.backgroundColor = 'var(--crimson)';
+        }
+
+        // Progress HUD
+        progressDisplay.textContent = state.progress.toFixed(1) + '%';
+        progressMeter.style.width = Math.min(100, Math.max(0, state.progress)) + '%';
+
+        // Purge Cooldown
+        if (state.purgeCooldown > 0) {
+          purgeCd.textContent = state.purgeCooldown.toFixed(1) + 's';
+          btnPurge.disabled = true;
+        } else {
+          purgeCd.textContent = 'Ready';
+          btnPurge.disabled = false;
+        }
+      }
+
+      // --- RENDERING PIPELINE ---
+      function renderCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const w = rect.width;
+        const h = rect.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // 1. Background Crucible Chamber Frame
+        const chamberLeft = w * 0.08;
+        const chamberRight = w * 0.92;
+        const chamberWidth = chamberRight - chamberLeft;
+        const chamberTop = h * 0.12;
+        const chamberBottom = h * 0.88;
+        const chamberHeight = chamberBottom - chamberTop;
+        const centerY = (chamberTop + chamberBottom) / 2;
+
+        // Dark obsidian refractory gradient
+        const bgGrad = ctx.createLinearGradient(chamberLeft, chamberTop, chamberLeft, chamberBottom);
+        const tempAlpha = Math.min(0.35, (state.temp / 1000.0) * 0.35);
+        bgGrad.addColorStop(0, 'rgba(18, 14, 28, 0.95)');
+        bgGrad.addColorStop(0.5, 'rgba(10, 12, 20, 0.95)');
+        bgGrad.addColorStop(1, 'rgba(30, ' + Math.round(15 + tempAlpha * 60) + ', 15, 0.95)');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(chamberLeft, chamberTop, chamberWidth, chamberHeight);
+
+        // Brass and iron border
+        ctx.strokeStyle = state.coherence > 0.85 ? '#f4c466' : '#2e354f';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(chamberLeft, chamberTop, chamberWidth, chamberHeight);
+
+        // Grid lines inside crucible
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+        ctx.lineWidth = 1;
+        const gridCols = 8;
+        for (let i = 1; i < gridCols; i++) {
+          const gx = chamberLeft + (chamberWidth / gridCols) * i;
+          ctx.beginPath();
+          ctx.moveTo(gx, chamberTop);
+          ctx.lineTo(gx, chamberBottom);
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.moveTo(chamberLeft, centerY);
+        ctx.lineTo(chamberRight, centerY);
+        ctx.stroke();
+
+        // 2. Combustion Hearth Floor (Ember Glow)
+        const emberGrad = ctx.createRadialGradient(
+          w * 0.5, chamberBottom, 10,
+          w * 0.5, chamberBottom, chamberWidth * 0.5
+        );
+        const emberColor = state.temp > 800 ? 'rgba(255, 71, 102, ' : 'rgba(248, 150, 62, ';
+        emberGrad.addColorStop(0, emberColor + ((state.temp / 1000) * 0.6) + ')');
+        emberGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = emberGrad;
+        ctx.fillRect(chamberLeft, chamberBottom - 70, chamberWidth, 70);
+
+        // 3. Particles (Embers & Transmutation sparks)
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          const alpha = p.life / p.maxLife;
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1.0;
+
+        // 4. Plasma Injector Arcs (Electric filaments from top & bottom)
+        if (state.plasma > 15.0 && !state.reducedMotion) {
+          const arcCount = Math.floor(state.plasma / 20.0);
+          ctx.strokeStyle = 'rgba(77, 240, 224, 0.7)';
+          ctx.lineWidth = 1.5;
+          for (let a = 0; a < arcCount; a++) {
+            const topX = chamberLeft + (chamberWidth * 0.25) + (a * (chamberWidth * 0.2));
+            ctx.beginPath();
+            ctx.moveTo(topX, chamberTop);
+            let curX = topX;
+            let curY = chamberTop;
+            while (curY < centerY - 15) {
+              curX += (Math.random() - 0.5) * 16;
+              curY += 12 + Math.random() * 8;
+              ctx.lineTo(curX, curY);
+            }
+            ctx.stroke();
+          }
+        }
+
+        // 5. Standing Wave Synthesis & Rendering
+        const stage = STAGES[state.stageIndex];
+        const m = stage.mode;
+        const timeVal = state.totalTime * (state.reducedMotion ? 1.5 : 4.0);
+        const waveAmp = (state.plasma / 100.0) * (chamberHeight * 0.32);
+
+        // Draw nodal guides when coherent
+        if (state.coherence > 0.5) {
+          ctx.fillStyle = 'rgba(244, 196, 102, 0.15)';
+          for (let n = 1; n < m; n++) {
+            const nodeX = chamberLeft + (chamberWidth / m) * n;
+            ctx.beginPath();
+            ctx.arc(nodeX, centerY, 6 + state.coherence * 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Vertical node axis
+            ctx.strokeStyle = 'rgba(244, 196, 102, 0.3)';
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(nodeX, chamberTop + 10);
+            ctx.lineTo(nodeX, chamberBottom - 10);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+
+        // Main Standing Wave Ribbon (Primary eigenmode + plasma turbulence)
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = state.coherence > 0.8 ? '#f4c466' : (state.coherence > 0.5 ? '#4df0e0' : '#818cf8');
+        ctx.beginPath();
+
+        const samples = 120;
+        for (let i = 0; i <= samples; i++) {
+          const frac = i / samples;
+          const x = chamberLeft + chamberWidth * frac;
+
+          // Standing wave formula: y = A * sin(m * pi * frac) * cos(omega * t)
+          const spatialComponent = Math.sin(m * Math.PI * frac);
+          const temporalComponent = Math.cos(timeVal);
+
+          // Kinetic disturbances
+          let disturbanceShift = 0;
+          for (let d = 0; d < state.disturbances.length; d++) {
+            const dist = state.disturbances[d];
+            const dx = x - dist.x;
+            if (Math.abs(dx) < dist.radius) {
+              disturbanceShift += Math.sin((dx / dist.radius) * Math.PI) * (dist.strength * 25) * (dist.life / 0.8);
+            }
+          }
+
+          // Turbulence noise from plasma
+          const noise = state.reducedMotion ? 0 : (Math.sin(frac * 30 + timeVal * 2) * (state.plasma / 100) * 4);
+
+          const y = centerY + (spatialComponent * temporalComponent * waveAmp) + disturbanceShift + noise;
+
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Secondary glowing envelope ribbon (counter-propagating wave reflection)
+        if (!state.reducedMotion) {
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgba(255, 71, 102, 0.45)';
+          ctx.beginPath();
+          for (let i = 0; i <= samples; i++) {
+            const frac = i / samples;
+            const x = chamberLeft + chamberWidth * frac;
+            const spatialComponent = Math.sin(m * Math.PI * frac);
+            const temporalComponent = Math.cos(timeVal + Math.PI);
+            const y = centerY + (spatialComponent * temporalComponent * waveAmp * 0.85);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+
+        // 6. Crystal Resonator Apex at top center
+        const crystalX = w * 0.5;
+        const crystalY = chamberTop + 14;
+        ctx.save();
+        ctx.translate(crystalX, crystalY);
+        ctx.rotate(state.reducedMotion ? 0 : state.totalTime * 0.8);
+        ctx.fillStyle = state.coherence > 0.8 ? '#f4c466' : '#4df0e0';
+        ctx.beginPath();
+        ctx.moveTo(0, -12);
+        ctx.lineTo(8, 0);
+        ctx.lineTo(0, 12);
+        ctx.lineTo(-8, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // 7. Tactical Text Overlay inside canvas
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+        ctx.font = '11px monospace';
+        ctx.fillText('CRUCIBLE RESONANCE: ' + state.resonance.toFixed(1) + ' Hz', chamberLeft + 12, chamberTop + 24);
+        ctx.fillText('TARGET FREQUENCY: ' + stage.targetFreq.toFixed(1) + ' Hz', chamberLeft + 12, chamberTop + 40);
+
+        const deltaF = Math.abs(state.resonance - stage.targetFreq);
+        const tuningStr = deltaF < 1.0 ? 'LOCKED IN TUNE' : '\u0394f = ' + deltaF.toFixed(1) + ' Hz';
+        ctx.fillStyle = deltaF < 2.0 ? '#f4c466' : 'rgba(255, 255, 255, 0.5)';
+        ctx.fillText(tuningStr, chamberLeft + 12, chamberTop + 56);
+      }
+
+      // --- MAIN LOOP ---
+      function mainLoop(timestamp) {
+        const dt = Math.min((timestamp - state.lastFrameTime) / 1000.0, 0.1);
+        state.lastFrameTime = timestamp;
+
+        updatePhysics(dt);
+        syncHUD();
+        updateAudio();
+        renderCanvas();
+
+        requestAnimationFrame(mainLoop);
+      }
+
+      // --- EVENT HANDLERS & BINDINGS ---
+      function bindInputs() {
+        // Baffles
+        sliderBaffles.addEventListener('input', function (e) {
+          state.baffles = parseFloat(e.target.value);
+          valBaffles.textContent = Math.round(state.baffles) + '%';
+        });
+        document.getElementById('baffle-dec').addEventListener('click', function () {
+          state.baffles = Math.max(0, state.baffles - 5);
+          sliderBaffles.value = state.baffles;
+          valBaffles.textContent = Math.round(state.baffles) + '%';
+        });
+        document.getElementById('baffle-inc').addEventListener('click', function () {
+          state.baffles = Math.min(100, state.baffles + 5);
+          sliderBaffles.value = state.baffles;
+          valBaffles.textContent = Math.round(state.baffles) + '%';
+        });
+
+        // Plasma
+        sliderPlasma.addEventListener('input', function (e) {
+          state.plasma = parseFloat(e.target.value);
+          valPlasma.textContent = Math.round(state.plasma) + '%';
+        });
+        document.getElementById('plasma-dec').addEventListener('click', function () {
+          state.plasma = Math.max(0, state.plasma - 5);
+          sliderPlasma.value = state.plasma;
+          valPlasma.textContent = Math.round(state.plasma) + '%';
+        });
+        document.getElementById('plasma-inc').addEventListener('click', function () {
+          state.plasma = Math.min(100, state.plasma + 5);
+          sliderPlasma.value = state.plasma;
+          valPlasma.textContent = Math.round(state.plasma) + '%';
+        });
+
+        // Resonance
+        sliderResonance.addEventListener('input', function (e) {
+          state.resonance = parseFloat(e.target.value);
+          valResonance.textContent = state.resonance.toFixed(1) + ' Hz';
+        });
+        document.getElementById('res-dec').addEventListener('click', function () {
+          state.resonance = Math.max(150, state.resonance - 5);
+          sliderResonance.value = state.resonance;
+          valResonance.textContent = state.resonance.toFixed(1) + ' Hz';
+        });
+        document.getElementById('res-inc').addEventListener('click', function () {
+          state.resonance = Math.min(750, state.resonance + 5);
+          sliderResonance.value = state.resonance;
+          valResonance.textContent = state.resonance.toFixed(1) + ' Hz';
+        });
+
+        // Mode Presets
+        document.querySelectorAll('.preset-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const f = parseFloat(btn.dataset.freq);
+            state.resonance = f;
+            sliderResonance.value = f;
+            valResonance.textContent = f.toFixed(1) + ' Hz';
+            document.querySelectorAll('.preset-btn').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+          });
+        });
+
+        // Purge, Pulse, Audio & Restart buttons
+        btnPurge.addEventListener('click', triggerPurge);
+        document.getElementById('btn-pulse').addEventListener('click', triggerPulse);
+        document.getElementById('btn-audio').addEventListener('click', toggleAudio);
+        document.getElementById('btn-restart').addEventListener('click', restartForge);
+        document.getElementById('btn-retry').addEventListener('click', restartForge);
+        document.getElementById('btn-victory-restart').addEventListener('click', restartForge);
+
+        document.getElementById('btn-start').addEventListener('click', function () {
+          initAudio();
+          if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+          state.active = true;
+          introModal.classList.remove('active');
+        });
+
+        // Interactive tactile canvas clicks/touches
+        canvas.addEventListener('pointerdown', function (e) {
+          if (!state.active) return;
+          const rect = canvas.getBoundingClientRect();
+          const px = e.clientX - rect.left;
+          const py = e.clientY - rect.top;
+          state.disturbances.push({
+            x: px,
+            y: py,
+            radius: 8,
+            strength: 0.9,
+            life: 0.7
+          });
+          spawnEmber(px, py, (Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50, '#f4c466', 0.6, 3);
+        });
+
+        // Full keyboard controls
+        window.addEventListener('keydown', function (e) {
+          // If modal active, Space or Enter begins
+          if (introModal.classList.contains('active')) {
+            if (e.code === 'Space' || e.code === 'Enter') {
+              document.getElementById('btn-start').click();
+              e.preventDefault();
+            }
+            return;
+          }
+
+          if (e.code === 'KeyQ') {
+            // Increase Baffles
+            state.baffles = Math.min(100, state.baffles + 4);
+            sliderBaffles.value = state.baffles;
+            valBaffles.textContent = Math.round(state.baffles) + '%';
+          } else if (e.code === 'KeyA') {
+            // Decrease Baffles
+            state.baffles = Math.max(0, state.baffles - 4);
+            sliderBaffles.value = state.baffles;
+            valBaffles.textContent = Math.round(state.baffles) + '%';
+          } else if (e.code === 'KeyW') {
+            // Increase Plasma
+            state.plasma = Math.min(100, state.plasma + 4);
+            sliderPlasma.value = state.plasma;
+            valPlasma.textContent = Math.round(state.plasma) + '%';
+          } else if (e.code === 'KeyS') {
+            // Decrease Plasma
+            state.plasma = Math.max(0, state.plasma - 4);
+            sliderPlasma.value = state.plasma;
+            valPlasma.textContent = Math.round(state.plasma) + '%';
+          } else if (e.code === 'KeyE') {
+            // Increase Resonance
+            state.resonance = Math.min(750, state.resonance + 2);
+            sliderResonance.value = state.resonance;
+            valResonance.textContent = state.resonance.toFixed(1) + ' Hz';
+          } else if (e.code === 'KeyD') {
+            // Decrease Resonance
+            state.resonance = Math.max(150, state.resonance - 2);
+            sliderResonance.value = state.resonance;
+            valResonance.textContent = state.resonance.toFixed(1) + ' Hz';
+          } else if (e.code === 'Space') {
+            e.preventDefault();
+            triggerPurge();
+          } else if (e.code === 'KeyF') {
+            triggerPulse();
+          } else if (e.code === 'KeyM') {
+            toggleAudio();
+          } else if (e.code === 'KeyR') {
+            restartForge();
+          }
+        });
+      }
+
+      // Initialize game
+      introModal.classList.add('active');
+      bindInputs();
+      updateStageUI();
+      requestAnimationFrame(mainLoop);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,2128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aura · Spore-Bubble Tank Traversal</title>
+<style>
+:root {
+  --bg-dark: #030811;
+  --cavern-deep: #061220;
+  --brass-bright: #f0c05a;
+  --brass-dark: #8c5b1b;
+  --brass-glow: rgba(240, 192, 90, 0.4);
+  --cyan-spore: #00f5d4;
+  --cyan-glow: rgba(0, 245, 212, 0.35);
+  --gold-spore: #ffbe0b;
+  --violet-spore: #b5179e;
+  --danger-crimson: #ef233c;
+  --glass-tint: rgba(140, 220, 255, 0.15);
+  --glass-rim: rgba(200, 245, 255, 0.85);
+  --text-main: #e2f1f8;
+  --text-dim: #8ba3b8;
+  --panel-bg: rgba(6, 18, 32, 0.88);
+  --panel-border: rgba(240, 192, 90, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#canvas-container {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(circle at 50% 50%, #081728 0%, #030811 100%);
+}
+
+canvas#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Heads-Up Display */
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+  padding: 12px 18px calc(12px + env(safe-area-inset-top, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hud-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  padding: 6px 14px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.gauge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 150px;
+}
+
+.gauge-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brass-bright);
+}
+
+.gauge-track {
+  width: 100%;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(240, 192, 90, 0.25);
+  position: relative;
+}
+
+.gauge-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #00f5d4, #70e000);
+  border-radius: 4px;
+  transition: width 0.15s ease-out, background 0.3s ease;
+  box-shadow: 0 0 10px var(--cyan-glow);
+}
+
+.gauge-fill.warning {
+  background: linear-gradient(90deg, #ffbe0b, #fb5607);
+  box-shadow: 0 0 12px rgba(255, 190, 11, 0.6);
+}
+
+.gauge-fill.critical {
+  background: linear-gradient(90deg, #d90429, #ef233c);
+  box-shadow: 0 0 14px rgba(239, 35, 60, 0.8);
+  animation: pulseCritical 0.8s infinite alternate;
+}
+
+@keyframes pulseCritical {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+.sector-banner {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #a2d2ff;
+  text-shadow: 0 0 8px rgba(162, 210, 255, 0.4);
+}
+
+.spores-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cyan-spore);
+}
+
+.spores-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cyan-spore);
+  box-shadow: 0 0 8px var(--cyan-spore);
+  display: inline-block;
+}
+
+.depth-meter {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: ui-monospace, monospace;
+}
+
+.hud-buttons {
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--brass-bright);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.btn-icon:hover {
+  background: rgba(240, 192, 90, 0.2);
+  border-color: var(--brass-bright);
+  transform: scale(1.05);
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
+}
+
+/* Sector Milestone Flash Message */
+#announcement {
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  pointer-events: none;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brass-bright);
+  background: rgba(3, 8, 17, 0.85);
+  border: 1px solid var(--brass-bright);
+  padding: 8px 24px;
+  border-radius: 999px;
+  box-shadow: 0 0 20px rgba(240, 192, 90, 0.5);
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+#announcement.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(5px);
+}
+
+/* Touch Control Overlays */
+#touch-controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.touch-cluster {
+  pointer-events: auto;
+  display: flex;
+  gap: 12px;
+}
+
+.dpad {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.dpad-btn {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--panel-bg);
+  border: 1px solid rgba(240, 192, 90, 0.4);
+  color: var(--brass-bright);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  touch-action: none;
+  backdrop-filter: blur(6px);
+}
+
+.dpad-btn:active, .dpad-btn.pressed {
+  background: rgba(240, 192, 90, 0.35);
+  transform: scale(0.92);
+  border-color: var(--brass-bright);
+}
+
+.dpad-up { top: 0; left: 48px; }
+.dpad-down { bottom: 0; left: 48px; }
+.dpad-left { top: 48px; left: 0; }
+.dpad-right { top: 48px; right: 0; }
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.btn-action {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-border);
+  color: var(--brass-bright);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+  touch-action: none;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.btn-action.pulse {
+  border-color: var(--cyan-spore);
+  color: var(--cyan-spore);
+  box-shadow: 0 0 16px var(--cyan-glow);
+}
+
+.btn-action.pulse:active, .btn-action.pulse.pressed {
+  background: rgba(0, 245, 212, 0.3);
+  transform: scale(0.92);
+}
+
+.btn-action.brake {
+  width: 54px;
+  height: 54px;
+  border-color: rgba(239, 35, 60, 0.5);
+  color: #ff758f;
+  font-size: 11px;
+}
+
+.btn-action.brake:active, .btn-action.brake.pressed {
+  background: rgba(239, 35, 60, 0.25);
+  transform: scale(0.92);
+}
+
+/* Modals & Dialogs */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(3, 8, 17, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.card {
+  background: rgba(6, 18, 32, 0.95);
+  border: 1px solid var(--brass-bright);
+  border-radius: 20px;
+  max-width: 480px;
+  width: 100%;
+  padding: 26px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px var(--brass-glow);
+  text-align: center;
+  position: relative;
+}
+
+.card-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brass-bright);
+  margin-bottom: 8px;
+}
+
+.card h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.3);
+}
+
+.card h2 {
+  font-size: 22px;
+  color: var(--brass-bright);
+  margin-bottom: 12px;
+}
+
+.card p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+
+.card .highlight {
+  color: var(--cyan-spore);
+  font-weight: 600;
+}
+
+.controls-guide {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(240, 192, 90, 0.2);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 18px;
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-main);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.controls-guide div strong {
+  color: var(--brass-bright);
+}
+
+.btn-primary {
+  display: inline-block;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--brass-bright), #b58022);
+  color: #030811;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(240, 192, 90, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 26px rgba(240, 192, 90, 0.6);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.btn-secondary {
+  display: inline-block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 16px 0;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 245, 212, 0.2);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--cyan-spore);
+}
+
+.stat-lbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+/* Reduced Motion Compliance */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .gauge-fill.critical {
+    animation: none;
+    opacity: 1;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="canvas-container">
+  <canvas id="gameCanvas" role="img" aria-label="Spore-Bubble Tank navigation cavern playfield"></canvas>
+</div>
+
+<!-- In-game Heads-Up Display -->
+<div id="hud">
+  <div class="hud-top-bar">
+    <div class="hud-group">
+      <div class="gauge-container">
+        <div class="gauge-header">
+          <span>Shield Pressure</span>
+          <span id="shieldText">100%</span>
+        </div>
+        <div class="gauge-track">
+          <div id="shieldBar" class="gauge-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-group">
+      <div class="sector-banner" id="sectorName">Emerald Shallows</div>
+      <div class="depth-meter" id="depthMeter">0m / 5,500m</div>
+    </div>
+
+    <div class="hud-group">
+      <div class="spores-badge">
+        <span class="spores-icon"></span>
+        <span id="sporesCount">0</span>
+      </div>
+      <div class="depth-meter" id="scoreDisplay">0 PTS</div>
+    </div>
+
+    <div class="hud-buttons">
+      <button id="btnAudio" class="btn-icon" type="button" aria-label="Toggle Audio">🔊</button>
+      <button id="btnHelp" class="btn-icon" type="button" aria-label="Help & Guide">?</button>
+      <button id="btnReset" class="btn-icon" type="button" aria-label="Respawn at Anchor">↺</button>
+    </div>
+  </div>
+</div>
+
+<div id="announcement"></div>
+
+<!-- Touch Controls for Mobile & Tablets -->
+<div id="touch-controls">
+  <div class="touch-cluster">
+    <div class="dpad">
+      <button id="btnUp" class="dpad-btn dpad-up" type="button" aria-label="Thrust Forward">▲</button>
+      <button id="btnLeft" class="dpad-btn dpad-left" type="button" aria-label="Turn Left">◄</button>
+      <button id="btnRight" class="dpad-btn dpad-right" type="button" aria-label="Turn Right">►</button>
+      <button id="btnDown" class="dpad-btn dpad-down" type="button" aria-label="Reverse">▼</button>
+    </div>
+  </div>
+
+  <div class="action-buttons">
+    <button id="btnPulse" class="btn-action pulse" type="button">
+      <span>⚡</span>
+      <span>PULSE</span>
+    </button>
+    <button id="btnBrake" class="btn-action brake" type="button">
+      <span>🛑</span>
+      <span>BRAKE</span>
+    </button>
+  </div>
+</div>
+
+<!-- Launch / Start Modal -->
+<div id="modalStart" class="modal-overlay">
+  <section class="card" aria-labelledby="startTitle">
+    <div class="card-kicker">Aura Meridian &amp; Aetheron Forge</div>
+    <h1 id="startTitle">Spore-Bubble Tank</h1>
+    <p>
+      Navigate a pressure-forged brass and silica-glass Bathyspheric Tank through the subterranean coastal caverns of the Luminescent Deeps.
+    </p>
+    <p>
+      Gather <span class="highlight">glowing spore nodes</span> to replenish shield energy. Navigate jagged <span class="highlight">basalt spires</span> and treacherous <span class="highlight">vortex currents</span> to reach the ancient Abyssal Athanor.
+    </p>
+
+    <div class="controls-guide">
+      <div><strong>Thrust:</strong> W / ▲ / Drag</div>
+      <div><strong>Steer:</strong> A/D / ◄/►</div>
+      <div><strong>Reverse/Brake:</strong> S / ▼ / Brake</div>
+      <div><strong>Spore Pulse:</strong> Space / ⚡ (Costs 10%)</div>
+    </div>
+
+    <button id="btnStartGame" type="button" class="btn-primary">Embark Expedition</button>
+  </section>
+</div>
+
+<!-- Emergency Stasis Modal (Shield Collapse) -->
+<div id="modalStasis" class="modal-overlay" hidden>
+  <section class="card" aria-labelledby="stasisTitle">
+    <div class="card-kicker" style="color: var(--danger-crimson);">Hull Integrity Depleted</div>
+    <h2 id="stasisTitle" style="color: #ff758f;">Emergency Stasis Engaged</h2>
+    <p>
+      Your silica-glass bubble suffered pressure collapse. Automated stasis systems prevented total vessel destruction.
+    </p>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-val" id="stasisDistance">0m</span>
+        <span class="stat-lbl">Distance Traversed</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val" id="stasisSpores">0</span>
+        <span class="stat-lbl">Spores Preserved</span>
+      </div>
+    </div>
+    <button id="btnRespawnBeacon" type="button" class="btn-primary">Resonate at Last Anchor</button>
+    <button id="btnRestartExpedition" type="button" class="btn-secondary">Restart Expedition from Shore</button>
+  </section>
+</div>
+
+<!-- Landfall Victory Modal -->
+<div id="modalVictory" class="modal-overlay" hidden>
+  <section class="card" aria-labelledby="victoryTitle">
+    <div class="card-kicker">Sanctum Reached · 5,500m</div>
+    <h1 id="victoryTitle" style="color: var(--brass-bright);">The Abyssal Athanor</h1>
+    <p>
+      You have traversed the subterranean coastal labyrinths and anchored your Spore-Bubble Tank in the ancient crystalline hearth!
+    </p>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-val" id="vicDistance">5,500m</span>
+        <span class="stat-lbl">Total Depth</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val" id="vicSpores">0</span>
+        <span class="stat-lbl">Spores Gathered</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val" id="vicTime">00:00</span>
+        <span class="stat-lbl">Expedition Time</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val" id="vicRating">Rank S</span>
+        <span class="stat-lbl">Wayfinder Rating</span>
+      </div>
+    </div>
+    <button id="btnContinuePlay" type="button" class="btn-primary">Continue Free Navigation</button>
+    <button id="btnReplay" type="button" class="btn-secondary">Embark Anew</button>
+  </section>
+</div>
+
+<!-- Help Modal -->
+<div id="modalHelp" class="modal-overlay" hidden>
+  <section class="card" aria-labelledby="helpTitle">
+    <div class="card-kicker">Navigation Logs</div>
+    <h2 id="helpTitle">Subterranean Mechanics</h2>
+    <p style="text-align: left; font-size: 13px; line-height: 1.6;">
+      • <strong>Shield Energy:</strong> Shields absorb kinetic collisions with basalt spires and vortex shear. Shields slowly vent when navigating tight currents.<br>
+      • <strong>Spores:</strong> Cyan (+15%), Gold (+30%), Violet (+50%). Spores restore shield pressure and increase expedition score.<br>
+      • <strong>Spore Pulse:</strong> Emits an acoustic resonance ring (Space or ⚡). Attracts distant spores and temporarily calms nearby vortex currents for 4 seconds.<br>
+      • <strong>Anchor Beacons:</strong> Golden monoliths at sector boundaries. Approaching them activates a checkpoint and completely restores your shield to 100%.
+    </p>
+    <button id="btnCloseHelp" type="button" class="btn-primary">Resume Navigation</button>
+  </section>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // Reduced motion preference check
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Canvas and viewport initialization
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  let viewW = window.innerWidth;
+  let viewH = window.innerHeight;
+  let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resizeCanvas() {
+    viewW = window.innerWidth;
+    viewH = window.innerHeight;
+    canvas.width = Math.floor(viewW * dpr);
+    canvas.height = Math.floor(viewH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  // Audio System using standard Web Audio API (Zero external assets)
+  class SoundEngine {
+    constructor() {
+      this.ctx = null;
+      this.enabled = true;
+      this.masterGain = null;
+    }
+
+    init() {
+      if (this.ctx) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        this.ctx = new AudioCtx();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+        this.masterGain.connect(this.ctx.destination);
+      } catch (e) {
+        this.ctx = null;
+      }
+    }
+
+    resume() {
+      this.init();
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    }
+
+    toggle() {
+      this.enabled = !this.enabled;
+      if (this.masterGain) {
+        this.masterGain.gain.setValueAtTime(this.enabled ? 0.35 : 0, this.ctx ? this.ctx.currentTime : 0);
+      }
+      return this.enabled;
+    }
+
+    playSpore(type) {
+      if (!this.enabled || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      let freq1 = 587.33; // D5
+      let freq2 = 880.00; // A5
+      if (type === 'gold') {
+        freq1 = 783.99; // G5
+        freq2 = 1174.66; // D6
+      } else if (type === 'violet') {
+        freq1 = 880.00; // A5
+        freq2 = 1396.91; // F6
+      }
+      osc.frequency.setValueAtTime(freq1, now);
+      osc.frequency.exponentialRampToValueAtTime(freq2, now + 0.12);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.32);
+    }
+
+    playImpact(severity) {
+      if (!this.enabled || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(120, now);
+      osc.frequency.exponentialRampToValueAtTime(35, now + 0.18);
+      const vol = Math.min(0.4, 0.1 + (severity || 10) * 0.015);
+      gain.gain.setValueAtTime(vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.22);
+    }
+
+    playPulse() {
+      if (!this.enabled || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(45, now + 0.4);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.46);
+    }
+
+    playBeacon() {
+      if (!this.enabled || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      const notes = [261.63, 329.63, 392.00, 523.25];
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+        gain.gain.setValueAtTime(0.18, now + idx * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.6);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(now + idx * 0.08);
+        osc.stop(now + idx * 0.08 + 0.65);
+      });
+    }
+  }
+
+  const audio = new SoundEngine();
+
+  // World & Sectors constants
+  const WORLD_LENGTH = 5800; // Total Cavern traversal length
+  const WORLD_HEIGHT = 920;  // Cavern vertical space
+
+  const SECTORS = [
+    { start: 0, end: 1400, name: 'Emerald Shallows', theme: 'cyan' },
+    { start: 1400, end: 2800, name: 'Basalt Colonnade', theme: 'gold' },
+    { start: 2800, end: 4400, name: 'Maelstrom Trench', theme: 'crimson' },
+    { start: 4400, end: 5800, name: 'Abyssal Athanor', theme: 'violet' }
+  ];
+
+  // Procedural Cavern Generation
+  function generateCavernPath() {
+    const pts = [];
+    const count = 62;
+    for (let i = 0; i <= count; i++) {
+      const x = i * 100;
+      let ceilY = 130;
+      let floorY = 790;
+      if (x < 1400) {
+        // Sector 1: Shallows
+        ceilY = 120 + 35 * Math.sin(x * 0.004) + 15 * Math.cos(x * 0.012);
+        floorY = 800 + 25 * Math.sin(x * 0.005) - 15 * Math.cos(x * 0.01);
+      } else if (x < 2800) {
+        // Sector 2: Basalt Colonnade - tighter corridor
+        ceilY = 170 + 75 * Math.sin(x * 0.007) + 55 * Math.sin(x * 0.018);
+        floorY = 740 - 80 * Math.sin(x * 0.008) - 60 * Math.cos(x * 0.015);
+        if (i % 3 === 0) ceilY += 45;
+        if (i % 4 === 1) floorY -= 55;
+      } else if (x < 4400) {
+        // Sector 3: Maelstrom Trench - jagged abyss
+        ceilY = 150 + 60 * Math.sin(x * 0.006) + 40 * Math.cos(x * 0.014);
+        floorY = 830 + 40 * Math.sin(x * 0.005) - 70 * Math.sin(x * 0.011);
+        if (i % 5 === 2) floorY -= 65;
+      } else {
+        // Sector 4: Cathedral vault
+        ceilY = 100 + 25 * Math.sin(x * 0.003);
+        floorY = 820 - 20 * Math.cos(x * 0.003);
+      }
+      pts.push({ x, ceilY, floorY });
+    }
+    return pts;
+  }
+
+  // Basalt Spires & Rock Columns
+  function generateBasaltSpires() {
+    const raw = [
+      // Sector 1
+      { cx: 580, cy: 260, w: 45, h: 200, type: 'ceiling' },
+      { cx: 920, cy: 660, w: 50, h: 220, type: 'floor' },
+      { cx: 1220, cy: 460, w: 55, h: 170, type: 'island' },
+      // Sector 2
+      { cx: 1650, cy: 250, w: 55, h: 240, type: 'ceiling' },
+      { cx: 1840, cy: 680, w: 55, h: 250, type: 'floor' },
+      { cx: 2060, cy: 430, w: 65, h: 200, type: 'island' },
+      { cx: 2280, cy: 290, w: 50, h: 240, type: 'ceiling' },
+      { cx: 2460, cy: 640, w: 55, h: 230, type: 'floor' },
+      { cx: 2660, cy: 450, w: 60, h: 190, type: 'island' },
+      // Sector 3
+      { cx: 3100, cy: 670, w: 60, h: 260, type: 'floor' },
+      { cx: 3320, cy: 280, w: 55, h: 240, type: 'ceiling' },
+      { cx: 3540, cy: 520, w: 70, h: 210, type: 'island' },
+      { cx: 3760, cy: 270, w: 55, h: 250, type: 'ceiling' },
+      { cx: 3980, cy: 680, w: 65, h: 260, type: 'floor' },
+      { cx: 4180, cy: 460, w: 60, h: 200, type: 'island' },
+      // Sector 4
+      { cx: 4700, cy: 260, w: 50, h: 210, type: 'ceiling' },
+      { cx: 4940, cy: 690, w: 55, h: 220, type: 'floor' },
+      { cx: 5200, cy: 300, w: 50, h: 190, type: 'ceiling' },
+      { cx: 5420, cy: 650, w: 50, h: 200, type: 'floor' }
+    ];
+
+    return raw.map((s, idx) => {
+      const poly = [];
+      const steps = 7;
+      for (let i = 0; i < steps; i++) {
+        const th = (i / steps) * Math.PI * 2;
+        const rx = (s.w * 0.5) * (0.8 + 0.35 * Math.sin(idx * 5 + i * 2));
+        const ry = (s.h * 0.5) * (0.8 + 0.35 * Math.cos(idx * 3 + i * 3));
+        poly.push({ x: s.cx + rx * Math.cos(th), y: s.cy + ry * Math.sin(th) });
+      }
+      return { ...s, poly };
+    });
+  }
+
+  // Vortex Currents
+  function generateVortices() {
+    return [
+      { id: 1, x: 980, y: 450, radius: 160, spin: 1.4, strength: 1.2, name: 'Shallow Eddy', disrupted: 0 },
+      { id: 2, x: 1920, y: 500, radius: 190, spin: -1.7, strength: 1.4, name: 'Basalt Gyre', disrupted: 0 },
+      { id: 3, x: 2520, y: 400, radius: 210, spin: 1.9, strength: 1.5, name: 'Gorge Mill', disrupted: 0 },
+      { id: 4, x: 3200, y: 480, radius: 230, spin: -2.2, strength: 1.8, name: 'Maelstrom Alpha', disrupted: 0 },
+      { id: 5, x: 3660, y: 420, radius: 240, spin: 2.5, strength: 2.0, name: 'Thermal Chasm Whirl', disrupted: 0 },
+      { id: 6, x: 4100, y: 520, radius: 220, spin: -2.1, strength: 1.7, name: 'Abyssal Counter-Eddy', disrupted: 0 },
+      { id: 7, x: 5060, y: 480, radius: 200, spin: 1.6, strength: 1.3, name: 'Athanor Harmonic Coil', disrupted: 0 }
+    ];
+  }
+
+  // Spores Generation
+  function generateSpores() {
+    const list = [];
+    const seedPositions = [
+      // Sector 1
+      { x: 300, y: 400, t: 'cyan' }, { x: 420, y: 520, t: 'cyan' }, { x: 500, y: 340, t: 'cyan' },
+      { x: 700, y: 480, t: 'gold' }, { x: 800, y: 380, t: 'cyan' }, { x: 1050, y: 350, t: 'cyan' },
+      { x: 1120, y: 560, t: 'cyan' }, { x: 1300, y: 430, t: 'violet' },
+      // Sector 2
+      { x: 1520, y: 380, t: 'cyan' }, { x: 1720, y: 490, t: 'gold' }, { x: 1800, y: 330, t: 'cyan' },
+      { x: 1980, y: 590, t: 'cyan' }, { x: 2150, y: 420, t: 'cyan' }, { x: 2220, y: 530, t: 'gold' },
+      { x: 2350, y: 360, t: 'cyan' }, { x: 2420, y: 480, t: 'cyan' }, { x: 2550, y: 560, t: 'violet' },
+      { x: 2700, y: 420, t: 'cyan' },
+      // Sector 3
+      { x: 2950, y: 460, t: 'cyan' }, { x: 3080, y: 360, t: 'gold' }, { x: 3180, y: 590, t: 'cyan' },
+      { x: 3300, y: 440, t: 'cyan' }, { x: 3420, y: 350, t: 'violet' }, { x: 3560, y: 570, t: 'cyan' },
+      { x: 3720, y: 450, t: 'gold' }, { x: 3850, y: 380, t: 'cyan' }, { x: 3940, y: 540, t: 'cyan' },
+      { x: 4120, y: 360, t: 'cyan' }, { x: 4250, y: 480, t: 'violet' },
+      // Sector 4
+      { x: 4550, y: 420, t: 'cyan' }, { x: 4650, y: 520, t: 'gold' }, { x: 4800, y: 390, t: 'cyan' },
+      { x: 4920, y: 540, t: 'cyan' }, { x: 5120, y: 450, t: 'violet' }, { x: 5280, y: 380, t: 'gold' },
+      { x: 5380, y: 510, t: 'cyan' }, { x: 5500, y: 460, t: 'violet' }
+    ];
+
+    // Expand into denser spore field
+    seedPositions.forEach((sp, idx) => {
+      list.push({
+        id: idx,
+        x: sp.x,
+        y: sp.y,
+        baseY: sp.y,
+        type: sp.t,
+        radius: sp.t === 'violet' ? 14 : (sp.t === 'gold' ? 12 : 9),
+        shieldGain: sp.t === 'violet' ? 45 : (sp.t === 'gold' ? 28 : 15),
+        scoreGain: sp.t === 'violet' ? 300 : (sp.t === 'gold' ? 150 : 50),
+        phase: Math.random() * Math.PI * 2,
+        collected: false,
+        attracted: false
+      });
+      // Add companion satellite spore
+      list.push({
+        id: 1000 + idx,
+        x: sp.x + (Math.sin(idx) * 40),
+        y: sp.y + (Math.cos(idx) * 35),
+        baseY: sp.y + (Math.cos(idx) * 35),
+        type: 'cyan',
+        radius: 8,
+        shieldGain: 12,
+        scoreGain: 40,
+        phase: Math.random() * Math.PI * 2,
+        collected: false,
+        attracted: false
+      });
+    });
+    return list;
+  }
+
+  // Anchor Beacons (Checkpoints)
+  function generateBeacons() {
+    return [
+      { id: 1, x: 140, y: 460, sector: 'Emerald Shallows', active: true },
+      { id: 2, x: 1450, y: 460, sector: 'Basalt Colonnade', active: false },
+      { id: 3, x: 2850, y: 480, sector: 'Maelstrom Trench', active: false },
+      { id: 4, x: 4450, y: 460, sector: 'Abyssal Athanor', active: false },
+      { id: 5, x: 5650, y: 460, sector: 'The Final Hearth', active: false, terminal: true }
+    ];
+  }
+
+  // Dist to Segment calculation for collision
+  function distToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const l2 = dx * dx + dy * dy;
+    if (l2 === 0) return { d: Math.hypot(px - x1, py - y1), nx: 0, ny: -1, cx: x1, cy: y1 };
+    let t = ((px - x1) * dx + (py - y1) * dy) / l2;
+    t = Math.max(0, Math.min(1, t));
+    const cx = x1 + t * dx;
+    const cy = y1 + t * dy;
+    const d = Math.hypot(px - cx, py - cy);
+    let nx = px - cx;
+    let ny = py - cy;
+    if (d > 0.0001) {
+      nx /= d;
+      ny /= d;
+    } else {
+      nx = -dy / Math.sqrt(l2);
+      ny = dx / Math.sqrt(l2);
+    }
+    return { d, nx, ny, cx, cy };
+  }
+
+  // Player Tank State
+  const player = {
+    x: 140,
+    y: 460,
+    vx: 0,
+    vy: 0,
+    angle: 0,
+    targetAngle: 0,
+    angularVelocity: 0,
+    radius: 18,
+    shield: 100,
+    maxShield: 100,
+    spores: 0,
+    score: 0,
+    thrusting: false,
+    reversing: false,
+    turningLeft: false,
+    turningRight: false,
+    braking: false,
+    invulnTimer: 0,
+    stasis: false,
+    activeCheckpoint: { x: 140, y: 460, sector: 'Emerald Shallows', spores: 0, score: 0 }
+  };
+
+  // World collections
+  let cavernPoints = generateCavernPath();
+  let spires = generateBasaltSpires();
+  let vortices = generateVortices();
+  let spores = generateSpores();
+  let beacons = generateBeacons();
+
+  // Particle systems
+  let bubbles = [];
+  let sparks = [];
+  let pulseRings = [];
+  let floatingTexts = [];
+
+  // Game state
+  let gameState = 'START'; // 'START' | 'PLAYING' | 'STASIS' | 'VICTORY' | 'HELP'
+  let gameStartTime = 0;
+  let victoryTime = 0;
+  let screenShake = 0;
+
+  // Camera tracking
+  let camX = 0;
+  let camY = 0;
+
+  // Banner announcement helper
+  const announcementEl = document.getElementById('announcement');
+  let bannerTimer = 0;
+
+  function showAnnouncement(msg, duration = 3) {
+    announcementEl.textContent = msg;
+    announcementEl.classList.add('show');
+    bannerTimer = duration;
+  }
+
+  // Input listeners (Keyboard + Touch + Click)
+  const keys = {};
+  window.addEventListener('keydown', (e) => {
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
+      e.preventDefault();
+    }
+    keys[e.code] = true;
+    audio.resume();
+
+    if (gameState === 'PLAYING') {
+      if (e.code === 'Space') triggerPulse();
+      if (e.code === 'KeyR') resetToLastBeacon();
+      if (e.code === 'KeyM') toggleMute();
+    }
+  });
+
+  window.addEventListener('keyup', (e) => {
+    keys[e.code] = false;
+  });
+
+  // Direct canvas pointer thrust support
+  let pointerActive = false;
+  let pointerPos = { x: 0, y: 0 };
+
+  canvas.addEventListener('pointerdown', (e) => {
+    audio.resume();
+    if (gameState !== 'PLAYING') return;
+    pointerActive = true;
+    pointerPos = { x: e.clientX, y: e.clientY };
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (pointerActive) {
+      pointerPos = { x: e.clientX, y: e.clientY };
+    }
+  });
+
+  window.addEventListener('pointerup', () => {
+    pointerActive = false;
+  });
+
+  // Touch button mappings
+  function bindTouchButton(btnId, onDown, onUp) {
+    const el = document.getElementById(btnId);
+    if (!el) return;
+    const startHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      audio.resume();
+      el.classList.add('pressed');
+      onDown();
+    };
+    const endHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      el.classList.remove('pressed');
+      onUp();
+    };
+    el.addEventListener('pointerdown', startHandler);
+    el.addEventListener('pointerup', endHandler);
+    el.addEventListener('pointercancel', endHandler);
+    el.addEventListener('pointerleave', endHandler);
+  }
+
+  bindTouchButton('btnUp', () => { player.thrusting = true; }, () => { player.thrusting = false; });
+  bindTouchButton('btnDown', () => { player.reversing = true; }, () => { player.reversing = false; });
+  bindTouchButton('btnLeft', () => { player.turningLeft = true; }, () => { player.turningLeft = false; });
+  bindTouchButton('btnRight', () => { player.turningRight = true; }, () => { player.turningRight = false; });
+  bindTouchButton('btnBrake', () => { player.braking = true; }, () => { player.braking = false; });
+
+  const btnPulseEl = document.getElementById('btnPulse');
+  btnPulseEl.addEventListener('click', (e) => {
+    e.preventDefault();
+    audio.resume();
+    triggerPulse();
+  });
+
+  // Audio Toggle Button
+  const btnAudioEl = document.getElementById('btnAudio');
+  function toggleMute() {
+    const isNowOn = audio.toggle();
+    btnAudioEl.textContent = isNowOn ? '🔊' : '🔇';
+  }
+  btnAudioEl.addEventListener('click', toggleMute);
+
+  // Help Button & Modal
+  const modalHelp = document.getElementById('modalHelp');
+  document.getElementById('btnHelp').addEventListener('click', () => {
+    if (gameState === 'PLAYING') {
+      gameState = 'HELP';
+      modalHelp.hidden = false;
+    }
+  });
+  document.getElementById('btnCloseHelp').addEventListener('click', () => {
+    modalHelp.hidden = true;
+    gameState = 'PLAYING';
+  });
+
+  // Reset to last anchor button
+  document.getElementById('btnReset').addEventListener('click', () => {
+    if (gameState === 'PLAYING') resetToLastBeacon();
+  });
+
+  // Start Modal
+  const modalStart = document.getElementById('modalStart');
+  document.getElementById('btnStartGame').addEventListener('click', () => {
+    audio.resume();
+    modalStart.hidden = true;
+    gameState = 'PLAYING';
+    gameStartTime = performance.now();
+    showAnnouncement('EXPEDITION INITIATED · THE LUMINESCENT DEEPS', 3.5);
+  });
+
+  // Stasis Modal buttons
+  const modalStasis = document.getElementById('modalStasis');
+  document.getElementById('btnRespawnBeacon').addEventListener('click', () => {
+    modalStasis.hidden = true;
+    resetToLastBeacon();
+    gameState = 'PLAYING';
+  });
+  document.getElementById('btnRestartExpedition').addEventListener('click', () => {
+    modalStasis.hidden = true;
+    restartFullGame();
+    gameState = 'PLAYING';
+  });
+
+  // Victory Modal buttons
+  const modalVictory = document.getElementById('modalVictory');
+  document.getElementById('btnContinuePlay').addEventListener('click', () => {
+    modalVictory.hidden = true;
+    gameState = 'PLAYING';
+  });
+  document.getElementById('btnReplay').addEventListener('click', () => {
+    modalVictory.hidden = true;
+    restartFullGame();
+    gameState = 'PLAYING';
+  });
+
+  // Trigger Spore Pulse
+  function triggerPulse() {
+    if (player.stasis || player.shield < 10) {
+      showAnnouncement('INSUFFICIENT SHIELD FOR PULSE', 1.5);
+      return;
+    }
+    player.shield = Math.max(0, player.shield - 10);
+    pulseRings.push({
+      x: player.x,
+      y: player.y,
+      r: player.radius,
+      maxR: 260,
+      life: 1.0
+    });
+    audio.playPulse();
+
+    // Attract spores within pulse range
+    spores.forEach((sp) => {
+      if (!sp.collected) {
+        const d = Math.hypot(sp.x - player.x, sp.y - player.y);
+        if (d < 260) {
+          sp.attracted = true;
+        }
+      }
+    });
+
+    // Disrupt and calm nearby vortices
+    vortices.forEach((v) => {
+      const d = Math.hypot(v.x - player.x, v.y - player.y);
+      if (d < v.radius + 180) {
+        v.disrupted = 4.0;
+        showAnnouncement(`VORTEX CALMED · ${v.name}`, 2.0);
+      }
+    });
+  }
+
+  // Reset to last anchor
+  function resetToLastBeacon() {
+    player.x = player.activeCheckpoint.x;
+    player.y = player.activeCheckpoint.y;
+    player.vx = 0;
+    player.vy = 0;
+    player.angularVelocity = 0;
+    player.shield = 100;
+    player.stasis = false;
+    player.invulnTimer = 1.0;
+    showAnnouncement(`RESONANCE RESTORED · ${player.activeCheckpoint.sector}`, 3.0);
+  }
+
+  // Restart full expedition
+  function restartFullGame() {
+    cavernPoints = generateCavernPath();
+    spires = generateBasaltSpires();
+    vortices = generateVortices();
+    spores = generateSpores();
+    beacons = generateBeacons();
+    player.x = 140;
+    player.y = 460;
+    player.vx = 0;
+    player.vy = 0;
+    player.angle = 0;
+    player.angularVelocity = 0;
+    player.shield = 100;
+    player.spores = 0;
+    player.score = 0;
+    player.stasis = false;
+    player.invulnTimer = 0.5;
+    player.activeCheckpoint = { x: 140, y: 460, sector: 'Emerald Shallows', spores: 0, score: 0 };
+    bubbles = [];
+    sparks = [];
+    pulseRings = [];
+    floatingTexts = [];
+    gameStartTime = performance.now();
+    showAnnouncement('EXPEDITION RESET · EMBARKING ANEW', 3.0);
+  }
+
+  // Spawn visual fx helpers
+  function addFloatingText(txt, x, y, color) {
+    floatingTexts.push({
+      text: txt,
+      x: x,
+      y: y,
+      color: color || '#00f5d4',
+      life: 1.0
+    });
+  }
+
+  function spawnBubble(x, y, vx, vy) {
+    if (prefersReducedMotion && bubbles.length > 10) return;
+    bubbles.push({
+      x: x,
+      y: y,
+      vx: vx + (Math.random() - 0.5) * 20,
+      vy: vy - 20 - Math.random() * 30,
+      r: 1.5 + Math.random() * 3.5,
+      life: 0.6 + Math.random() * 0.5,
+      maxLife: 1.0
+    });
+  }
+
+  function spawnImpactSparks(x, y, nx, ny, count = 8) {
+    if (prefersReducedMotion) count = 2;
+    for (let i = 0; i < count; i++) {
+      const speed = 40 + Math.random() * 120;
+      const angle = Math.atan2(ny, nx) + (Math.random() - 0.5) * 1.5;
+      sparks.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        r: 1.5 + Math.random() * 2,
+        life: 0.4 + Math.random() * 0.4,
+        color: Math.random() > 0.4 ? '#f0c05a' : '#00f5d4'
+      });
+    }
+  }
+
+  // Current sector finder
+  function getSectorAt(x) {
+    for (let s of SECTORS) {
+      if (x >= s.start && x < s.end) return s;
+    }
+    return SECTORS[SECTORS.length - 1];
+  }
+
+  // Main Physics and Game Loop
+  let lastTimestamp = performance.now();
+
+  function updateGame(dt) {
+    if (gameState !== 'PLAYING') return;
+
+    // Cap delta time to prevent tunneling
+    const delta = Math.min(dt, 0.05);
+
+    // Banner message countdown
+    if (bannerTimer > 0) {
+      bannerTimer -= delta;
+      if (bannerTimer <= 0) announcementEl.classList.remove('show');
+    }
+
+    if (player.invulnTimer > 0) player.invulnTimer -= delta;
+
+    // Vortex disruption timers
+    vortices.forEach((v) => {
+      if (v.disrupted > 0) v.disrupted -= delta;
+    });
+
+    // Control Inputs calculation
+    const keyThrust = keys['KeyW'] || keys['ArrowUp'] || player.thrusting;
+    const keyReverse = keys['KeyS'] || keys['ArrowDown'] || player.reversing;
+    const keyLeft = keys['KeyA'] || keys['ArrowLeft'] || player.turningLeft;
+    const keyRight = keys['KeyD'] || keys['ArrowRight'] || player.turningRight;
+    const keyBrake = keys['KeyB'] || keys['KeyX'] || player.braking;
+
+    // Steering
+    const turnRate = 3.6;
+    if (keyLeft) player.angularVelocity -= turnRate * delta;
+    if (keyRight) player.angularVelocity += turnRate * delta;
+
+    // Direct pointer steering
+    if (pointerActive) {
+      const screenPx = player.x - camX;
+      const screenPy = player.y - camY;
+      const targetAngle = Math.atan2(pointerPos.y - screenPy, pointerPos.x - screenPx);
+      let diff = targetAngle - player.angle;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      player.angularVelocity += diff * 4.0 * delta;
+      // Also apply forward thrust toward pointer if distant
+      const pDist = Math.hypot(pointerPos.x - screenPx, pointerPos.y - screenPy);
+      if (pDist > 40) {
+        player.vx += Math.cos(player.angle) * 280 * delta;
+        player.vy += Math.sin(player.angle) * 280 * delta;
+        // Thruster bubbles
+        const nozX = player.x - Math.cos(player.angle) * 16;
+        const nozY = player.y - Math.sin(player.angle) * 16;
+        spawnBubble(nozX, nozY, -player.vx * 0.2, -player.vy * 0.2);
+      }
+    }
+
+    player.angularVelocity *= 0.90; // Angular damping
+    player.angle += player.angularVelocity;
+
+    // Hydrodynamic Thrusters
+    const accel = 340;
+    if (keyThrust) {
+      player.vx += Math.cos(player.angle) * accel * delta;
+      player.vy += Math.sin(player.angle) * accel * delta;
+      // Emit thruster bubble wake
+      const nozDist = 16;
+      const noz1X = player.x - Math.cos(player.angle) * nozDist - Math.sin(player.angle) * 8;
+      const noz1Y = player.y - Math.sin(player.angle) * nozDist + Math.cos(player.angle) * 8;
+      const noz2X = player.x - Math.cos(player.angle) * nozDist + Math.sin(player.angle) * 8;
+      const noz2Y = player.y - Math.sin(player.angle) * nozDist - Math.cos(player.angle) * 8;
+      spawnBubble(noz1X, noz1Y, -Math.cos(player.angle) * 60, -Math.sin(player.angle) * 60);
+      spawnBubble(noz2X, noz2Y, -Math.cos(player.angle) * 60, -Math.sin(player.angle) * 60);
+    }
+
+    if (keyReverse) {
+      player.vx -= Math.cos(player.angle) * (accel * 0.5) * delta;
+      player.vy -= Math.sin(player.angle) * (accel * 0.5) * delta;
+    }
+
+    if (keyBrake) {
+      player.vx *= 0.91;
+      player.vy *= 0.91;
+    }
+
+    // Vortex Current Dynamics
+    vortices.forEach((v) => {
+      const dx = player.x - v.x;
+      const dy = player.y - v.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < v.radius && dist > 1) {
+        const factor = 1 - dist / v.radius;
+        if (v.disrupted <= 0) {
+          // Inward suction force
+          const pull = v.strength * 170 * factor * delta;
+          player.vx -= (dx / dist) * pull;
+          player.vy -= (dy / dist) * pull;
+
+          // Tangential rotational swirl force
+          const swirl = v.spin * 240 * factor * delta;
+          player.vx += (-dy / dist) * swirl;
+          player.vy += (dx / dist) * swirl;
+
+          // Angular rotational torque
+          player.angularVelocity += v.spin * 3.0 * factor * delta;
+
+          // Core shear damage if very close
+          if (dist < v.radius * 0.28) {
+            player.shield = Math.max(0, player.shield - 6.0 * delta);
+            if (Math.random() < 0.2) audio.playImpact(5);
+          }
+        }
+      }
+    });
+
+    // Linear Hydro-Drag
+    player.vx *= 0.97;
+    player.vy *= 0.97;
+
+    // Position integration
+    player.x += player.vx * delta;
+    player.y += player.vy * delta;
+
+    // Clamp horizontal world bounds
+    if (player.x < 30) {
+      player.x = 30;
+      player.vx = 0;
+    }
+
+    // Cavern Ceiling & Floor Collision
+    for (let i = 0; i < cavernPoints.length - 1; i++) {
+      const p1 = cavernPoints[i];
+      const p2 = cavernPoints[i + 1];
+      if (player.x >= p1.x - player.radius && player.x <= p2.x + player.radius) {
+        // Ceiling test
+        const ceilHit = distToSegment(player.x, player.y, p1.x, p1.ceilY, p2.x, p2.ceilY);
+        if (ceilHit.d < player.radius) {
+          resolveCollision(ceilHit.nx, ceilHit.ny, player.radius - ceilHit.d, ceilHit.cx, ceilHit.cy);
+        }
+        // Floor test
+        const floorHit = distToSegment(player.x, player.y, p1.x, p1.floorY, p2.x, p2.floorY);
+        if (floorHit.d < player.radius) {
+          resolveCollision(floorHit.nx, floorHit.ny, player.radius - floorHit.d, floorHit.cx, floorHit.cy);
+        }
+      }
+    }
+
+    // Basalt Spire Polygonal Collision
+    spires.forEach((spire) => {
+      // Bounding box pre-check
+      if (Math.abs(player.x - spire.cx) < spire.w + player.radius &&
+          Math.abs(player.y - spire.cy) < spire.h + player.radius) {
+        for (let j = 0; j < spire.poly.length; j++) {
+          const v1 = spire.poly[j];
+          const v2 = spire.poly[(j + 1) % spire.poly.length];
+          const hit = distToSegment(player.x, player.y, v1.x, v1.y, v2.x, v2.y);
+          if (hit.d < player.radius) {
+            resolveCollision(hit.nx, hit.ny, player.radius - hit.d, hit.cx, hit.cy);
+          }
+        }
+      }
+    });
+
+    // Spores Interaction
+    const nowSec = performance.now() * 0.002;
+    spores.forEach((sp) => {
+      if (sp.collected) return;
+      // Gentle floating bob
+      sp.y = sp.baseY + Math.sin(nowSec * 2 + sp.phase) * 6;
+
+      // Attracted by Spore Pulse
+      if (sp.attracted) {
+        const adx = player.x - sp.x;
+        const ady = player.y - sp.y;
+        const adist = Math.hypot(adx, ady);
+        if (adist > 2) {
+          sp.x += (adx / adist) * 440 * delta;
+          sp.y += (ady / adist) * 440 * delta;
+        }
+      }
+
+      // Proximity collection
+      const dist = Math.hypot(player.x - sp.x, player.y - sp.y);
+      if (dist < player.radius + sp.radius) {
+        sp.collected = true;
+        player.shield = Math.min(player.maxShield, player.shield + sp.shieldGain);
+        player.spores++;
+        player.score += sp.scoreGain;
+        audio.playSpore(sp.type);
+        addFloatingText(`+${sp.shieldGain}% SHIELD`, sp.x, sp.y - 10, sp.type === 'violet' ? '#b5179e' : (sp.type === 'gold' ? '#ffbe0b' : '#00f5d4'));
+        spawnImpactSparks(sp.x, sp.y, 0, -1, 10);
+      }
+    });
+
+    // Anchor Beacons Interaction
+    beacons.forEach((b) => {
+      const d = Math.hypot(player.x - b.x, player.y - b.y);
+      if (d < 70) {
+        if (!b.active) {
+          b.active = true;
+          player.activeCheckpoint = {
+            x: b.x,
+            y: b.y,
+            sector: b.sector,
+            spores: player.spores,
+            score: player.score
+          };
+          player.shield = 100;
+          audio.playBeacon();
+          showAnnouncement(`ANCHOR RESONANCE SECURED · ${b.sector}`, 3.5);
+          pulseRings.push({ x: b.x, y: b.y, r: 20, maxR: 320, life: 1.2 });
+        }
+        if (b.terminal && !player.won) {
+          player.won = true;
+          triggerVictory();
+        }
+      }
+    });
+
+    // Check Shield Depletion
+    if (player.shield <= 0 && !player.stasis) {
+      player.shield = 0;
+      player.stasis = true;
+      triggerStasis();
+    }
+
+    // Screen shake decay
+    if (screenShake > 0) screenShake = Math.max(0, screenShake - delta * 20);
+
+    // Update Particles
+    updateParticles(delta);
+
+    // Update HUD
+    updateHUD();
+  }
+
+  // Collision resolver with elastic bounce and shield attrition
+  function resolveCollision(nx, ny, penetration, contactX, contactY) {
+    player.x += nx * penetration;
+    player.y += ny * penetration;
+    const vDotN = player.vx * nx + player.vy * ny;
+    if (vDotN < 0) {
+      // Reflect velocity along normal
+      const bounce = 0.38;
+      player.vx -= (1 + bounce) * vDotN * nx;
+      player.vy -= (1 + bounce) * vDotN * ny;
+
+      const impactSpeed = Math.abs(vDotN);
+      if (impactSpeed > 30 && player.invulnTimer <= 0) {
+        const damage = Math.min(28, Math.max(5, impactSpeed * 0.08));
+        player.shield = Math.max(0, player.shield - damage);
+        player.invulnTimer = 0.2;
+        if (!prefersReducedMotion) screenShake = Math.min(10, impactSpeed * 0.06);
+        spawnImpactSparks(contactX, contactY, nx, ny, 6);
+        audio.playImpact(impactSpeed);
+      }
+    }
+  }
+
+  // Update visual particle lifecycles
+  function updateParticles(delta) {
+    // Bubbles
+    for (let i = bubbles.length - 1; i >= 0; i--) {
+      const b = bubbles[i];
+      b.x += b.vx * delta;
+      b.y += b.vy * delta;
+      b.life -= delta;
+      if (b.life <= 0) bubbles.splice(i, 1);
+    }
+    // Sparks
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      s.x += s.vx * delta;
+      s.y += s.vy * delta;
+      s.life -= delta;
+      if (s.life <= 0) sparks.splice(i, 1);
+    }
+    // Pulse waves
+    for (let i = pulseRings.length - 1; i >= 0; i--) {
+      const p = pulseRings[i];
+      p.r += (p.maxR - p.r) * 6.0 * delta;
+      p.life -= delta * 1.8;
+      if (p.life <= 0) pulseRings.splice(i, 1);
+    }
+    // Floating text
+    for (let i = floatingTexts.length - 1; i >= 0; i--) {
+      const ft = floatingTexts[i];
+      ft.y -= 25 * delta;
+      ft.life -= delta * 1.2;
+      if (ft.life <= 0) floatingTexts.splice(i, 1);
+    }
+  }
+
+  // UI HUD updates
+  const shieldBarEl = document.getElementById('shieldBar');
+  const shieldTextEl = document.getElementById('shieldText');
+  const depthMeterEl = document.getElementById('depthMeter');
+  const sectorNameEl = document.getElementById('sectorName');
+  const sporesCountEl = document.getElementById('sporesCount');
+  const scoreDisplayEl = document.getElementById('scoreDisplay');
+
+  function updateHUD() {
+    const shieldPct = Math.round(player.shield);
+    shieldTextEl.textContent = `${shieldPct}%`;
+    shieldBarEl.style.width = `${shieldPct}%`;
+    shieldBarEl.classList.remove('warning', 'critical');
+    if (shieldPct < 25) {
+      shieldBarEl.classList.add('critical');
+    } else if (shieldPct < 50) {
+      shieldBarEl.classList.add('warning');
+    }
+
+    const dist = Math.min(5500, Math.max(0, Math.round(player.x)));
+    depthMeterEl.textContent = `${dist.toLocaleString()}m / 5,500m`;
+    const curSector = getSectorAt(player.x);
+    sectorNameEl.textContent = curSector.name;
+    sporesCountEl.textContent = player.spores;
+    scoreDisplayEl.textContent = `${player.score.toLocaleString()} PTS`;
+  }
+
+  // Stasis Modal Trigger
+  function triggerStasis() {
+    gameState = 'STASIS';
+    document.getElementById('stasisDistance').textContent = `${Math.round(player.x)}m`;
+    document.getElementById('stasisSpores').textContent = player.spores;
+    modalStasis.hidden = false;
+  }
+
+  // Victory Modal Trigger
+  function triggerVictory() {
+    gameState = 'VICTORY';
+    victoryTime = performance.now();
+    const elapsedSec = Math.floor((victoryTime - gameStartTime) / 1000);
+    const mins = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+    const secs = String(elapsedSec % 60).padStart(2, '0');
+
+    let rating = 'Rank S (Master Cavern Cartographer)';
+    if (player.spores < 25) rating = 'Rank A (Resonant Deepdiver)';
+    if (player.spores < 15) rating = 'Rank B (Cavern Survivor)';
+
+    document.getElementById('vicSpores').textContent = player.spores;
+    document.getElementById('vicTime').textContent = `${mins}:${secs}`;
+    document.getElementById('vicRating').textContent = rating;
+    modalVictory.hidden = false;
+  }
+
+  // Rendering Routines (Pure HTML5 Canvas 2D)
+  function render() {
+    // Camera Tracking
+    const targetCamX = player.x - viewW * 0.35;
+    const targetCamY = player.y - viewH * 0.5;
+    camX += (targetCamX - camX) * 0.1;
+    camY += (targetCamY - camY) * 0.1;
+
+    // Apply Screen Shake if enabled
+    let sx = 0, sy = 0;
+    if (!prefersReducedMotion && screenShake > 0) {
+      sx = (Math.random() - 0.5) * screenShake;
+      sy = (Math.random() - 0.5) * screenShake;
+    }
+
+    ctx.save();
+    ctx.clearRect(0, 0, viewW, viewH);
+    ctx.translate(-camX + sx, -camY + sy);
+
+    // Parallax background stars and deep cavern silhouette
+    drawBackgroundLayer();
+
+    // Cavern Walls (Ceiling and Floor)
+    drawCavernWalls();
+
+    // Basalt Spires & Rock Formations
+    drawBasaltSpires();
+
+    // Vortex Current Whirlpools
+    drawVortices();
+
+    // Anchor Beacons
+    drawBeacons();
+
+    // Spore Nodes
+    drawSpores();
+
+    // Pulse Rings
+    drawPulseRings();
+
+    // Particles (Bubbles & Sparks)
+    drawParticles();
+
+    // The Player's Brass-and-Glass Spore-Bubble Tank
+    drawSporeBubbleTank();
+
+    // Floating combat / score text
+    drawFloatingText();
+
+    ctx.restore();
+  }
+
+  // Parallax backdrop
+  function drawBackgroundLayer() {
+    const t = performance.now() * 0.0005;
+    // Distant drifting bio-plankton motes
+    ctx.fillStyle = 'rgba(0, 245, 212, 0.2)';
+    for (let i = 0; i < 35; i++) {
+      const bx = ((i * 180 + t * 40) % (WORLD_LENGTH + 400)) - 200;
+      const by = 150 + ((i * 137) % 650) + Math.sin(t + i) * 15;
+      ctx.beginPath();
+      ctx.arc(bx, by, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Draw Cavern Ceiling & Floor Polygons
+  function drawCavernWalls() {
+    if (cavernPoints.length < 2) return;
+
+    // Ceiling polygon
+    ctx.save();
+    ctx.fillStyle = '#060d17';
+    ctx.strokeStyle = '#00f5d4';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = 'rgba(0, 245, 212, 0.4)';
+    ctx.shadowBlur = 10;
+
+    ctx.beginPath();
+    ctx.moveTo(cavernPoints[0].x - 100, -200);
+    ctx.lineTo(cavernPoints[0].x - 100, cavernPoints[0].ceilY);
+    for (let i = 0; i < cavernPoints.length; i++) {
+      ctx.lineTo(cavernPoints[i].x, cavernPoints[i].ceilY);
+    }
+    ctx.lineTo(cavernPoints[cavernPoints.length - 1].x + 200, cavernPoints[cavernPoints.length - 1].ceilY);
+    ctx.lineTo(cavernPoints[cavernPoints.length - 1].x + 200, -200);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Floor polygon
+    ctx.fillStyle = '#060d17';
+    ctx.strokeStyle = '#2de2e6';
+    ctx.shadowColor = 'rgba(45, 226, 230, 0.4)';
+
+    ctx.beginPath();
+    ctx.moveTo(cavernPoints[0].x - 100, WORLD_HEIGHT + 200);
+    ctx.lineTo(cavernPoints[0].x - 100, cavernPoints[0].floorY);
+    for (let i = 0; i < cavernPoints.length; i++) {
+      ctx.lineTo(cavernPoints[i].x, cavernPoints[i].floorY);
+    }
+    ctx.lineTo(cavernPoints[cavernPoints.length - 1].x + 200, cavernPoints[cavernPoints.length - 1].floorY);
+    ctx.lineTo(cavernPoints[cavernPoints.length - 1].x + 200, WORLD_HEIGHT + 200);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // Draw Basalt Spires & Rock Columns
+  function drawBasaltSpires() {
+    ctx.save();
+    spires.forEach((spire) => {
+      // Rock body
+      ctx.fillStyle = '#0b1622';
+      ctx.strokeStyle = '#1e3448';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(spire.poly[0].x, spire.poly[0].y);
+      for (let i = 1; i < spire.poly.length; i++) {
+        ctx.lineTo(spire.poly[i].x, spire.poly[i].y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Bioluminescent coastal moss rim
+      ctx.strokeStyle = '#00f5d4';
+      ctx.lineWidth = 1.5;
+      ctx.shadowColor = 'rgba(0, 245, 212, 0.5)';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let i = 0; i < 3; i++) {
+        const v1 = spire.poly[i];
+        const v2 = spire.poly[i + 1];
+        ctx.moveTo(v1.x, v1.y);
+        ctx.lineTo(v2.x, v2.y);
+      }
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  // Draw Vortex Whirlpools
+  function drawVortices() {
+    const time = performance.now() * 0.003;
+    vortices.forEach((v) => {
+      ctx.save();
+      ctx.translate(v.x, v.y);
+
+      const isCalmed = v.disrupted > 0;
+      const swirlColor = isCalmed ? 'rgba(255, 190, 11, 0.4)' : 'rgba(0, 245, 212, 0.45)';
+      const coreColor = isCalmed ? 'rgba(255, 190, 11, 0.8)' : 'rgba(0, 245, 212, 0.8)';
+
+      // Outer current limit circle
+      ctx.strokeStyle = swirlColor;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.arc(0, 0, v.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Swirling spiral arms
+      const arms = 4;
+      const rot = time * v.spin;
+      ctx.lineWidth = 2;
+      for (let a = 0; a < arms; a++) {
+        const baseAngle = rot + (a * Math.PI * 2) / arms;
+        ctx.strokeStyle = swirlColor;
+        ctx.beginPath();
+        for (let r = 10; r < v.radius; r += 12) {
+          const theta = baseAngle + (r / v.radius) * 2.5 * Math.sign(v.spin);
+          const px = Math.cos(theta) * r;
+          const py = Math.sin(theta) * r;
+          if (r === 10) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      }
+
+      // Eye of the vortex
+      ctx.fillStyle = coreColor;
+      ctx.beginPath();
+      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Label if calmed
+      if (isCalmed) {
+        ctx.font = '10px monospace';
+        ctx.fillStyle = '#ffbe0b';
+        ctx.textAlign = 'center';
+        ctx.fillText('CALMED', 0, -v.radius - 8);
+      }
+
+      ctx.restore();
+    });
+  }
+
+  // Draw Anchor Beacons
+  function drawBeacons() {
+    const time = performance.now() * 0.002;
+    beacons.forEach((b) => {
+      ctx.save();
+      ctx.translate(b.x, b.y);
+
+      // Pylon pillars
+      ctx.fillStyle = '#8c5b1b';
+      ctx.fillRect(-12, -40, 6, 80);
+      ctx.fillRect(6, -40, 6, 80);
+
+      // Resonant Crystal in center
+      const crystalGlow = b.active ? '#f0c05a' : '#00f5d4';
+      ctx.fillStyle = crystalGlow;
+      ctx.shadowColor = crystalGlow;
+      ctx.shadowBlur = b.active ? 20 : 8;
+
+      ctx.save();
+      ctx.rotate(time + b.id);
+      ctx.beginPath();
+      ctx.moveTo(0, -18);
+      ctx.lineTo(12, 0);
+      ctx.lineTo(0, 18);
+      ctx.lineTo(-12, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Halo beam if active
+      if (b.active) {
+        ctx.strokeStyle = 'rgba(240, 192, 90, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 32 + Math.sin(time * 3) * 4, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    });
+  }
+
+  // Draw Spores
+  function drawSpores() {
+    const time = performance.now() * 0.003;
+    spores.forEach((sp) => {
+      if (sp.collected) return;
+      ctx.save();
+      ctx.translate(sp.x, sp.y);
+
+      let color = '#00f5d4';
+      if (sp.type === 'gold') color = '#ffbe0b';
+      if (sp.type === 'violet') color = '#b5179e';
+
+      // Outer soft radial glow
+      const glowGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, sp.radius * 2);
+      glowGrad.addColorStop(0, color);
+      glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = glowGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, sp.radius * 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Core spore seed
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(0, 0, sp.radius * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Orbital micro-cilia
+      const ciliaCount = 3;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      for (let c = 0; c < ciliaCount; c++) {
+        const ang = time * 2 + (c * Math.PI * 2) / ciliaCount + sp.phase;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(ang) * (sp.radius * 0.6), Math.sin(ang) * (sp.radius * 0.6));
+        ctx.lineTo(Math.cos(ang) * (sp.radius * 1.3), Math.sin(ang) * (sp.radius * 1.3));
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    });
+  }
+
+  // Draw Pulse Rings
+  function drawPulseRings() {
+    pulseRings.forEach((p) => {
+      ctx.save();
+      ctx.strokeStyle = `rgba(0, 245, 212, ${p.life})`;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00f5d4';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // Draw Particles (Bubbles & Sparks)
+  function drawParticles() {
+    // Bubbles
+    ctx.save();
+    ctx.strokeStyle = 'rgba(160, 230, 255, 0.7)';
+    ctx.fillStyle = 'rgba(200, 245, 255, 0.2)';
+    ctx.lineWidth = 1;
+    bubbles.forEach((b) => {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    // Sparks
+    ctx.save();
+    sparks.forEach((s) => {
+      ctx.fillStyle = s.color;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  // Draw Brass-and-Glass Spore-Bubble Tank
+  function drawSporeBubbleTank() {
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    ctx.rotate(player.angle);
+
+    // Invulnerability flashing
+    if (player.invulnTimer > 0 && Math.floor(performance.now() / 80) % 2 === 0) {
+      ctx.globalAlpha = 0.5;
+    }
+
+    // 1. Dual Aft Hydro-Thruster Nozzles (Brass)
+    const nozColor = '#8c5b1b';
+    const nozLip = '#f0c05a';
+    ctx.fillStyle = nozColor;
+    ctx.strokeStyle = nozLip;
+    ctx.lineWidth = 1.5;
+
+    // Upper Thruster
+    ctx.beginPath();
+    ctx.rect(-17, -13, 8, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    // Lower Thruster
+    ctx.beginPath();
+    ctx.rect(-17, 8, 8, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    // 2. Brass Armature & Mounting Frame
+    ctx.strokeStyle = '#f0c05a';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, player.radius, -Math.PI * 0.45, Math.PI * 0.45, true);
+    ctx.stroke();
+
+    // Equatorial Brass Girder Ring
+    ctx.beginPath();
+    ctx.ellipse(0, 0, player.radius, 4, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 3. Thick Silica-Glass Sphere Canopy
+    const glassGrad = ctx.createRadialGradient(-5, -5, 2, 0, 0, player.radius);
+    glassGrad.addColorStop(0, 'rgba(210, 245, 255, 0.4)');
+    glassGrad.addColorStop(0.7, 'rgba(80, 190, 230, 0.2)');
+    glassGrad.addColorStop(1, 'rgba(30, 120, 180, 0.5)');
+    ctx.fillStyle = glassGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Outer Glass Rim
+    ctx.strokeStyle = 'rgba(200, 245, 255, 0.85)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Specular Glint Reflection Arc
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, player.radius - 3, -Math.PI * 0.75, -Math.PI * 0.35);
+    ctx.stroke();
+
+    // 4. Inner Bioluminescent Spore Core Reactor
+    let coreColor = '#00f5d4';
+    if (player.shield < 30) {
+      coreColor = '#ef233c';
+    } else if (player.shield < 60) {
+      coreColor = '#ffbe0b';
+    }
+
+    const corePulse = Math.sin(performance.now() * 0.008) * 1.5;
+    ctx.fillStyle = coreColor;
+    ctx.shadowColor = coreColor;
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(-2, 0, 6 + corePulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Forward Observation Bezel / Lamp
+    ctx.fillStyle = '#f0c05a';
+    ctx.beginPath();
+    ctx.arc(player.radius - 1, 0, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Shield Aura Bubble
+    if (player.shield > 0) {
+      ctx.strokeStyle = `rgba(0, 245, 212, ${(player.shield / 100) * 0.45})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, player.radius + 5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  // Draw Floating Text (Shield and Score pickups)
+  function drawFloatingText() {
+    floatingTexts.forEach((ft) => {
+      ctx.save();
+      ctx.font = 'bold 12px monospace';
+      ctx.fillStyle = ft.color;
+      ctx.globalAlpha = Math.max(0, ft.life);
+      ctx.shadowColor = ft.color;
+      ctx.shadowBlur = 6;
+      ctx.textAlign = 'center';
+      ctx.fillText(ft.text, ft.x, ft.y);
+      ctx.restore();
+    });
+  }
+
+  // Animation Loop
+  function gameLoop(timestamp) {
+    const dt = (timestamp - lastTimestamp) / 1000;
+    lastTimestamp = timestamp;
+
+    updateGame(dt);
+    render();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  requestAnimationFrame((ts) => {
+    lastTimestamp = ts;
+    requestAnimationFrame(gameLoop);
+  });
+
+})();
+</script>
+</body>
+</html>

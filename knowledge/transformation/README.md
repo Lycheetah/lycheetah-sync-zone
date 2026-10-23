@@ -27,3 +27,4 @@ general theory of personal, social, or physical transformation.
 - `experiments/discrete-noether-invariants/` — Comprehensive DEL symplectic engine, discrete Noether proofs, and Schnakenberg cycle tests.
 - `experiments/thermodynamics/` — Non-equilibrium Markov network simulator and entropy production suite.
 - `experiments/dynamical-invariants/` — Discrete Laplacian conservation tests.
+- `experiments/literary-mapping-invariance/` — Research Question Q007 testbed: topological invariants under bijective re-labeling vs metric cadence collapse and affine isometric embeddings.

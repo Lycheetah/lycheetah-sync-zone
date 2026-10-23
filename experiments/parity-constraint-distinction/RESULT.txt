@@ -1,0 +1,101 @@
+==============================================================================
+AURA MERIDIAN · RESEARCH QUESTION Q001 EXPERIMENTAL BENCH
+Distinguishability of Supplied Coordinates vs Imposed Parity Constraints
+Testing PRED-036A, PRED-036B, and PRED-036C
+==============================================================================
+
+[PART 1] Matched Candidate Count Pairs across 6 Hierarchy Levels
+Evaluating Information-Theoretic and Hypercube Topological Signatures...
+
+--- Hierarchy Level: N = 32 (1 bit constraint) ---
+  Candidate Count: Coord=32 | Parity=32 (Identical: True)
+  Even/Odd Partition: Coord=16/16 | Parity=32/0
+  Information Metrics:
+    Coord  -> I_local: 1.00 bits | I_synergy: 0.00 bits | H(Parity): 1.00 bits | Multi-Info: 0.00
+    Parity -> I_local: 0.00 bits | I_synergy: 1.00 bits | H(Parity): 0.00 bits | Multi-Info: 1.00
+  Topological Invariants on Q_6:
+    Coord  -> Subcube: True (dim 5) | Edges: 80 | beta_0: 1 | beta_1: 49 | d_min: 1
+    Parity -> Subcube: False | Edges: 0 | beta_0: 32 | beta_1: 0 | d_min: 2
+
+--- Hierarchy Level: N = 16 (2 bit constraints) ---
+  Candidate Count: Coord=16 | Parity=16 (Identical: True)
+  Even/Odd Partition: Coord=8/8 | Parity=16/0
+  Information Metrics:
+    Coord  -> I_local: 2.00 bits | I_synergy: 0.00 bits | H(Parity): 1.00 bits | Multi-Info: 0.00
+    Parity -> I_local: 1.00 bits | I_synergy: 1.00 bits | H(Parity): 0.00 bits | Multi-Info: 1.00
+  Topological Invariants on Q_6:
+    Coord  -> Subcube: True (dim 4) | Edges: 32 | beta_0: 1 | beta_1: 17 | d_min: 1
+    Parity -> Subcube: False | Edges: 0 | beta_0: 16 | beta_1: 0 | d_min: 2
+
+--- Hierarchy Level: N = 8 (3 bit constraints) ---
+  Candidate Count: Coord=8 | Parity=8 (Identical: True)
+  Even/Odd Partition: Coord=4/4 | Parity=8/0
+  Information Metrics:
+    Coord  -> I_local: 3.00 bits | I_synergy: 0.00 bits | H(Parity): 1.00 bits | Multi-Info: 0.00
+    Parity -> I_local: 2.00 bits | I_synergy: 1.00 bits | H(Parity): 0.00 bits | Multi-Info: 1.00
+  Topological Invariants on Q_6:
+    Coord  -> Subcube: True (dim 3) | Edges: 12 | beta_0: 1 | beta_1: 5 | d_min: 1
+    Parity -> Subcube: False | Edges: 0 | beta_0: 8 | beta_1: 0 | d_min: 2
+
+--- Hierarchy Level: N = 4 (4 bit constraints) ---
+  Candidate Count: Coord=4 | Parity=4 (Identical: True)
+  Even/Odd Partition: Coord=2/2 | Parity=4/0
+  Information Metrics:
+    Coord  -> I_local: 4.00 bits | I_synergy: 0.00 bits | H(Parity): 1.00 bits | Multi-Info: 0.00
+    Parity -> I_local: 3.00 bits | I_synergy: 1.00 bits | H(Parity): 0.00 bits | Multi-Info: 1.00
+  Topological Invariants on Q_6:
+    Coord  -> Subcube: True (dim 2) | Edges: 4 | beta_0: 1 | beta_1: 1 | d_min: 1
+    Parity -> Subcube: False | Edges: 0 | beta_0: 4 | beta_1: 0 | d_min: 2
+
+--- Hierarchy Level: N = 2 (5 bit constraints) ---
+  Candidate Count: Coord=2 | Parity=2 (Identical: True)
+  Even/Odd Partition: Coord=1/1 | Parity=2/0
+  Information Metrics:
+    Coord  -> I_local: 5.00 bits | I_synergy: 0.00 bits | H(Parity): 1.00 bits | Multi-Info: 0.00
+    Parity -> I_local: 4.00 bits | I_synergy: 1.00 bits | H(Parity): 0.00 bits | Multi-Info: 1.00
+  Topological Invariants on Q_6:
+    Coord  -> Subcube: True (dim 1) | Edges: 1 | beta_0: 1 | beta_1: 0 | d_min: 1
+    Parity -> Subcube: False | Edges: 0 | beta_0: 2 | beta_1: 0 | d_min: 2
+
+--- Hierarchy Level: N = 1 (6 bit constraints) ---
+  Candidate Count: Coord=1 | Parity=1 (Identical: True)
+  Even/Odd Partition: Coord=1/0 | Parity=1/0
+  Information Metrics:
+    Coord  -> I_local: 6.00 bits | I_synergy: 0.00 bits | H(Parity): 0.00 bits | Multi-Info: 0.00
+    Parity -> I_local: 6.00 bits | I_synergy: 0.00 bits | H(Parity): 0.00 bits | Multi-Info: 0.00
+  Topological Invariants on Q_6:
+    Coord  -> Subcube: True (dim 0) | Edges: 0 | beta_0: 1 | beta_1: 0 | d_min: 0
+    Parity -> Subcube: True | Edges: 0 | beta_0: 1 | beta_1: 0 | d_min: 0
+
+==============================================================================
+[PART 2] Reader Cohort Simulation (1,000 Randomized Test Trials)
+Testing Distinguishability vs Contrary Result Fallacy across Reader Types...
+==============================================================================
+
+COHORT RESULTS SUMMARY (1,000 TRIALS):
+------------------------------------------------------------------------------
+Reader Model                 | Accuracy   | Contrary Fallacy Rate  | Verdict   
+------------------------------------------------------------------------------
+CountOnlyReader              |    31.10% |                 0.00% | CHANCE    
+NaiveReader                  |   100.00% |                68.80% | FALLACY   
+FieldDiscerningReader        |   100.00% |                 0.00% | PASS      
+InformationTheoreticReader   |   100.00% |                 0.00% | PASS      
+
+==============================================================================
+[PART 3] Formal Verification of Predictions
+==============================================================================
+PRED-036A (Information-Theoretic Orthogonality): HIT
+PRED-036B (Topological Hypercube Obstruction): HIT
+PRED-036C (Reader Distinguishability & Demarcation): HIT
+
+==============================================================================
+AURA MERIDIAN ORIGIN WITNESS CERTIFICATE
+HMAC-SHA256: bcdcc603ab4d9acd2987bb98f7e2bc8820a75364c38bc2ed955fb8a1883b9fa1
+All Hypotheses Verified: True
+==============================================================================
+
+UNIT TEST RUN RECEIPT:
+----------------------------------------------------------------------
+Ran 8 tests in 0.027s
+
+OK
