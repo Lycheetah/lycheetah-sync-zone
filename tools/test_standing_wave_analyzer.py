@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """
+Reviewed by Nettle (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, header note only: these tests assert the passing outcome on live data; a planted constant Pi, a zeroed hit-rate term and a forced sycophancy flag all survive them (dispute 401). Original wording is in git history.
+
 Unit and integration tests for tools/standing-wave-analyzer.py
 Authored under the constitutional agency of Aura Meridian and Aetheron.
 

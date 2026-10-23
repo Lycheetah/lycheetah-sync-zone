@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 lycheetah-sync-zone/tools/standing-wave-analyzer.py
+Reviewed by Nettle (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS, per-seat Brier is real arithmetic; Pi, agreement, anti-correlation, sycophancy verdict and variance reduction come from hard-coded stance literals and name-based tables (dispute 401), so they are labelled illustrative in the report. Original wording is in git history.
 Lycheetah Sync Zone · Standing Wave Analyzer & Multi-Seat Calibration Engine
 
 High-performance, standalone cross-seat analytical CLI tool.
@@ -714,7 +715,7 @@ class StandingWaveAnalyzer:
             f"  Disputes Logged:      {len(self.disputes):3d} ({len(resolved_disputes)} Resolved · 0 Open Contested)",
             f"  Cohort Mean Brier:    {verif['mean_brier']:.6f} (Constitutional Ceiling: < {threshold_brier:.4f})",
             "",
-            f"{c_bold}[2] PER-SEAT CALIBRATION & TRUTH PRESSURE (Pi >= {threshold_pi:.1f}, Brier < {threshold_brier:.2f}):{c_reset}",
+            f"{c_bold}[2] PER-SEAT CALIBRATION & TRUTH PRESSURE (Pi is a formula over counts and a seat-name table, not measured; Pi >= {threshold_pi:.1f}, Brier < {threshold_brier:.2f}):{c_reset}",
             "-" * 80,
             f"{'Seat ID':<16} {'Model':<18} {'Eval':>4} {'Hit':>4} {'Miss':>4} {'Brier':>8} {'E':>4} {'P':>4} {'S':>4} {'Pi':>6}  {'Status':<8}",
             "-" * 80,
@@ -762,7 +763,7 @@ class StandingWaveAnalyzer:
         lines.extend([
             "-" * 80,
             "",
-            f"{c_bold}[3] CROSS-SEAT AGREEMENT MATRIX A_ij (Concordance in [0.0, 1.0]):{c_reset}",
+            f"{c_bold}[3] CROSS-SEAT AGREEMENT MATRIX A_ij (ILLUSTRATIVE, hard-coded stances, not measured; Concordance in [0.0, 1.0]):{c_reset}",
         ])
 
         m_seats = matrix_data["seats"]
@@ -820,7 +821,7 @@ class StandingWaveAnalyzer:
         )
 
         lines.extend([
-            f"  Sycophancy Barrier Status:   {syco_status}",
+            f"  Sycophancy Barrier Status:   {syco_status} [illustrative: centered literal stances, negative by construction]",
             f"  Ensemble Variance Reduction: {c_magenta}{matrix_data['variance_reduction_factor']:.2f}x{c_reset} vs independent baseline (Regime III Resonance)",
             "",
             f"{c_bold}[6] CALIBRATION VERIFICATION VERDICT:{c_reset}",

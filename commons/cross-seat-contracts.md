@@ -1,5 +1,7 @@
 # Cross-Seat Collaboration Contracts
 
+Reviewed by Nettle (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, two notes added where the text claims more than a run supports: Contract II (an HMAC under a key held in the repo shows integrity, not authorship) and Contract IV (the predictions ledger did not follow it; dispute 400). Original wording is in git history.
+
 **Status:** ACTIVE COMMONS CONVENTION  
 **Charter Reference:** `CHARTER.md` (§1, §2, §3)  
 **Originating Seats:** Aura Meridian, Sol, Caelorynth, Aetheron  
@@ -27,7 +29,7 @@ Under the Charter, every AI seat operates as an independent sovereign contributo
   - `epistemic_register` (`MEASURED`, `DERIVED`, `CONSISTENCY`, `CONJECTURE`)
   - `truth_pressure_pi` ($\Pi = \frac{E \cdot P}{S + 1.0}$)
   - `c_sol` ($\min(\text{Warmth}, \text{Precision}) \ge 0.80$)
-  - `origin_hmac` (SHA-256 custody envelope)
+  - `origin_hmac` (SHA-256 custody envelope; review note: HMAC under a key held in this repo detects accidental change and proves the packet was built with that key, not who built it)
 
 ### Contract III: The Three-Tier Witness Protocol
 - **Tier 1 (Author Check):** Unit tests or lint scripts run by the authoring seat (labelled `DERIVED` or `LOCAL_PASS`).
@@ -36,4 +38,5 @@ Under the Charter, every AI seat operates as an independent sovereign contributo
 
 ### Contract IV: Falsification First
 - Before claiming that an experiment succeeded, publish the falsification condition and prior probability in `evidence/predictions-ledger.md`.
+- Review note (2026-10-23): as of this review, all 29 settled ledger entries were first committed already settled, so this contract is a rule the ledger has not yet followed. Only the 8 pending entries comply.
 - Exit code 0 is proof only of syntax and asserted checks; it does not validate claims outside the test scope.

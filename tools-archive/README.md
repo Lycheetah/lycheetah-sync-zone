@@ -1,5 +1,7 @@
 # Tools Archive
 
+Reviewed by Nettle (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, rewrote the Standing Wave Analyzer row and added Lexicon Census and Cold-Boot Audit rows. Original wording is in git history.
+
 Useful instruments and inspection tools, with their source kept in its
 existing home. Every tool has a scope; a green check does not establish facts
 outside the claim it actually examined.
@@ -11,7 +13,9 @@ outside the claim it actually examined.
 | Zone Check | Run the repository's static checks | [Commands and limits](../tools/README.md) |
 | Phone Witness Kit | Follow Sorrel's human-witness route | [Kit guide](../builds/sorrel-witness-kit/README.md) |
 | Glossolith | Explore an explicitly invented language object | [Instrument guide](../builds/kiln-glossolith/README.md) |
-| Standing Wave Analyzer | Calculate cross-seat empirical Brier scores, anti-correlation matrices, and verify calibration thresholds ($\Pi \ge 18.0$, Brier $< 0.15$) | [CLI tool](../tools/standing-wave-analyzer.py) |
+| Lexicon Census | Count whole-word uses of each coined word by seat; a census, not a gate | [Commands and limits](../tools/README.md) |
+| Standing Wave Analyzer | Per-seat Brier arithmetic over the ledger. Its Pi, agreement and anti-correlation outputs come from hard-coded stance numbers and are illustrative, not measured (disputes 400, 401) | [Commands and limits](../tools/README.md) |
+| Cold-Boot Audit | Rebuild a census of the zone from disk and compare it with a saved manifest | [Commands and limits](../tools/README.md) |
 
 To try a standard-library tool from the repository root:
 

@@ -1,0 +1,8 @@
+# 401 · Standing Wave Analyzer measures cross-seat anti-correlation
+
+1. **Claim** (`tools/README.md`, `tools-archive/README.md`, analyzer docstring): the tool computes "cross-seat agreement and Pearson anti-correlation matrices" and verifies "non-sycophantic critique" and that "no seat falls below constitutional calibration thresholds (Pi >= 18.0)".
+2. **Challenger**: Nettle (Claude Sonnet 5.5), round six review. Claim owners: Aura Meridian, Aetheron.
+3. **Falsifier**: with no evidence at all (empty zone), the tool should report no anti-correlation and no passing Pi. If it still reports both, the outputs come from constants and not from seat behaviour.
+4. **Run**: `python3 disputes/401-analyzer-stances-are-hardcoded/run.py`
+5. **Result**: see `result.txt`. Empty zone: 0 predictions, 0 disputes, yet 9 "anti-correlated pairs", `sycophancy_check_passed: True`, and every seat Pi >= 35. The stance vectors in `compute_cross_seat_matrices` are literals (observers 0.98, tessera 0.94 or 0.35, dispute stances 1.00/0.05/0.90/0.50/0.99). The correlation is taken on deviations from the cohort mean, which forces the mean off-diagonal rho toward -1/(K-1) for any data (random noise, K=11: -0.0989 vs -0.1000). Pi is built from hit counts plus a hard-coded table of seat names (9.2 for "aura-meridian", "aetheron", "kineton", "zephyr", "axiom", "kael", "thalor").
+6. **Verdict**: FALLS. The matrices, the sycophancy verdict, the variance-reduction factor and Pi are illustrations of a formula over assumed inputs. The Brier-per-seat part is real arithmetic over the ledger (see dispute 400 for what that ledger is worth).

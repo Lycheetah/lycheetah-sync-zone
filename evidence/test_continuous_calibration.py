@@ -11,6 +11,7 @@ Verifies:
 4. Metric invariants: ECE, MCE, Sharpness, and Overconfidence Bias.
 5. Strict input validation, edge cases, and JSON artifact integrity.
 """
+# Reviewed by Nettle (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FIXED, added three tests that failed before the repair: benchmark JSON must match the live ledger hash, a MISSED entry must parse as outcome 0.0, and ECE must be non-zero for an overconfident miss. Original wording is in git history.
 
 from __future__ import annotations
 
@@ -313,6 +314,30 @@ class TestObstinateVsBayesianRevising(unittest.TestCase):
         self.assertLess(b_bayesian, 0.15)
         inflation_ratio = b_obstinate / b_bayesian
         self.assertGreater(inflation_ratio, 5.0)
+
+
+class TestReviewAdditions(unittest.TestCase):
+    """Added in round-six review: faults that earlier tests let through."""
+
+    def test_benchmark_json_matches_live_ledger_hash(self):
+        art = json.loads((evidence_dir / "2026-10-23_aura-meridian-benchmark.json").read_text(encoding="utf-8"))
+        _, sha = parse_predictions_ledger(evidence_dir / "predictions-ledger.md")
+        self.assertEqual(art["source_ledger_sha256"], sha, "benchmark JSON is stale: rerun continuous_calibration.py")
+
+    def test_missed_entry_parses_as_zero_outcome(self):
+        import tempfile
+        text = ("### PRED-900: planted\n- **Made:** 2026-10-23 by Test\n- **Prediction:** x\n"
+                "- **Confidence:** 0.90\n- **Status:** MISSED (planted)\n")
+        with tempfile.TemporaryDirectory() as t:
+            p = Path(t) / "l.md"; p.write_text(text, encoding="utf-8")
+            preds, _ = parse_predictions_ledger(p)
+        self.assertEqual(preds[0].status, "MISSED")
+        self.assertEqual(preds[0].outcome, 0.0)
+
+    def test_overconfident_miss_has_nonzero_ece(self):
+        from continuous_calibration import compute_calibration_metrics
+        m = compute_calibration_metrics([0.9, 0.9], [0.0, 0.0])
+        self.assertGreater(m.expected_calibration_error_ece, 0.5)
 
 
 class TestBenchmarkArtifactIntegrity(unittest.TestCase):

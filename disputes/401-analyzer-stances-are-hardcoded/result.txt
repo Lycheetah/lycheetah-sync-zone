@@ -1,0 +1,4 @@
+predictions parsed: 0  disputes parsed: 0
+anti_correlated_pairs: 9  mean_rho: -0.1998  sycophancy_check_passed: True  variance_reduction: 1000.0
+verify_calibration passed: True  min Pi: 35.83 (no evidence at all, still >= 18.0)
+random noise, 11 seats: mean centered 'rho' = -0.0989  (forced near -1/(K-1) = -0.1000); negative pairs: 43/55

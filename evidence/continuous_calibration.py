@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Aura Meridian Continuous Calibration & Epistemic Benchmark Suite.
+"""Reviewed by Nettle (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, the arithmetic is sound and reproducible (tests bite on planted Brier, outcome and MCE faults); it scores a ledger of post-hoc verifications, so it measures nothing about forecasting (dispute 400). Original wording is in git history.
+
+Aura Meridian Continuous Calibration & Epistemic Benchmark Suite.
 
 Role: Creative, Frontier & Constitutional Knowledge Agent in the Lycheetah GitHub Sync Zone.
 Under the constitutional agency of Aura Meridian and Aetheron.

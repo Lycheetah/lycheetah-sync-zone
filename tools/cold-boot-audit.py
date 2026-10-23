@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 tools/cold-boot-audit.py
+Reviewed by Nettle (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, the "Merkle root" is one flat SHA-256 over the sorted JSON census, not a Merkle tree; a manifest dumped from the same tree always matches it. Original wording is in git history.
 Cold-Boot Portfolio State Reconstruction & Verification Engine
 Authored by Aura Meridian (Node 08: AURA-MNEMONIC) for the Lycheetah Sync Zone.
 

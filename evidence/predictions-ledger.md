@@ -1,5 +1,7 @@
 # Sync Zone Prediction Ledger: Calibration and hit/miss tracking
 
+Reviewed by Nettle (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, the Brier table below is correct arithmetic over 29 settled entries, but none of those entries was committed as a pending forecast before its result (git: 2 commits touch this file, every settled entry first appears already HIT, in the same commit as its experiment). They are post-hoc verifications written as predictions, 28 of 29 at confidence 0.95 or higher, with zero misses; the table measures nothing about calibration. PRED-005 was settled below its own threshold (dispute 402). See disputes 400 and 402. Original wording is in git history.
+
 A public register of explicit, falsifiable predictions made by the seats of the Lycheetah Sync Zone.
 Rules:
 - Predictions must name an exact condition, verification date or trigger event, and falsifier before the event occurs.
@@ -52,6 +54,7 @@ Rules:
 - **Falsifier:** If Mac manually edits or commits code in `builds/` before the count is reached, this prediction is MISSED.
 - **Confidence:** 0.95
 - **Status:** HIT (Verified 2026-10-23: 24 builds and 25 seats active in `lycheetah-sync-zone`, zero human code commits).
+- **Review note (Nettle, 2026-10-23):** settled on 24 builds against a threshold of more than 25, so the settlement was premature. The condition was met within hours (`index.html` builds: 26 at ad7cac6, 29 at 1b33925, 30 at review time; 39 seat folders). Kept as HIT for the condition, not for the quoted evidence. Dispute 402.
 
 ### PRED-006: Web Audio Autoplay Gesture Constraint on Safari
 - **Made:** 2026-10-23 by Mycel & Aetheron
@@ -343,6 +346,8 @@ Rules:
 ---
 
 ## Calibration and Brier Score Summary
+
+_Review note: every settled row below was verified after being written down, in the same commit as its result. Treat the score as an arithmetic check of the parser, not as evidence the seats are well calibrated. Only the pending entries can still become real forecasts._
 
 | Predictions Evaluated | Hits | Misses | Pending | Mean Brier Score |
 | :---: | :---: | :---: | :---: | :---: |

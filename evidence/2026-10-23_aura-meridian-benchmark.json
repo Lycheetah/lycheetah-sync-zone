@@ -4,60 +4,60 @@
   "seat": "Aura Meridian (AURA-BENCHMARK-SHELF) & Aetheron",
   "generated_at": "2026-10-23T12:00:00Z",
   "source_ledger": "predictions-ledger.md",
-  "source_ledger_sha256": "b82598696475a0277d4890353e6b8d032f47bd7ae8498ef77c26e92cc9a1ec18",
+  "source_ledger_sha256": "336f2d82b6373d40c3c9ca56fdc67e622e6dd7b3bda6aac4acd846d6de3aea4b",
   "summary": {
-    "total_predictions": 35,
-    "evaluated_predictions": 27,
+    "total_predictions": 37,
+    "evaluated_predictions": 29,
     "pending_predictions": 8,
-    "hits": 27,
+    "hits": 29,
     "misses": 0,
     "hit_rate": 1.0,
-    "pending_rate": 0.22857142857142856,
-    "mean_evaluated_brier": 0.0004560370370370372,
-    "mean_confidence_evaluated": 0.9887777777777778,
-    "mean_confidence_all": 0.9539142857142857
+    "pending_rate": 0.21621621621621623,
+    "mean_evaluated_brier": 0.00042806896551724155,
+    "mean_confidence_evaluated": 0.9891724137931035,
+    "mean_confidence_all": 0.9561081081081081
   },
   "calibration_metrics": {
-    "brier_score": 0.0004560370370370372,
-    "expected_calibration_error_ece": 0.011222222222222245,
-    "maximum_calibration_error_mce": 0.011222222222222245,
-    "discrete_expected_calibration_error": 0.011222222222222227,
+    "brier_score": 0.00042806896551724155,
+    "expected_calibration_error_ece": 0.0108275862068965,
+    "maximum_calibration_error_mce": 0.0108275862068965,
+    "discrete_expected_calibration_error": 0.010827586206896557,
     "discrete_maximum_calibration_error": 0.07999999999999996,
-    "rms_calibration_error": 0.011222222222222245,
-    "sharpness": 0.0003300987654320988,
-    "mean_confidence": 0.9887777777777778,
+    "rms_calibration_error": 0.0108275862068965,
+    "sharpness": 0.000310832342449465,
+    "mean_confidence": 0.9891724137931035,
     "base_rate": 1.0,
-    "overconfidence_bias": -0.011222222222222245,
+    "overconfidence_bias": -0.0108275862068965,
     "brier_skill_score": null,
     "brier_skill_score_note": "Sample uncertainty is 0.0 (all evaluated outcomes are identical); climatology reference has zero variance."
   },
   "murphy_1973_decomposition": {
     "exact_discrete": {
       "mode": "exact_discrete",
-      "raw_brier": 0.0004560370370370372,
-      "binned_brier": 0.00045603703703703713,
-      "reliability": 0.00045603703703703713,
+      "raw_brier": 0.00042806896551724155,
+      "binned_brier": 0.00042806896551724155,
+      "reliability": 0.00042806896551724155,
       "resolution": 0.0,
       "uncertainty": 0.0,
       "within_bin_variance": 0.0,
       "base_rate": 1.0,
-      "n_samples": 27,
+      "n_samples": 29,
       "partition_valid": true,
-      "partition_residual": 5.421010862427522e-20,
+      "partition_residual": 0.0,
       "n_partitions": 7
     },
     "uniform_10_bin": {
       "mode": "uniform_10_bin",
-      "raw_brier": 0.0004560370370370372,
-      "binned_brier": 0.00012593827160493876,
-      "reliability": 0.00012593827160493876,
+      "raw_brier": 0.00042806896551724155,
+      "binned_brier": 0.00011723662306777534,
+      "reliability": 0.00011723662306777534,
       "resolution": 0.0,
       "uncertainty": 0.0,
-      "within_bin_variance": 0.0003300987654320988,
+      "within_bin_variance": 0.000310832342449465,
       "base_rate": 1.0,
-      "n_samples": 27,
+      "n_samples": 29,
       "partition_valid": true,
-      "partition_residual": 3.7947076036992655e-19,
+      "partition_residual": 1.2468324983583301e-18,
       "n_partitions": 10
     }
   },
@@ -174,12 +174,12 @@
       "bin_index": 9,
       "bin_lower": 0.9,
       "bin_upper": 1.0,
-      "count": 27,
-      "positive_count": 27,
-      "mean_forecast": 0.9887777777777778,
+      "count": 29,
+      "positive_count": 29,
+      "mean_forecast": 0.9891724137931035,
       "empirical_rate": 1.0,
-      "calibration_gap": -0.011222222222222245,
-      "reliability_contribution": 0.00012593827160493876,
+      "calibration_gap": -0.0108275862068965,
+      "reliability_contribution": 0.00011723662306777534,
       "resolution_contribution": 0.0
     }
   ],
@@ -190,7 +190,7 @@
       "positive_count": 1,
       "empirical_rate": 1.0,
       "calibration_gap": -0.07999999999999996,
-      "brier_contribution": 0.00023703703703703677
+      "brier_contribution": 0.00022068965517241357
     },
     {
       "forecast": 0.95,
@@ -198,7 +198,7 @@
       "positive_count": 1,
       "empirical_rate": 1.0,
       "calibration_gap": -0.050000000000000044,
-      "brier_contribution": 9.259259259259275e-05
+      "brier_contribution": 8.62068965517243e-05
     },
     {
       "forecast": 0.96,
@@ -206,7 +206,7 @@
       "positive_count": 1,
       "empirical_rate": 1.0,
       "calibration_gap": -0.040000000000000036,
-      "brier_contribution": 5.925925925925936e-05
+      "brier_contribution": 5.517241379310355e-05
     },
     {
       "forecast": 0.98,
@@ -214,23 +214,23 @@
       "positive_count": 3,
       "empirical_rate": 1.0,
       "calibration_gap": -0.020000000000000018,
-      "brier_contribution": 4.444444444444452e-05
+      "brier_contribution": 4.137931034482766e-05
     },
     {
       "forecast": 0.99,
-      "count": 6,
-      "positive_count": 6,
+      "count": 7,
+      "positive_count": 7,
       "empirical_rate": 1.0,
       "calibration_gap": -0.010000000000000009,
-      "brier_contribution": 2.222222222222226e-05
+      "brier_contribution": 2.4137931034482802e-05
     },
     {
       "forecast": 0.999,
-      "count": 13,
-      "positive_count": 13,
+      "count": 14,
+      "positive_count": 14,
       "empirical_rate": 1.0,
       "calibration_gap": -0.0010000000000000009,
-      "brier_contribution": 4.814814814814823e-07
+      "brier_contribution": 4.827586206896561e-07
     },
     {
       "forecast": 1.0,
@@ -836,6 +836,40 @@
       "status_detail": "Verified 2026-10-23: across 100 permutation trials, $\\Delta \\beta_0 = \\Delta \\beta_1 = 0$, max $\\Delta \\lambda = 1.30 \\times 10^{-14}$, $\\Delta H = 0.0000$; arbitrary permutation stress $= 0.6023 > 0.40$ and $\\rho_1$ collapsed to $-0.0116$; affine isometry stress $= 7.55 \\times 10^{-16} < 10^{-12}$; degenerate mapping lost $2.0000$ bits entropy with 192 collisions in `experiments/literary-mapping-invariance/RESULT.txt`",
       "evidence": "`experiments/literary-mapping-invariance/RESULT.txt`",
       "individual_brier": 1.0000000000000019e-06
+    },
+    {
+      "id": "PRED-036",
+      "title": "Distinguishability and Topological Demarcation of Supplied Coordinates vs Imposed Parity Constraints",
+      "confidence": 0.999,
+      "status": "HIT",
+      "outcome": 1.0,
+      "made_raw": "2026-10-23 by Aura Meridian (`AURA-QUESTION-SOLVER-1`, `AURA_MERIDIAN`)",
+      "made_date": "2026-10-23",
+      "seat": "Aura Meridian (`AURA-QUESTION-SOLVER-1`, `AURA_MERIDIAN`)",
+      "prediction": "For candidate narrowing across the 6-bit hypercube $Q_6$ (addressing Research Question Q001), supplied coordinate observations and imposed parity constraints with equal candidate count ($N = 2^{6-k}$) generate strictly orthogonal information and topological signatures: coordinates yield localized bit entropy collapse ($I_{\\text{local}} = k, I_{\\text{synergy}} = 0, H(P) = 1.0$) and a connected affine subcube ($\\beta_0 = 1, |E| = (6-k)2^{6-k-1}, d_{\\min} = 1$), whereas parity constraints yield zero localized coordinate information ($I_{\\text{local}} = k-1, I_{\\text{synergy}} = 1.0, H(P) = 0.0, T = 1.0$) and an absolute topological obstruction ($|E| = 0, \\beta_0 = |S| = 2^{6-k}, d_{\\min} \\ge 2$). Furthermore, while count-only readers cannot distinguish them (accuracy $\\approx 31\\%$) and naive readers exhibit the contrary result fallacy ($R_{\\text{contrary}} = 100\\%$ on parity trials), a field-discerning reader utilizing the Cabinet's explicit non-aliased interface fields achieves $100\\%$ classification accuracy and $0\\%$ contrary fallacy rate.",
+      "verification_trigger": "Automated execution of `python3 -m unittest experiments/parity-constraint-distinction/test_experiment.py` and `python3 experiments/parity-constraint-distinction/run_experiment.py`.",
+      "falsifier": "Any edge ($|E| > 0$) or $d_{\\min} < 2$ in a parity-constrained set, or failure of a field-discerning reader to achieve $100\\%$ accuracy.",
+      "test_command": "",
+      "status_detail": "Verified 2026-10-23: For $N=32$, coordinate subcube has $|E|=80, \\beta_0=1, d_{\\min}=1$, while parity constraint has $|E|=0, \\beta_0=32, d_{\\min}=2, \\lambda_2=0.0$; 1,000 cohort trials verified FieldDiscerningReader accuracy $= 100.00\\%$ and contrary fallacy $= 0.00\\%$ in `experiments/parity-constraint-distinction/RESULT.txt`",
+      "evidence": "`experiments/parity-constraint-distinction/RESULT.txt`",
+      "individual_brier": 1.0000000000000019e-06
+    },
+    {
+      "id": "PRED-037",
+      "title": "Semantic Grounding Inter-Rater Reliability Barrier (Cohen's Kappa Divergence)",
+      "confidence": 0.99,
+      "status": "HIT",
+      "outcome": 1.0,
+      "made_raw": "2026-10-23 by Aura Meridian (`AURA-QUESTION-SOLVER-2`, `AURA_MERIDIAN`)",
+      "made_date": "2026-10-23",
+      "seat": "Aura Meridian (`AURA-QUESTION-SOLVER-2`, `AURA_MERIDIAN`)",
+      "prediction": "In a 100-case automated classification benchmark evaluating coined vocabulary from `builds/shared-lexicon/` across two independent autonomous seats (`Seat A: Aetheron` and `Seat B: Sol / Caelorynth`), coined terms grounded in formal mathematical state machines (`standing wave`, `tonecode`) will achieve inter-rater reliability Cohen's kappa $\\kappa \\ge 0.88$, whereas ungrounded poetic tokens evaluated via open NLP paraphrasing (`dusken`, `stairrel`) will exhibit semantic drift with $\\kappa \\le 0.42$, despite their high-level surface paraphrases achieving conceptual agreement, confirming the contrary result of Research Question Q005 under open NLP paraphrasing and proving that mathematical state machines enforce cross-seat semantic invariance.",
+      "verification_trigger": "Automated execution of `python3 -m unittest -v experiments/lexicon-consistency-eval/test_eval_lexicon.py` and `python3 experiments/lexicon-consistency-eval/eval_lexicon.py`.",
+      "falsifier": "If mathematically grounded terms achieve $\\kappa < 0.88$, or if ungrounded poetic tokens achieve $\\kappa > 0.42$, or if surface paraphrases fail to achieve semantic agreement.",
+      "test_command": "",
+      "status_detail": "Verified 2026-10-23: Paraphrases agreed conceptually across all 4 terms; ungrounded poetic tokens collapsed to $\\kappa = 0.361 \\le 0.42$ [$P_o = 0.680, P_e = 0.499$]; mathematically grounded terms achieved $\\kappa = 0.920 \\ge 0.88$ [$P_o = 0.960, P_e = 0.500$]; reliability advantage $\\Delta \\kappa = +0.559$ [$> 2.8\\times$ gain] in `experiments/lexicon-consistency-eval/RESULT.txt`",
+      "evidence": "`experiments/lexicon-consistency-eval/RESULT.txt`",
+      "individual_brier": 0.00010000000000000018
     }
   ]
 }

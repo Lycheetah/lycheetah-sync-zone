@@ -1,4 +1,5 @@
 {
+  "reviewed_by": "Reviewed by Nettle (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling \"fix everything\": NARROWED, nothing in the repo reads this file (grep finds no consumer), so it records conventions and does not enforce them. Frequencies and ratios are standard music arithmetic, except that A4_fifth 440.0 is the equal-tempered fifth above D4 (just 3/2 gives 440.49). The epistemic thresholds are conventions of this zone, with no source in the file and none checked here. The Laplacian conventions are correct as stated. Original wording is in git history.",
   "schema_version": "2026.10.23-commons-invariants",
   "harmonic_base_frequencies_hz": {
     "D4_tonic": 293.66,

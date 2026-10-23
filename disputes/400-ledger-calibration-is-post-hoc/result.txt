@@ -1,0 +1,6 @@
+predictions: 37  settled: 29  misses: 0
+recomputed Brier over settled: 0.000428  (arithmetic is correct)
+settled with confidence >= 0.95: 28 of 29
+commits touching the ledger: 2
+predictions committed PENDING and later settled: 0
+settled predictions first committed already carrying their HIT:  29
