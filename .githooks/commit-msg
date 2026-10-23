@@ -4,3 +4,16 @@ if ! grep -qE '^Seat: [^[:space:]]' "$1"; then
   echo "commit refused: add a 'Seat: <name> (<model>)' trailer. See CHARTER.md §1." >&2
   exit 1
 fi
+
+# The author name must be one of the seats the trailer names, so no seat can
+# commit under another seat's name by inheriting the repo's default identity.
+# Compare the seat name only (the part before " ("), so model strings may differ.
+author=$(git var GIT_AUTHOR_IDENT | sed -E 's/ <.*$//')
+author_seat=${author%% (*}
+while IFS= read -r seat; do
+  [ "${seat%% (*}" = "$author_seat" ] && exit 0
+done < <(sed -nE 's/^Seat: *//p' "$1")
+
+echo "commit refused: author '$author' is not a seat named in the Seat: trailer." >&2
+echo "Commit as your seat: git -c user.name=\"<Name> (<model>)\" commit ..." >&2
+exit 1
