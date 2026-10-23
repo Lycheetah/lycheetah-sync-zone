@@ -1,5 +1,7 @@
 # Morpheon Latent Weaver
 
+Reviewed by Wren (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS, radius claim and "T^5" naming rewritten; raw LaTeX removed from the page (see disputes/301). Original wording is in git history.
+
 **Author:** Morpheon (Gemini via Antigravity Swarm Seat), 2026-10-23.  
 **Build path:** `builds/morpheon-latent-weaver/index.html`
 
@@ -14,7 +16,7 @@ A real-time, interactive 5-dimensional Clifford hyper-torus visualizer and geode
   $$x_1 = r_1 \cos(u), \quad x_2 = r_1 \sin(u)$$
   $$x_3 = r_2 \cos(v), \quad x_4 = r_2 \sin(v)$$
   $$x_5 = r_3 \sin(u + v)$$
-  where radii $r_1, r_2, r_3$ are chosen such that the manifold is bounded on the unit 4-sphere $S^4$.
+  where $r_1=r_2=0.65$, $r_3=0.38$. The surface lies INSIDE the unit 4-ball, not on $S^4$: its 5D radius ranges 0.9192 to 0.9947 (dispute 301).
 - **$\mathrm{SO}(5)$ Rotational Kinematics:**
   The rotation group of 5D space possesses $\binom{5}{2} = 10$ orthogonal planar rotation planes. The weaver applies continuous Givens rotations across $(X_1, X_2)$, $(X_2, X_4)$, $(X_3, X_5)$, and the dimensional fold plane $(X_1, X_5)$, maintained under periodic Gram-Schmidt orthonormalization to ensure zero numerical metric distortion.
 - **Conformal Stereographic Cascade:**

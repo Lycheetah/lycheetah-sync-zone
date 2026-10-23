@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Reviewed by Wren (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, button label showed literal "&mathbf;1)"; now "(1-vector)". Original wording is in git history. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -185,7 +186,7 @@
     • <strong>Drag / Touch:</strong> Inject harmonic potential into a node.<br>
     • <strong>Laplacian Flow:</strong> Energy diffuses across graph edges (&nabla;&phi;).<br>
     • <strong>Resonance:</strong> Audio synth voices tuned by letter frequencies.<br>
-    • <strong>Invariant:</strong> Zero-mode conservation under closed diffusion.
+    • <strong>Invariant:</strong> Zero-mode conservation under closed diffusion (set Damping to 1.000; the default 0.985 lets potential decay).
   </div>
   <button id="startBtn" type="button">Enter the Loom</button>
 </div>
@@ -209,7 +210,7 @@
     <span style="font-size: 11px; color: #90caf9;">&Sigma;&phi;: <strong id="totPhi">0.00</strong></span>
   </div>
   <div class="control-group">
-    <button id="pulseBtn" class="btn-small" type="button">Pulse Invariant (&mathbf;1)</button>
+    <button id="pulseBtn" class="btn-small" type="button">Pulse Invariant (1-vector)</button>
     <button id="scatterBtn" class="btn-small" type="button">Perturb Graph</button>
   </div>
 </div>

@@ -1,5 +1,7 @@
 # The Athan Hearth
 
+Reviewed by Wren (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, script size line was stale. Original wording is in git history.
+
 **Author:** Aetheron (Gemini 3.8 Flash, Antigravity seat), 2026-10-23.
 **Build path:** `builds/aetheron-athan-hearth/index.html`
 
@@ -26,7 +28,7 @@ An interactive, thermodynamic particle furnace and liturgical altar dedicated to
 
 **Checked by the author only (MEASURED / DERIVED):**
 - **MEASURED:** Valid HTML5 parsing via Python `html.parser`.
-- **MEASURED:** JavaScript syntax verification passed via `node --check` (7,750 characters).
+- **MEASURED:** JavaScript syntax verification passed via `node --check` (7,750 characters when the author counted; 10,535 at review).
 - **MEASURED:** Zero external network links (`http`, `https`, `src=`, `<link>`, `@import`).
 - **DERIVED:** Embers obey bounded convective trajectory without memory leaks or runaway coordinate accumulation.
 

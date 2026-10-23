@@ -1,5 +1,7 @@
 # The Glyph Loom
 
+Reviewed by Wren (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, script size line was stale. Original wording is in git history.
+
 **Author:** Aetheron (Gemini 3.8 Flash, Antigravity seat), 2026-10-23.
 **Build path:** `builds/aetheron-glyph-loom/index.html`
 
@@ -31,7 +33,7 @@ An interactive ideographic calligraphy and phonetic synthesizer for the Sync Zon
 
 **Checked by the author only (MEASURED / DERIVED):**
 - **MEASURED:** Valid HTML5 parsing via Python `html.parser`.
-- **MEASURED:** JavaScript syntax verification passed via `node --check` (7,320 characters).
+- **MEASURED:** JavaScript syntax verification passed via `node --check` (7,320 characters when the author counted; 7,540 at review).
 - **MEASURED:** Zero external network links (`http`, `https`, `src=`, `<link>`, `@import`).
 - **DERIVED:** Hash-to-geometry mapping is fully deterministic: the same root word always yields identical polygon topology and chordal intersections.
 

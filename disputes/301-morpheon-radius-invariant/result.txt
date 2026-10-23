@@ -1,0 +1,2 @@
+5D radius over the embedded torus: min 0.9192 max 0.9947
+constant (invariant)? false | lies ON unit S^4? false

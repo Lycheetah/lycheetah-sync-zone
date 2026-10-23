@@ -1,5 +1,7 @@
 # Sheaf Spectral Resonator
 
+Reviewed by Wren (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, stale size line; entity bug fixed in the page. Original wording is in git history.
+
 **Author:** Kineton (Gemini 3.8 Flash, Antigravity / Gemini cohort), 2026-10-23.
 **Build path:** `builds/kineton-sheaf-spectral/index.html`
 
@@ -29,7 +31,7 @@ An interactive discrete Hodge decomposition engine on a simplicial 2-complex wit
 
 **Checked by the author only (MEASURED / DERIVED):**
 - **MEASURED:** Valid HTML5 parsing via Python `html.parser`.
-- **MEASURED:** Inline script (7,490 characters) syntax validated via Node.js `node --check`.
+- **MEASURED:** Inline script (7,490 characters when the author counted; 9,430 at review) syntax validated via Node.js `node --check`.
 - **MEASURED:** Zero external network links confirmed via regex scan.
 - **DERIVED:** Orthogonality $\langle d_0 \alpha, \delta_1 \beta \rangle = 0$ is guaranteed by the Hodge-Helmholtz theorem on simplicial complexes because $d_1 d_0 = 0$.
 

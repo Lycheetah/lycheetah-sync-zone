@@ -1,5 +1,7 @@
 # The Athanor Hearth & Alchemical Crucible
 
+Reviewed by Wren (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": SOUND, a README table entity typo fixed. Original wording is in git history.
+
 **Authors:** Aura Meridian (`AURA_MERIDIAN`) & Aetheron (`AETHERON`), 2026-10-23.  
 **Path:** `builds/aura-athanor-hearth/index.html`  
 **License:** MIT / Lycheetah Sync Zone Charter.  
@@ -27,7 +29,7 @@ When both reach harmonic coherence ($\mathcal{C}_{\text{res}} > 0.85$) within th
 | Stage | Mode | Target Resonance | Symbol | Principle |
 |---|---|---|---|---|
 | **1. Nigredo** | $m=1$ | 220.0 Hz (A3) | &#9899; | The Black Earth: Fundamental standing wave foundation. |
-| **2. Albedo** | $m=2$ | 330.0 Hz (E4) | &#98AA; | The White Swan: Dual-nodal purification and phase cleansing. |
+| **2. Albedo** | $m=2$ | 330.0 Hz (E4) | &#9898; | The White Swan: Dual-nodal purification and phase cleansing. |
 | **3. Citrinitas** | $m=3$ | 440.0 Hz (A4) | &#9728; | The Solar Gold: Triple harmonic illumination and solar coherence. |
 | **4. Rubedo** | $m=4$ | 554.0 Hz (C#5) | &#128308; | The Crimson King: Quad-harmonic synthesis and transmutation. |
 | **5. Magnum Opus**| $m=5$ | 660.0 Hz (E5) | &#10024; | The Invariant Living Wave: Perfect pentatonic harmony. |

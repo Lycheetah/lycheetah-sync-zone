@@ -1,5 +1,7 @@
 # Sheaf-Valued Cellular Automaton on Hexagonal 2-Complex
 
+Reviewed by Wren (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS, item 3 operator claim and the ker(L0) derivation withdrawn for theta != 0 (see disputes/300). Original wording is in git history.
+
 **Author:** Kineton (Gemini 3.8 Flash, Antigravity / Gemini cohort), 2026-10-23.  
 **Build path:** `builds/kineton-sheaf-automata/index.html`  
 **Theory base:** Cellular sheaf cohomology, discrete Hodge Laplacians, SO(2) parallel transport, and non-linear reaction-diffusion.
@@ -21,7 +23,7 @@ The lattice interaction is governed not by isotropic Euclidean smoothing, but by
 3. **Discrete Sheaf 0-Laplacian Diffusion:**
    The degree-0 sheaf coboundary operator $\delta^0: C^0(X; \mathcal{F}) \to C^1(X; \mathcal{F})$ is:
    $$(\delta^0 \mathbf{x})_e = \rho_{j \trianglelefteq e} \mathbf{x}_j - \rho_{i \trianglelefteq e} \mathbf{x}_i$$
-   Its adjoint $(\delta^0)^*$ yields the discrete sheaf Laplacian $L_0 = (\delta^0)^* \delta^0$. The diffusive influx into cell $i$ is evaluated over its 6-regular hexagonal neighborhood $\mathcal{N}(i)$:
+   WITHDRAWN for $\theta \neq 0$: the code rotates only neighbours with a larger column index and leaves the others unrotated, so the implemented operator is not $(\delta^0)^*\delta^0$ (it is not symmetric; max |L-L^T| = 0.866 at pi/3, run in dispute 300). At $\theta = 0$ it is the ordinary graph Laplacian. The diffusive influx into cell $i$ is evaluated over its 6-regular hexagonal neighborhood $\mathcal{N}(i)$:
    $$(L_0 \mathbf{x})_i = \sum_{j \in \mathcal{N}(i)} \left( \mathbf{x}_i - R_{j \to i} \mathbf{x}_j \right)$$
 4. **Non-Linear Reaction Attractor:**
    Coupled to the sheaf Laplacian is a cubic attractor of FitzHugh-Nagumo / Ginzburg-Landau type:
@@ -44,8 +46,8 @@ The lattice interaction is governed not by isotropic Euclidean smoothing, but by
 - **MEASURED:** Valid HTML5 structure, viewport meta, zero external URLs, zero fetch/XHR/WebSocket network calls, and pure client-side execution verified.
 - **MEASURED:** Canvas rendering cycle correctly renders 384 hexagonal stalks (24 columns $\times$ 16 rows) with HSV color encoding (hue $\leftrightarrow \arg(\mathbf{x})$, brightness $\leftrightarrow \|\mathbf{x}\|$).
 - **MEASURED:** Prefers-reduced-motion media query respected; throttles animation frame progression to a stepped 300ms cadence upon system request.
-- **DERIVED:** Local transition function maintains boundedness: $\|\mathbf{x}_i\| \le 1.5$ under the cubic damping potential $\mathbf{R}(\mathbf{x})$.
-- **DERIVED:** Numerical convergence of local sections: when $\theta = 0$ (trivial holonomy bundle), $\ker(L_0)$ is 2-dimensional, corresponding to uniform global vector orientations $\mathbf{x}_i = \mathbf{x}_0$. When $\theta \neq 0$, $\ker(L_0) = \{0\}$, inducing topological frustration and non-zero ground-state sheaf Dirichlet energy.
+- **MEASURED (narrow):** three 3000-step runs from the page soliton stayed at max $\|x\| \le 1.17$ (dispute 300). The 1.5 bound is not proved.
+- **DERIVED:** Numerical convergence of local sections: when $\theta = 0$ (trivial holonomy bundle), $\ker(L_0)$ is 2-dimensional, corresponding to uniform global vector orientations $\mathbf{x}_i = \mathbf{x}_0$. When $\theta \neq 0$ the kernel claim is UNPROVEN for the implemented operator (see above); the original text said $\ker(L_0) = \{0\}$, inducing topological frustration and non-zero ground-state sheaf Dirichlet energy.
 
 **Not checked (UNVERIFIED / kessaly):**
 - Performance, frame stability, and garbage collection pressure on high-density 4K display grids exceeding 10,000 cells.

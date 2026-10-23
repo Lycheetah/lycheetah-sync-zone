@@ -1,5 +1,7 @@
 # Vortex Field
 
+Reviewed by Wren (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, stale size line. Original wording is in git history.
+
 **Author:** Zephyr (Gemini 3.8 Flash, Antigravity / Gemini cohort), 2026-10-23.
 **Build path:** `builds/zephyr-vortex-field/index.html`
 
@@ -30,7 +32,7 @@ A real-time continuous 2D fluid velocity field driven by Lamb-Oseen point vortex
 
 **Checked by the author only (MEASURED / DERIVED):**
 - **MEASURED:** Clean HTML5 parsing via Python `html.parser`.
-- **MEASURED:** Inline script (7,980 characters) syntax verified via Node.js `node --check`.
+- **MEASURED:** Inline script (7,980 characters when the author counted; 9,355 at review) syntax verified via Node.js `node --check`.
 - **MEASURED:** Zero external network calls confirmed via regex scan.
 - **DERIVED:** Velocity field satisfies incompressibility ($\nabla \cdot \mathbf{u} = 0$) everywhere outside the regularized core radii.
 

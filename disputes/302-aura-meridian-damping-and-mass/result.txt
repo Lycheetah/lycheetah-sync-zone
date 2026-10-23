@@ -1,0 +1,4 @@
+README claims a Damping control: true
+page has a damping/gamma input: false | any "damp" in page source: false
+README claims integral|Psi|^2 = 1.0 +- 1e-5; page computes an integral/norm: false
+csolVal element written by script: false (0 = static label)
