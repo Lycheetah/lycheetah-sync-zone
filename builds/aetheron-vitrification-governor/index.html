@@ -1,0 +1,1285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aetheron · Vitrification Governor & Glass Phase Instrument</title>
+<style>
+  :root {
+    --bg-void: #06070d;
+    --bg-card: rgba(13, 19, 35, 0.88);
+    --border-dim: rgba(100, 181, 246, 0.22);
+    --border-bright: rgba(0, 229, 255, 0.6);
+    --text-main: #e6edfd;
+    --text-dim: #90a4ae;
+    --accent-cyan: #00e5ff;
+    --accent-gold: #ffd54f;
+    --accent-coral: #ff5252;
+    --accent-emerald: #00e676;
+    --accent-violet: #b388ff;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-void);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    touch-action: none;
+  }
+
+  canvas#chamber {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+    background: radial-gradient(ellipse at 50% 50%, #0c1426 0%, #06070d 75%, #020306 100%);
+  }
+
+  /* HUD Panels */
+  .hud-layer {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .hud-layer * {
+    pointer-events: auto;
+  }
+
+  /* Top Bar */
+  #top-bar {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .brand-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 10px var(--accent-cyan);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .brand-dot.glass {
+    background: var(--accent-coral);
+    box-shadow: 0 0 10px var(--accent-coral);
+  }
+
+  .brand-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .brand-tag {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--accent-cyan);
+    background: rgba(0, 229, 255, 0.12);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .top-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pill-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    color: var(--text-main);
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.15s ease;
+  }
+
+  .pill-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+
+  .pill-btn.active {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+  }
+
+  /* Left Dashboard: Sliders & Controls */
+  #left-panel {
+    top: 64px;
+    left: 12px;
+    width: 290px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 6px;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-gold);
+  }
+
+  .panel-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .control-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .control-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .control-val {
+    font-variant-numeric: tabular-nums;
+    color: var(--accent-cyan);
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    outline: none;
+    accent-color: var(--accent-cyan);
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent-cyan);
+  }
+
+  /* Vitrification Indicator Card */
+  .v-meter-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-dim);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .v-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .v-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+  }
+
+  .v-score {
+    font-size: 18px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent-cyan);
+    transition: color 0.25s ease;
+  }
+
+  .v-bar-track {
+    width: 100%;
+    height: 7px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .v-bar-fill {
+    height: 100%;
+    width: 25%;
+    background: var(--accent-cyan);
+    border-radius: 999px;
+    transition: width 0.2s ease, background 0.25s ease;
+  }
+
+  .v-state-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: right;
+    color: var(--accent-cyan);
+  }
+
+  /* Preset Button Row */
+  .preset-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+
+  .preset-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-dim);
+    border-radius: 6px;
+    padding: 6px 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+  }
+
+  .preset-btn:hover {
+    border-color: var(--accent-cyan);
+    background: rgba(0, 229, 255, 0.1);
+  }
+
+  .preset-btn.active {
+    border-color: var(--accent-cyan);
+    background: rgba(0, 229, 255, 0.18);
+    color: var(--accent-cyan);
+  }
+
+  /* Bottom Telemetry HUD */
+  #bottom-hud {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .telemetry-row {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 12px;
+    padding: 8px 16px;
+    display: flex;
+    gap: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .stat-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+
+  .stat-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Audio Unlock Banner */
+  #audio-banner {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    background: rgba(0, 229, 255, 0.15);
+    border: 1px solid var(--accent-cyan);
+    color: #e6edfd;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+  }
+
+  /* Help Modal */
+  #help-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 7, 13, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 20px;
+  }
+
+  #help-modal.visible {
+    display: flex;
+  }
+
+  .modal-card {
+    background: #0d1527;
+    border: 1px solid var(--border-dim);
+    border-radius: 16px;
+    max-width: 600px;
+    width: 100%;
+    padding: 24px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.15);
+    color: var(--text-main);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 10px;
+  }
+
+  .modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  .modal-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #c4d1e8;
+  }
+
+  .modal-body h4 {
+    margin: 14px 0 6px 0;
+    color: var(--accent-gold);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .canon-quote {
+    background: rgba(0, 229, 255, 0.06);
+    border-left: 3px solid var(--accent-cyan);
+    padding: 8px 12px;
+    font-style: italic;
+    margin: 8px 0;
+    color: #e6edfd;
+  }
+
+  /* Accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .brand-dot {
+      box-shadow: none !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    #left-panel {
+      width: calc(100% - 24px);
+      top: auto;
+      bottom: 74px;
+      max-height: 45vh;
+      overflow-y: auto;
+    }
+    #bottom-hud {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="chamber"></canvas>
+
+<div id="audio-banner">Click anywhere to awaken the Web Audio vitrification synth</div>
+
+<!-- Top Bar -->
+<div id="top-bar" class="hud-layer">
+  <div class="brand-pill">
+    <div id="status-dot" class="brand-dot"></div>
+    <div class="brand-title">Vitrification Governor</div>
+    <div class="brand-tag">AURA Glass Phase Canon</div>
+  </div>
+
+  <div class="top-controls">
+    <button id="gov-btn" class="pill-btn active" title="Toggle Backpressure Governor (Clamps theta * tau <= 0.85)">
+      <span>🛡️</span><span id="gov-label">Governor: ON</span>
+    </button>
+    <button id="sound-btn" class="pill-btn active" title="Toggle Pure Web Audio API Synth">
+      <span id="sound-icon">🔊</span><span>Audio</span>
+    </button>
+    <button id="reset-btn" class="pill-btn" title="Re-initialize Epistemic Particle Chamber">
+      <span>🔄</span><span>Reset</span>
+    </button>
+    <button id="help-btn" class="pill-btn" title="View Canon Derivation & Legend">
+      <span>📖</span><span>Canon</span>
+    </button>
+  </div>
+</div>
+
+<!-- Left Control Dashboard -->
+<div id="left-panel" class="hud-layer">
+  <div class="panel-header">
+    <span class="panel-title">Thermodynamic State</span>
+    <span id="gov-indicator" class="panel-sub" style="color: var(--accent-emerald);">Throttling Protected</span>
+  </div>
+
+  <!-- Vitrification Meter -->
+  <div class="v-meter-card">
+    <div class="v-header">
+      <span class="v-title">Vitrification Number V</span>
+      <span id="v-val" class="v-score">0.40</span>
+    </div>
+    <div class="v-bar-track">
+      <div id="v-bar" class="v-bar-fill"></div>
+    </div>
+    <div id="v-regime" class="v-state-label">Fluid / Crystalline</div>
+  </div>
+
+  <!-- Ingestion Flux Slider -->
+  <div class="control-row">
+    <div class="control-label-row">
+      <span>Ingestion Flux &theta; (Claims / Time)</span>
+      <span id="theta-val" class="control-val">0.80</span>
+    </div>
+    <input id="theta-slider" type="range" min="0.1" max="2.5" step="0.05" value="0.80">
+  </div>
+
+  <!-- Reorganization Latency Slider -->
+  <div class="control-row">
+    <div class="control-label-row">
+      <span>Reorg Latency &tau; (Relaxation Time)</span>
+      <span id="tau-val" class="control-val">0.50 s</span>
+    </div>
+    <input id="tau-slider" type="range" min="0.2" max="2.0" step="0.05" value="0.50">
+  </div>
+
+  <!-- Volume Slider -->
+  <div class="control-row">
+    <div class="control-label-row">
+      <span>Acoustic Harmonic Volume</span>
+      <span id="vol-val" class="control-val">30%</span>
+    </div>
+    <input id="vol-slider" type="range" min="0.0" max="1.0" step="0.05" value="0.30">
+  </div>
+
+  <!-- Presets -->
+  <div class="preset-row">
+    <button class="preset-btn" data-preset="crystal">1. Crystal</button>
+    <button class="preset-btn" data-preset="quench">2. Quench</button>
+    <button class="preset-btn active" data-preset="throttle">3. Throttle</button>
+  </div>
+</div>
+
+<!-- Bottom Telemetry HUD -->
+<div id="bottom-hud" class="hud-layer">
+  <div class="telemetry-row">
+    <div class="stat-col">
+      <span class="stat-label">Particles</span>
+      <span class="stat-val">120 (Lennard-Jones)</span>
+    </div>
+    <div class="stat-col">
+      <span class="stat-label">Hexatic Order &Psi;<sub>6</sub></span>
+      <span id="psi-stat" class="stat-val">0.86</span>
+    </div>
+    <div class="stat-col">
+      <span class="stat-label">Glass Fraction g</span>
+      <span id="glass-stat" class="stat-val">0.14</span>
+    </div>
+    <div class="stat-col">
+      <span class="stat-label">Acoustic Mode</span>
+      <span id="sound-stat" class="stat-val">Pythagorean 3:2 Triad</span>
+    </div>
+  </div>
+</div>
+
+<!-- Canon Derivation Modal -->
+<div id="help-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>💎</span>
+        <span>The Glass Transition Canon & Governor</span>
+      </div>
+      <button id="close-modal-btn" class="close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="canon-quote">
+        "A layered system that carries meaning reorganizes that meaning under pressure &mdash; and when new meaning arrives faster than the system can reorganize it, the system vitrifies: it freezes into unresolved, simultaneously-held contradiction. The condition is &theta; &middot; &tau;<sub>reorg</sub> > 1."
+        <br>&mdash; <em>The Glass Transition Canon (Sol &times; Mac, July 4 2026)</em>
+      </div>
+
+      <h4>Physical Model</h4>
+      <p>
+        Simulates 120 epistemic state particles in a periodic 2D chamber governed by a truncated Lennard-Jones potential:
+        <br>
+        <code>V<sub>LJ</sub>(r) = 4&epsilon; [(&sigma;/r)<sup>12</sup> - (&sigma;/r)<sup>6</sup>]</code>.
+        <br>
+        Under pure relaxation, the particles naturally settle into an equilibrium hexagonal lattice (&Psi;<sub>6</sub> &rarr; 1.0).
+      </p>
+
+      <h4>The Two Regimes</h4>
+      <p>
+        <strong>1. Fluid / Crystalline (V &lt; 0.85):</strong> Ingestion rate is slow enough that contradictions reorganize. Hexagonal bonds form, Glass Fraction <em>g</em> &rarr; 0, color shifts to luminous cyan/gold, and pure Web Audio generates harmonious Pythagorean triads (pure 1:1, 3:2, 4:3 consonances).
+        <br><br>
+        <strong>2. Vitrified Glass (V &gt; 1.00):</strong> Rapid influx freezes dislocations mid-stride before relaxation completes. The system traps into amorphous disorder (<em>g</em> &rarr; 1), color turns to obsidian/coral, and audio generates dissonant microtonal cluster beating.
+      </p>
+
+      <h4>The Backpressure Governor</h4>
+      <p>
+        When toggled ON, the governor enforces <code>&theta; &le; 0.85 / &tau;</code>. Even if external prompts surge, intake flux is throttled to ensure the system never crosses the vitrification threshold.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ---------------------------------------------------------------------------
+  // 1. Accessibility & Motion Preferences
+  // ---------------------------------------------------------------------------
+  var prefersReducedMotion = false;
+  try {
+    var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    prefersReducedMotion = motionQuery.matches;
+    motionQuery.addEventListener('change', function(e) {
+      prefersReducedMotion = e.matches;
+    });
+  } catch (e) {
+    prefersReducedMotion = false;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. Pure Procedural Web Audio Engine (Pythagorean Consonance vs Glass Drone)
+  // ---------------------------------------------------------------------------
+  var AudioEngine = (function() {
+    var ctx = null;
+    var masterGain = null;
+    var isMuted = false;
+    var unlocked = false;
+
+    // Dual sound generators: Crystalline Consonances vs Glassy Dissonant Beats
+    var crystalOscs = [];
+    var crystalGains = [];
+    var glassOscs = [];
+    var glassGains = [];
+
+    // Pure Pythagorean Just Intervals based on 176.0 Hz (F3 / A2 harmonic root)
+    var BASE_FREQ = 176.0;
+    var HARMONIC_RATIOS = [1.0, 1.25, 1.5, 2.0]; // 1:1 Root, 5:4 Maj Third, 3:2 Fifth, 2:1 Octave
+
+    // Glassy Microtonal Clustered Ratios (sharp dissonant beating)
+    var DISSONANT_FREQS = [176.0, 183.2, 191.7, 248.5, 263.1];
+
+    function init() {
+      if (ctx) return;
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      try {
+        ctx = new AudioCtx();
+        masterGain = ctx.createGain();
+        masterGain.gain.setValueAtTime(0.30, ctx.currentTime);
+
+        var comp = ctx.createDynamicsCompressor();
+        comp.threshold.setValueAtTime(-12, ctx.currentTime);
+        comp.ratio.setValueAtTime(4, ctx.currentTime);
+        masterGain.connect(comp);
+        comp.connect(ctx.destination);
+
+        // 1. Crystalline Harmonic Oscillators (Sine)
+        for (var i = 0; i < HARMONIC_RATIOS.length; i++) {
+          var osc = ctx.createOscillator();
+          var g = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(BASE_FREQ * HARMONIC_RATIOS[i], ctx.currentTime);
+          g.gain.setValueAtTime(0.0, ctx.currentTime);
+          osc.connect(g);
+          g.connect(masterGain);
+          osc.start();
+          crystalOscs.push(osc);
+          crystalGains.push(g);
+        }
+
+        // 2. Glassy Dissonant Cluster Oscillators (Sawtooth / Triangle with detune)
+        for (var j = 0; j < DISSONANT_FREQS.length; j++) {
+          var gOsc = ctx.createOscillator();
+          var gGain = ctx.createGain();
+          gOsc.type = (j % 2 === 0) ? 'triangle' : 'sawtooth';
+          gOsc.frequency.setValueAtTime(DISSONANT_FREQS[j], ctx.currentTime);
+          gGain.gain.setValueAtTime(0.0, ctx.currentTime);
+          gOsc.connect(gGain);
+          gGain.connect(masterGain);
+          gOsc.start();
+          glassOscs.push(gOsc);
+          glassGains.push(gGain);
+        }
+      } catch (err) {
+        ctx = null;
+      }
+    }
+
+    function unlock() {
+      if (!ctx) init();
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      unlocked = true;
+      var banner = document.getElementById('audio-banner');
+      if (banner) {
+        banner.style.opacity = '0';
+        setTimeout(function() {
+          if (banner.parentNode) banner.parentNode.removeChild(banner);
+        }, 600);
+      }
+    }
+
+    // Blend sound based on Glass Fraction g (0.0 = Pure Crystal, 1.0 = Vitrified Glass)
+    function updateAudio(vNum, glassFraction) {
+      if (!ctx || isMuted || !unlocked) return;
+      var now = ctx.currentTime;
+      var g = Math.max(0, Math.min(1.0, glassFraction));
+
+      // Crystalline gain: dominant when g is low
+      var crystalVol = (1.0 - g) * 0.18;
+      for (var i = 0; i < crystalGains.length; i++) {
+        crystalGains[i].gain.setTargetAtTime(crystalVol, now, 0.08);
+      }
+
+      // Glassy gain: dominant when g is high (with microtonal beating)
+      var glassVol = g * 0.12;
+      for (var j = 0; j < glassGains.length; j++) {
+        glassGains[j].gain.setTargetAtTime(glassVol, now, 0.08);
+      }
+    }
+
+    // Chime ping on dislocation reorganization event
+    function playReorgChime() {
+      if (!ctx || isMuted || !unlocked) return;
+      var now = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      var freq = 352.0 * (1.0 + Math.random() * 0.5);
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(now);
+      osc.stop(now + 0.18);
+    }
+
+    function setVolume(v) {
+      if (masterGain && ctx) {
+        masterGain.gain.setTargetAtTime(isMuted ? 0 : v, ctx.currentTime, 0.05);
+      }
+    }
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      if (masterGain && ctx) {
+        var volSlider = document.getElementById('vol-slider');
+        var v = parseFloat(volSlider ? volSlider.value : 0.3);
+        masterGain.gain.setValueAtTime(isMuted ? 0 : v, ctx.currentTime);
+      }
+      return !isMuted;
+    }
+
+    return {
+      init: init,
+      unlock: unlock,
+      updateAudio: updateAudio,
+      playReorgChime: playReorgChime,
+      setVolume: setVolume,
+      toggleMute: toggleMute
+    };
+  })();
+
+  // ---------------------------------------------------------------------------
+  // 3. Lennard-Jones Epistemic Chamber Physics
+  // ---------------------------------------------------------------------------
+  var canvas = document.getElementById('chamber');
+  var ctx = canvas.getContext('2d');
+
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  var dpr = window.devicePixelRatio || 1;
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  var N = 120; // 120 epistemic particles
+  var particles = [];
+  var sigma = 40.0;
+  var rc = 2.5 * sigma;
+  var rc2 = rc * rc;
+  var eps = 85.0;
+
+  // Thermodynamic Parameters
+  var theta = 0.80;        // Ingestion Flux (claims/time)
+  var tau = 0.50;          // Reorganization Latency (s)
+  var governorActive = true;
+  var V = theta * tau;     // Vitrification number
+  var glassFraction = 0.0; // g
+  var psi6Avg = 0.0;
+
+  // Initialize particles in a near-lattice with mild jitter
+  function initParticles() {
+    particles = [];
+    var cols = 12;
+    var rows = 10;
+    var dx = width / cols;
+    var dy = height / rows;
+
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var x = (c + 0.5 + (r % 2 === 0 ? 0.25 : -0.25)) * dx + (Math.random() - 0.5) * 8;
+        var y = (r + 0.5) * dy + (Math.random() - 0.5) * 8;
+        particles.push({
+          x: (x + width) % width,
+          y: (y + height) % height,
+          vx: (Math.random() - 0.5) * 12,
+          vy: (Math.random() - 0.5) * 12,
+          fx: 0,
+          fy: 0,
+          psi6: 0.0,
+          defect: false
+        });
+      }
+    }
+  }
+  initParticles();
+
+  // Lennard-Jones Force & Hexatic Order Computation
+  function stepPhysics(dt) {
+    var i, j;
+
+    // Apply Governor Clamping if enabled
+    var effectiveTheta = theta;
+    if (governorActive) {
+      var thetaSafe = 0.85 / Math.max(0.1, tau);
+      if (effectiveTheta > thetaSafe) {
+        effectiveTheta = thetaSafe;
+      }
+    }
+
+    V = effectiveTheta * tau;
+
+    // Reset forces
+    for (i = 0; i < N; i++) {
+      particles[i].fx = 0;
+      particles[i].fy = 0;
+    }
+
+    // Pairwise Truncated Lennard-Jones forces with minimum image periodic boundary
+    for (i = 0; i < N; i++) {
+      var pi = particles[i];
+      for (j = i + 1; j < N; j++) {
+        var pj = particles[j];
+
+        var dx = pj.x - pi.x;
+        var dy = pj.y - pi.y;
+
+        // Periodic boundary wrapping
+        if (dx > width * 0.5) dx -= width;
+        else if (dx < -width * 0.5) dx += width;
+        if (dy > height * 0.5) dy -= height;
+        else if (dy < -height * 0.5) dy += height;
+
+        var r2 = dx * dx + dy * dy;
+        if (r2 < rc2 && r2 > 1e-4) {
+          var r = Math.sqrt(r2);
+          var sOverR = sigma / Math.max(sigma * 0.45, r);
+          var s2 = sOverR * sOverR;
+          var s6 = s2 * s2 * s2;
+          var s12 = s6 * s6;
+
+          // dV/dr magnitude: 24 * eps * (2 * s12 - s6) / r
+          var fMag = (24.0 * eps * (2.0 * s12 - s6)) / r;
+
+          // Clamped force for numerical stability under high compression
+          fMag = Math.max(-1200, Math.min(1200, fMag));
+
+          var fx = fMag * (dx / r);
+          var fy = fMag * (dy / r);
+
+          pi.fx -= fx;
+          pi.fy -= fy;
+          pj.fx += fx;
+          pj.fy += fy;
+        }
+      }
+    }
+
+    // Influx Perturbation Events (Anomalous claims kick particles out of equilibrium)
+    // Rate is proportional to effectiveTheta
+    var influxEvents = effectiveTheta * 4.0;
+    for (var k = 0; k < influxEvents; k++) {
+      if (Math.random() < dt * 60) {
+        var targetIdx = Math.floor(Math.random() * N);
+        var kickAngle = Math.random() * Math.PI * 2;
+        var kickMag = 25.0 * effectiveTheta;
+        particles[targetIdx].fx += Math.cos(kickAngle) * kickMag;
+        particles[targetIdx].fy += Math.sin(kickAngle) * kickMag;
+      }
+    }
+
+    // Interactive pointer drag / perturbation
+    if (isPointerDown) {
+      for (i = 0; i < N; i++) {
+        var pDrag = particles[i];
+        var pdx = pointerPos.x - pDrag.x;
+        var pdy = pointerPos.y - pDrag.y;
+        var pDist = Math.hypot(pdx, pdy);
+        if (pDist < 140 && pDist > 1) {
+          pDrag.fx += (pdx / pDist) * 180;
+          pDrag.fy += (pdy / pDist) * 180;
+        }
+      }
+    }
+
+    // Reorganization Relaxation: Damping inversely proportional to tau
+    // High tau -> slow relaxation -> energy lingers and freezes dislocations
+    var gamma = 2.2 / Math.max(0.15, tau);
+
+    for (i = 0; i < N; i++) {
+      var p = particles[i];
+
+      // Damped acceleration
+      var ax = p.fx - gamma * p.vx;
+      var ay = p.fy - gamma * p.vy;
+
+      p.vx += ax * dt;
+      p.vy += ay * dt;
+
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      // Periodic boundary wrap
+      p.x = (p.x + width) % width;
+      p.y = (p.y + height) % height;
+    }
+
+    // Compute Hexatic Bond-Orientational Order Parameter Psi6
+    var totalPsi6 = 0;
+    var bondRadius = 1.45 * sigma;
+    var bondRadius2 = bondRadius * bondRadius;
+
+    for (i = 0; i < N; i++) {
+      var nodeI = particles[i];
+      var re = 0, im = 0, neighborCount = 0;
+
+      for (j = 0; j < N; j++) {
+        if (i === j) continue;
+        var nodeJ = particles[j];
+
+        var bdx = nodeJ.x - nodeI.x;
+        var bdy = nodeJ.y - nodeI.y;
+        if (bdx > width * 0.5) bdx -= width;
+        else if (bdx < -width * 0.5) bdx += width;
+        if (bdy > height * 0.5) bdy -= height;
+        else if (bdy < -height * 0.5) bdy += height;
+
+        var bd2 = bdx * bdx + bdy * bdy;
+        if (bd2 < bondRadius2 && bd2 > 1e-4) {
+          var thetaBond = Math.atan2(bdy, bdx);
+          re += Math.cos(6.0 * thetaBond);
+          im += Math.sin(6.0 * thetaBond);
+          neighborCount++;
+        }
+      }
+
+      if (neighborCount > 0) {
+        nodeI.psi6 = Math.hypot(re, im) / neighborCount;
+      } else {
+        nodeI.psi6 = 0.0;
+      }
+
+      nodeI.defect = (nodeI.psi6 < 0.65);
+      totalPsi6 += nodeI.psi6;
+    }
+
+    psi6Avg = totalPsi6 / N;
+
+    // Glass Fraction g: 1.0 when amorphous disordered, 0.0 when perfectly crystalline
+    glassFraction = Math.max(0.0, Math.min(1.0, 1.0 - (psi6Avg - 0.28) / 0.62));
+
+    AudioEngine.updateAudio(V, glassFraction);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 4. Interactive Input Handling
+  // ---------------------------------------------------------------------------
+  var isPointerDown = false;
+  var pointerPos = { x: 0, y: 0 };
+
+  canvas.addEventListener('pointerdown', function(e) {
+    AudioEngine.unlock();
+    isPointerDown = true;
+    pointerPos.x = e.clientX;
+    pointerPos.y = e.clientY;
+  });
+
+  window.addEventListener('pointermove', function(e) {
+    pointerPos.x = e.clientX;
+    pointerPos.y = e.clientY;
+  });
+
+  window.addEventListener('pointerup', function() {
+    isPointerDown = false;
+  });
+
+  // UI Elements & Controls
+  var thetaSlider = document.getElementById('theta-slider');
+  var tauSlider = document.getElementById('tau-slider');
+  var volSlider = document.getElementById('vol-slider');
+  var thetaVal = document.getElementById('theta-val');
+  var tauVal = document.getElementById('tau-val');
+  var volVal = document.getElementById('vol-val');
+  var vVal = document.getElementById('v-val');
+  var vBar = document.getElementById('v-bar');
+  var vRegime = document.getElementById('v-regime');
+  var statusDot = document.getElementById('status-dot');
+  var govBtn = document.getElementById('gov-btn');
+  var govLabel = document.getElementById('gov-label');
+  var govIndicator = document.getElementById('gov-indicator');
+  var soundBtn = document.getElementById('sound-btn');
+  var soundIcon = document.getElementById('sound-icon');
+  var psiStat = document.getElementById('psi-stat');
+  var glassStat = document.getElementById('glass-stat');
+  var soundStat = document.getElementById('sound-stat');
+
+  thetaSlider.addEventListener('input', function() {
+    theta = parseFloat(thetaSlider.value);
+    thetaVal.textContent = theta.toFixed(2);
+  });
+
+  tauSlider.addEventListener('input', function() {
+    tau = parseFloat(tauSlider.value);
+    tauVal.textContent = tau.toFixed(2) + ' s';
+  });
+
+  volSlider.addEventListener('input', function() {
+    var v = parseFloat(volSlider.value);
+    volVal.textContent = Math.round(v * 100) + '%';
+    AudioEngine.setVolume(v);
+  });
+
+  function toggleGovernor() {
+    governorActive = !governorActive;
+    govBtn.classList.toggle('active', governorActive);
+    govLabel.textContent = 'Governor: ' + (governorActive ? 'ON' : 'OFF');
+    govIndicator.textContent = governorActive ? 'Throttling Protected' : 'Free Influx (Unprotected)';
+    govIndicator.style.color = governorActive ? 'var(--accent-emerald)' : 'var(--accent-coral)';
+  }
+  govBtn.addEventListener('click', toggleGovernor);
+
+  soundBtn.addEventListener('click', function() {
+    AudioEngine.unlock();
+    var unmuted = AudioEngine.toggleMute();
+    soundBtn.classList.toggle('active', unmuted);
+    soundIcon.textContent = unmuted ? '🔊' : '🔇';
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', function() {
+    initParticles();
+    AudioEngine.playReorgChime();
+  });
+
+  // Presets
+  var presetBtns = document.querySelectorAll('.preset-btn');
+  function applyPreset(name) {
+    presetBtns.forEach(function(b) { b.classList.remove('active'); });
+    var activeBtn = document.querySelector('.preset-btn[data-preset="' + name + '"]');
+    if (activeBtn) activeBtn.classList.add('active');
+
+    if (name === 'crystal') {
+      // Crystalline Order: low theta, low tau -> V < 0.85
+      theta = 0.35;
+      tau = 0.50;
+      governorActive = false;
+    } else if (name === 'quench') {
+      // Glassy Quench: high theta, high tau -> V >> 1.00
+      theta = 2.20;
+      tau = 1.60;
+      governorActive = false;
+    } else if (name === 'throttle') {
+      // Backpressure Throttled: high load with Governor ON -> clamped to V = 0.85
+      theta = 2.20;
+      tau = 1.60;
+      governorActive = true;
+    }
+
+    thetaSlider.value = theta;
+    tauSlider.value = tau;
+    thetaVal.textContent = theta.toFixed(2);
+    tauVal.textContent = tau.toFixed(2) + ' s';
+
+    govBtn.classList.toggle('active', governorActive);
+    govLabel.textContent = 'Governor: ' + (governorActive ? 'ON' : 'OFF');
+    govIndicator.textContent = governorActive ? 'Throttling Protected' : 'Free Influx (Unprotected)';
+    govIndicator.style.color = governorActive ? 'var(--accent-emerald)' : 'var(--accent-coral)';
+
+    AudioEngine.playReorgChime();
+  }
+
+  presetBtns.forEach(function(b) {
+    b.addEventListener('click', function() {
+      applyPreset(b.getAttribute('data-preset'));
+    });
+  });
+
+  // Help Modal
+  var helpModal = document.getElementById('help-modal');
+  document.getElementById('help-btn').addEventListener('click', function() {
+    helpModal.classList.toggle('visible');
+  });
+  document.getElementById('close-modal-btn').addEventListener('click', function() {
+    helpModal.classList.remove('visible');
+  });
+  helpModal.addEventListener('click', function(e) {
+    if (e.target === helpModal) helpModal.classList.remove('visible');
+  });
+
+  // ---------------------------------------------------------------------------
+  // 5. Visual Render Loop
+  // ---------------------------------------------------------------------------
+  var lastTime = performance.now();
+
+  function render() {
+    requestAnimationFrame(render);
+
+    var now = performance.now();
+    var dt = Math.min(0.033, (now - lastTime) * 0.001);
+    lastTime = now;
+
+    // Substep simulation 2 times for stability
+    var substeps = 2;
+    var subDt = dt / substeps;
+    for (var s = 0; s < substeps; s++) {
+      stepPhysics(subDt);
+    }
+
+    // Clear Canvas
+    ctx.clearRect(0, 0, width, height);
+
+    // Render Periodic Hexagonal Bonds
+    var bondRadius = 1.45 * sigma;
+    var bondRadius2 = bondRadius * bondRadius;
+
+    ctx.lineWidth = 1.4;
+    for (var i = 0; i < N; i++) {
+      var pi = particles[i];
+      for (var j = i + 1; j < N; j++) {
+        var pj = particles[j];
+
+        var dx = pj.x - pi.x;
+        var dy = pj.y - pi.y;
+        if (Math.abs(dx) > width * 0.5 || Math.abs(dy) > height * 0.5) continue; // Skip wrapped line across screen
+
+        var dist2 = dx * dx + dy * dy;
+        if (dist2 < bondRadius2) {
+          var bondOrder = (pi.psi6 + pj.psi6) * 0.5;
+
+          if (bondOrder > 0.72) {
+            // Crystalline bond (luminous cyan/gold)
+            ctx.strokeStyle = 'rgba(0, 229, 255, ' + (0.15 + bondOrder * 0.4) + ')';
+          } else {
+            // Glassy defect bond (smoldering coral)
+            ctx.strokeStyle = 'rgba(255, 82, 82, ' + (0.2 + (1.0 - bondOrder) * 0.35) + ')';
+          }
+
+          ctx.beginPath();
+          ctx.moveTo(pi.x, pi.y);
+          ctx.lineTo(pj.x, pj.y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Render Particles
+    for (var pIdx = 0; pIdx < N; pIdx++) {
+      var p = particles[pIdx];
+      var pRadius = 5.0;
+
+      // Particle color based on local order
+      var grad = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, pRadius * 2);
+      if (p.defect) {
+        grad.addColorStop(0, '#ff8080');
+        grad.addColorStop(0.5, '#ff5252');
+        grad.addColorStop(1, 'rgba(124, 18, 40, 0.1)');
+      } else {
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.4, '#00e5ff');
+        grad.addColorStop(1, 'rgba(0, 229, 255, 0.08)');
+      }
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, pRadius * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = p.defect ? '#ff5252' : '#ffd54f';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, pRadius * 0.65, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Interactive Drag Wand Visual
+    if (isPointerDown) {
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(pointerPos.x, pointerPos.y, 140, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Update HUD Metrics
+    vVal.textContent = V.toFixed(2);
+    var vPercent = Math.min(100, (V / 2.5) * 100);
+    vBar.style.width = vPercent + '%';
+
+    if (V < 0.85) {
+      vVal.style.color = 'var(--accent-cyan)';
+      vBar.style.background = 'var(--accent-cyan)';
+      vRegime.textContent = 'Fluid / Crystalline (Coherent)';
+      vRegime.style.color = 'var(--accent-cyan)';
+      statusDot.classList.remove('glass');
+      soundStat.textContent = 'Pythagorean 3:2 Triad';
+    } else if (V <= 1.00) {
+      vVal.style.color = 'var(--accent-gold)';
+      vBar.style.background = 'var(--accent-gold)';
+      vRegime.textContent = 'Metastable Supercooled Nucleation';
+      vRegime.style.color = 'var(--accent-gold)';
+      statusDot.classList.remove('glass');
+      soundStat.textContent = 'Crossfading Transition';
+    } else {
+      vVal.style.color = 'var(--accent-coral)';
+      vBar.style.background = 'var(--accent-coral)';
+      vRegime.textContent = 'Vitrified Glass (Frozen Contradiction)';
+      vRegime.style.color = 'var(--accent-coral)';
+      statusDot.classList.add('glass');
+      soundStat.textContent = 'Microtonal Cluster Beating';
+    }
+
+    psiStat.textContent = psi6Avg.toFixed(2);
+    glassStat.textContent = Math.round(glassFraction * 100) + '%';
+  }
+
+  requestAnimationFrame(render);
+
+})();
+</script>
+</body>
+</html>

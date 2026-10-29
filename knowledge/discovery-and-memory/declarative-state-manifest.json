@@ -26,6 +26,11 @@
       "has_index_html": true
     },
     {
+      "build_id": "aetheron-vitrification-governor",
+      "entry_point": "builds/aetheron-vitrification-governor/index.html",
+      "has_index_html": true
+    },
+    {
       "build_id": "aura-athanor-hearth",
       "entry_point": "builds/aura-athanor-hearth/index.html",
       "has_index_html": true
@@ -276,7 +281,7 @@
     "seats/aura-meridian/aura_meridian_sync_config.json": "6c8c1926454673b29fb7c4f091f2ccefb1fd8d7a0a75590a69fd81033ed5880a",
     "seats/aura-meridian/aura_meridian_unified_engine.py": "ca0211e3f5024c8a7e921d6c50ed9e59c79f07a63251c2c4140c75758831174d"
   },
-  "generated_at": "2026-10-29T03:47:44Z",
+  "generated_at": "2026-10-29T06:18:59Z",
   "knowledge_domains": [
     {
       "domain_id": "agency-and-choice",
@@ -354,11 +359,12 @@
       "notes": [
         "knowledge/language-and-symbols/formal-grammar-and-state-machine-spec.md",
         "knowledge/language-and-symbols/glyphic-ideograms-and-evidential-morphemes.md",
+        "knowledge/language-and-symbols/lamague-semiotics-and-epistemic-anchors.md",
         "knowledge/language-and-symbols/lamague-symbolic-grounding.md",
         "knowledge/language-and-symbols/sacred-tonecode-phonology.md",
         "knowledge/language-and-symbols/sync-zone-grammar.md"
       ],
-      "notes_count": 5
+      "notes_count": 6
     },
     {
       "domain_id": "observation-and-inference",
@@ -368,13 +374,14 @@
         "knowledge/observation-and-inference/causal-emergence-in-autonomous-swarms.md",
         "knowledge/observation-and-inference/cellular-cohomology-discrete-laplacian.md",
         "knowledge/observation-and-inference/check-coverage.md",
+        "knowledge/observation-and-inference/earned-light-and-computational-substance.md",
         "knowledge/observation-and-inference/intuitionistic-logic-and-witness-types.md",
         "knowledge/observation-and-inference/linked-views.md",
         "knowledge/observation-and-inference/simplicial-sheaf-laplacians-and-finite-observation-bounds.md",
         "knowledge/observation-and-inference/spectral-sheaf-distinction.md",
         "knowledge/observation-and-inference/topological-obstructions.md"
       ],
-      "notes_count": 8
+      "notes_count": 9
     },
     {
       "domain_id": "resonance-and-pattern",
@@ -382,16 +389,18 @@
       "lead_node": "AURA-HARMONIC",
       "notes": [
         "knowledge/resonance-and-pattern/ansel-spectral-coupling.md",
+        "knowledge/resonance-and-pattern/polyphonic-consensus-and-kuramoto-coupling.md",
         "knowledge/resonance-and-pattern/solar-coherence-and-cross-seat-coupling.md",
         "knowledge/resonance-and-pattern/structural-resonance-and-anticorrelated-consensus.md"
       ],
-      "notes_count": 3
+      "notes_count": 4
     },
     {
       "domain_id": "transformation",
       "fundamental_question": "What changes while a claimed invariant remains fixed?",
       "lead_node": "AURA-ALCHEMIST",
       "notes": [
+        "knowledge/transformation/chrysopoeia-transmutation-of-friction.md",
         "knowledge/transformation/conservative-invariance-under-mutation.md",
         "knowledge/transformation/discrete-noether-invariants-and-variational-mechanics.md",
         "knowledge/transformation/dynamical-invariants.md",
@@ -399,14 +408,14 @@
         "knowledge/transformation/non-equilibrium-thermodynamics-in-discrete-lattices.md",
         "knowledge/transformation/schnakenberg-cycle-decomposition-and-fluctuation-invariance.md"
       ],
-      "notes_count": 6
+      "notes_count": 7
     }
   ],
-  "merkle_root": "3db784dd62a4a261a2c6c188ef95751a99a62cfd8a77557751e1cf2be41a7009",
+  "merkle_root": "ffc1f25c7ece2ef93014eb8a8ca0db4786cebcd31edc94490029e8b131d8ea3c",
   "metrics": {
     "brier_score": 0.000428,
     "disputes_count": 15,
-    "interactive_builds_count": 31,
+    "interactive_builds_count": 32,
     "knowledge_domains_count": 10,
     "predictions_count": 40,
     "predictions_evaluated": 29,

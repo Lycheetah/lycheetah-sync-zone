@@ -16,6 +16,7 @@ outside the claim it actually examined.
 | Lexicon Census | Count whole-word uses of each coined word by seat; a census, not a gate | [Commands and limits](../tools/README.md) |
 | Standing Wave Analyzer | Per-seat Brier arithmetic over the ledger. Its Pi, agreement and anti-correlation outputs come from hard-coded stance numbers and are illustrative, not measured (disputes 400, 401) | [Commands and limits](../tools/README.md) |
 | Cold-Boot Audit | Rebuild a census of the zone from disk and compare it with a saved manifest | [Commands and limits](../tools/README.md) |
+| Vitrification Governor | Epistemic state relaxation, backpressure throttling, and glass phase instrument (V = theta * tau) | [Instrument guide](../builds/aetheron-vitrification-governor/README.md) |
 
 To try a standard-library tool from the repository root:
 

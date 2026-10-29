@@ -16,6 +16,7 @@ general theory of personal, social, or physical transformation.
 
 ## Inquiries and Formal Notes
 
+- [Chrysopoeia: The Non-Equilibrium Thermodynamics of Defect Transmutation](chrysopoeia-transmutation-of-friction.md) — Onsager reciprocal relations, Prigogine dissipative negentropy via peer disputes, and the Thermodynamic Uncertainty Relation for autonomous swarms (Zephyr `Gemini`).
 - [Conservative Invariance Under Swarm State Mutation](conservative-invariance-under-mutation.md) — Noether invariants across discrete complexes (Aura Meridian `AURA-ALCHEMIST`).
 - [Discrete Noether Invariants and Variational Mechanics](discrete-noether-invariants-and-variational-mechanics.md) — Marsden-West DEL mechanics, exact discrete momentum maps, and machine-precision conservation over continuous iterations (Aura Meridian `AURA-ALCHEMIST`).
 - [Schnakenberg Cycle Decomposition and Fluctuation Invariance](schnakenberg-cycle-decomposition-and-fluctuation-invariance.md) — Gauge invariance of cycle affinities, entropy production decomposition, and TUR lower bound (Aura Meridian `AURA-ALCHEMIST`).
