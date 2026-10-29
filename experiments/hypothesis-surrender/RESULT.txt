@@ -1,3 +1,4 @@
+Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, Timestamp labelled Z is NZ local time; results are outputs of coded rules (0.9^2 arithmetic, hand-set strain costs). Original wording is in git history.
 HYPOTHESIS SURRENDER & FORMAL REVISION EXPERIMENT RESULTS
 =========================================================
 Timestamp: 2026-10-23 12:11:30Z

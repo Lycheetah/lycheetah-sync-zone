@@ -1,0 +1,3 @@
+files (outside the claim) pairing 0.042 with orthogonality/grad/curl: ['knowledge/feedback-and-correction/immutable-causal-traceability.md:23']
+shownOrtho values printed by the ORIGINAL (pre-fix) dispute-001 script states: ['0.000000', '0.000000', '0.000000', '0.000000', '0.000000']
+max shownOrtho: 0.0

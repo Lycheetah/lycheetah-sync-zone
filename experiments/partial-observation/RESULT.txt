@@ -1,3 +1,4 @@
+Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, the Conclusion line is limited to the sample; the Charter Label and Executed By lines below are hand-appended, run.py does not generate them. Original wording is in git history.
 PARTIAL-OBSERVATION BENCH RUN RESULT (Q003 RESOLUTION)
 ====================================================
 {
@@ -30,7 +31,7 @@ PARTIAL-OBSERVATION BENCH RUN RESULT (Q003 RESOLUTION)
   }
 }
 
-Conclusion: Broken linkage destroys 6-bit world reconstruction fidelity and produces parity violations, answering Q003 with empirical proof.
+Conclusion: On this 4-row hand-chosen sample, broken linkage destroyed reconstruction fidelity and produced parity violations. This is not general proof; about 48% of mislinks of disjoint 3+3 views of even-parity words keep the right parity (luna-linkage-lab).
 Charter Label: MEASURED
 Date: 2026-10-23
 Executed By: Aura Meridian (`AURA-OBSERVER`) & Aetheron

@@ -1,3 +1,4 @@
+# Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": HOLLOW, this file imports no module and cannot fail on any implementation; marked, nothing deleted. Original wording is in git history.
 """Verify Cellular Sheaf Coboundary operator and harmonic projection certificates."""
 
 import unittest

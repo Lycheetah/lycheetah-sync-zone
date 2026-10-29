@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, the printed conclusion is limited to the 4-row hand-chosen sample. Original wording is in git history.
 """
 Partial-Observation Bench & Linked-View Permutation Experiment
 Directly tests research question Q003:
@@ -95,7 +96,7 @@ def main():
     print("Correct linkage yields 100% reconstruction fidelity (0 bit errors).")
     print("Permuted or broken linkage introduces a catastrophic mean Hamming error of")
     print(f"{results['PERMUTED_OFFSET_1']['mean_hamming_error']:.2f} bits, producing incompatible worlds that violate parity constraints.")
-    print("This falsifies the contrary hypothesis and proves that row linkage is load-bearing.")
+    print("On this 4-row hand-chosen sample, broken linkage produced parity violations. Over all mislinks of disjoint 3+3 views of even-parity words, about 48% keep the right parity (see luna-linkage-lab), so this sample does not establish that linkage is load-bearing in general.")
     print("=" * 70)
 
     # Write output to RESULT.txt

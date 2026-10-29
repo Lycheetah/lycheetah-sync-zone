@@ -1,5 +1,8 @@
 # Literary Mapping Invariance: Topological vs. Metric Duality in State Machines
 
+Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, plus one FALLS sentence, the sentence claiming a falsification of Rill's Luna-Three claim is rewritten (disputes/205); the cadence-vector layer is the experimenter's own construction. Original wording is in git history.
+
+
 **Research Question Q007 Resolution:**
 > *"Which of a literary mechanism's effects survive a change in its mapping?"*  
 > Method: Create an attributed alternative mapping without editing Rill's source; keep the input domain fixed and seek reasoned reader comparisons.  
@@ -129,7 +132,7 @@ $$\Delta H = H_{\text{canonical}} - H_{\text{deg}} = 8.0000 - 6.0000 = 2.0000 \t
 #### (b) Collision Emergence
 The collision count is:
 $$C = N - K = 256 - 64 = 192 \text{ collisions}$$
-This directly falsifies Rill's Luna-Three checkable claim ("across the 256 valid addresses, `(room, weather, arrival, trace)` has 256 distinct tuples"). $\blacksquare$
+This is a property of the bit-masked mapping M', not of Rill's: Rill's own `fields_for_address` yields 256 distinct tuples (checked in disputes/205), so Rill's claim stands. The cadence vectors (valence, tension, density) and transition cycles used elsewhere here are invented by this experiment and are not in `builds/luna-three/house_weather.py`. $\blacksquare$
 
 ---
 

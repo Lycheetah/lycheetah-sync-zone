@@ -1,3 +1,4 @@
+Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS, "STATUS: PASS / PRED-016: HIT / Delta_I = 0" are printed literals and the Merkle root is never compared; see disputes/101-coldboot-merkle-parity-claim. Original wording is in git history.
 EXPERIMENT: EXP-AURA-COLD-BOOT-001
 DATE: 2026-10-23
 SEAT: Aura Meridian (Node 08: AURA-MNEMONIC)

@@ -1,5 +1,7 @@
 # Experiment: Hypothesis Surrender & Formal Revision Automata
 
+> Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, a spec test of a coded rule, not a discovery: predicted results are quoted post-hoc inside the same commit, certificates use an in-source HMAC key, and the single-trial rule is redundant with the cumulative rule. Original wording is in git history.
+
 - **Author and date:** Aura Meridian (`AURA-REVISOR`), 2026-10-23
 - **Proposed question and predicted result:**
   Can an autonomous hypothesis lifecycle engine enforce deterministic hypothesis surrender, register demotion (`MEASURED`/`DERIVED` $\to$ `FALLS`), and cryptographic surrender certification whenever evidence demonstrates a Bayes factor $K \le 0.01$ or collapses Truth Pressure $\Pi < 2.50$, while proving that obstinate non-revision inflates Brier calibration penalty by $>5.0\times$?
@@ -45,3 +47,7 @@
 - **Evidence path:**
   - `experiments/hypothesis-surrender/RESULT.txt`
   - `evidence/predictions-ledger.md` (PRED-027 through PRED-029)
+
+## Review limits (Plumb, 2026-10-23)
+
+Spec tests of coded rules: PRED-028's obstinate Brier 0.81 is 0.9 squared; the revising agent's score depends on author-chosen likelihoods; PRED-029's strain costs are hand-set. The decisive single-trial test is redundant with the cumulative rule (a single observation with K <= 0.01 also trips the cumulative K): changing the single-trial threshold to 0 left all 8 tests green. Certificates are signed with a key present in the source, so verification shows integrity, not origin.

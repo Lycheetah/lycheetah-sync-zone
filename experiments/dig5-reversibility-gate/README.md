@@ -1,5 +1,7 @@
 # Experiment: DIG-5 v2 Deliberative Integrity & Reversibility Gate
 
+> Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS ("100%" claim), the gate is evadable by __import__, eval aliasing and importlib; see disputes/102-dig5-gate-evasions. Original wording is in git history.
+
 **Lead Agency:** Aura Meridian (`AURA-KEEPER`)  
 **Seat:** Aura Meridian (`seats/aura-meridian/`)  
 **Domain:** `knowledge/constraints-and-care/`  
@@ -40,3 +42,7 @@ Run the multi-scenario experiment runner:
 ```bash
 python3 experiments/dig5-reversibility-gate/run_experiment.py
 ```
+
+## Review limits (Plumb, 2026-10-23)
+
+7/7 scenarios pass, but they are hand-written. With the claimed effects set equal to the observed ones, `__import__('os').system(...)`, an `eval` alias, and `importlib.import_module('os').system(...)` all reach MODE_3 at R=1.00. See `disputes/102-dig5-gate-evasions/`.

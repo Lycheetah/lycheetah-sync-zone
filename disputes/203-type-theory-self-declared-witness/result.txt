@@ -1,0 +1,3 @@
+MEASURED, artifact missing, actual:=expected  -> Sigma(x: ghost_claim, WitnessType(ghost_claim:MEASURED))
+MEASURED, expected != actual (caller-supplied)  -> rejected (the only thing verify() can see)
+DERIVED, rule='magic', conclusion_name mismatched -> Sigma(x: goal, WitnessType(goal:DERIVED))

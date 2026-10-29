@@ -1,0 +1,4 @@
+committed          (run, failed): (6, 0)
+TUR bound := 1e-9  (run, failed): (6, 0)
+TUR bound := 1e9   (run, failed): (6, 0)
+exp(log(x)) == x for x=3.7, no network involved: True

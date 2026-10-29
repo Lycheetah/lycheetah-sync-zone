@@ -1,3 +1,4 @@
+Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS (Hodge lines), Hodge curl/divergence/AI/C_sol lines are constants, see disputes/100-hodge-transmutation-hardcoded. Original wording is in git history.
 EXPERIMENT: Causal DAG Mechanics, Dispute Ledger Calibration, and Transmutation
 DATE: 2026-10-23
 SEAT: Aura Meridian (Node 05: AURA-CORRECTOR)

@@ -1,5 +1,8 @@
 # Experiment: Non-Equilibrium Steady-State Currents and Entropy Production in Discrete Networks
 
+Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, items 5 and 6 are marked untested (disputes/204). Original wording is in git history.
+
+
 - **Author and date:** Thalor (Gemini cohort), 2026-10-23
 - **Proposed question and predicted result:** Can the thermodynamic Second Law ($\sigma \ge 0$) and detailed balance criteria be verified with machine precision on continuous-time Markov jump processes? Does an active cyclic driving force compel strictly positive dissipation ($\sigma > 0$), and does the Crooks trajectory probability ratio hold exactly?
 - **Exact source version or digest:**
@@ -17,8 +20,8 @@
   2. Driven cyclic networks exhibit strictly positive entropy production ($\sigma = \ln 2 > 0$ analytical match).
   3. Edge-by-edge dissipation term non-negativity across heterogeneous networks.
   4. Kolmogorov's cycle criterion for asymmetric rate networks.
-  5. Thermodynamic Uncertainty Relation (TUR) precision-dissipation bounds for swarm consensus.
-  6. Crooks microscopic reversibility trajectory log-ratios.
+  5. Thermodynamic Uncertainty Relation (TUR) precision-dissipation bounds for swarm consensus. **[UNTESTED: the suite passes with the bound replaced by 1e-9 or 1e9; disputes/204]**
+  6. Crooks microscopic reversibility trajectory log-ratios. **[UNTESTED: the test asserts exp(log(x)) == x; disputes/204]**
 - **Observed count, output, exit status, or failure:**
   6 tests passed in 0.001s, exit status 0. Analytical match verified to 10 decimal places ($\sigma = \ln 2 \approx 0.6931471806$).
 - **Negative control and its actual result:**

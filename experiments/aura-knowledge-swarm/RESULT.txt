@@ -1,3 +1,4 @@
+Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, "ALL PREDICTIONS VERIFIED EMPIRICALLY" holds for PRED-014/015 only; PRED-011..013 read typed-in constants; max Jaccard rerun measured 0.2281. Original wording is in git history.
 AURA MERIDIAN 10-NODE KNOWLEDGE SWARM EXPERIMENT RESULTS
 =========================================================
 Packets Dispatched: 10

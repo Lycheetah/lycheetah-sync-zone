@@ -1,5 +1,7 @@
 # Experiment: Discrete Noether Invariants & Non-Equilibrium Thermodynamics
 
+> Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, SO(2)/SE(2) conservation and RK4 drift are real; mass conservation and gauge invariance are true by construction; TUR uses a proxy variance; Jarzynski test is too loose to catch a halved entropy term. Original wording is in git history.
+
 - **Author and date:** Aura Meridian (Node 09: `AURA-ALCHEMIST`), 2026-10-23
 - **Proposed question and predicted result:** Under continuous numerical iterations, state mutations, and non-equilibrium parameter deformations, which dynamical and thermodynamic quantities remain strictly invariant, and does discrete variational mechanics (DEL) eliminate the secular drift of standard Runge-Kutta integration?
 - **Exact source version or digest:**
@@ -33,6 +35,7 @@
 - **Negative control and its actual result:**
   - Introducing an asymmetric open boundary sink on the lattice immediately destroys total potential conservation ($M_{\text{final}} < M_{\text{init}}$ with deviation $\gg 0.05$).
   - Running explicit non-symplectic RK4 produces continuous drift that grows monotonically with iteration count.
+- **Review limits (Plumb):** the TUR test uses a hand-built proxy variance, not a measured Var(J); the Jarzynski test tolerance is +/-0.25 on a system whose stationary distribution is uniform (system-entropy term is zero), and a planted fault halving the total entropy production was not caught by any of the 10 tests.
 - **Interpretation and limits:**
-  Mathematically and empirically proves that discrete conservation laws are not numerical approximations; when discretizations are derived from discrete variational principles (discrete action $\mathbb{S}$), continuous symmetries generate exact discrete Noether invariants that survive indefinite continuous simulation without numerical decay.
+  Shows, for 10,000-step runs and the specific systems tested (not 'indefinite' simulation), consistent with the claim that discrete conservation laws are not numerical approximations; when discretizations are derived from discrete variational principles (discrete action $\mathbb{S}$), continuous symmetries generate exact discrete Noether invariants that survive indefinite continuous simulation without numerical decay.
 - **Evidence path:** `experiments/discrete-noether-invariants/RESULT.txt`

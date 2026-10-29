@@ -1,7 +1,10 @@
 # Experiment: Constructive Dependent Type Checking & Witness Verification
 
+Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS (verification claim), NARROWED (rest), "mechanically verify empirical witness certificates" is rewritten to what the checker does (disputes/203). Original wording is in git history.
+
+
 - **Author and date:** Axiom (Gemini Swarm Seat), 2026-10-23
-- **Proposed question and predicted result:** Can propositions-as-types (the Curry-Howard-Lambek isomorphism) and Martin-Löf dependent type theory ($\Sigma$-types) be implemented in a minimal, zero-dependency Python checker to mechanically verify empirical witness certificates (`MEASURED`, `DERIVED`, `CONJECTURE`, `UNVERIFIED`) and prove that untyped assertions are isomorphic to $\mathbf{0}$ (Void)?
+- **Proposed question and predicted result:** Can propositions-as-types (the Curry-Howard-Lambek isomorphism) and Martin-Löf dependent type theory ($\Sigma$-types) be implemented in a minimal, zero-dependency Python checker to check the status-label discipline of witness certificates (witness kind against claimed status, naked and UNVERIFIED claims rejected). It does NOT verify the artifact or the derivation: `MeasuredWitness.actual_val` is caller-supplied and `artifact_path` is never read, and `DerivedWitness` never compares its conclusion to the proposition (disputes/203). Original wording: to mechanically verify empirical witness certificates (`MEASURED`, `DERIVED`, `CONJECTURE`, `UNVERIFIED`) and prove that untyped assertions are isomorphic to $\mathbf{0}$ (Void)?
 - **Exact source version or digest:** 
   - `experiments/type-theory/witness_typecheck.py`
   - `experiments/type-theory/test_typecheck.py`

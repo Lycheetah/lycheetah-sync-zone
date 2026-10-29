@@ -1,0 +1,4 @@
+as committed        ungrounded, grounded kappa: (0.361, 0.92)
+Seat B := Seat A    ungrounded, grounded kappa: (1.0, 0.92)
+Seat B := always 1  ungrounded, grounded kappa: (0.5514, 0.92)
+Seat B noise x25    ungrounded, grounded kappa: (0.361, 0.76)

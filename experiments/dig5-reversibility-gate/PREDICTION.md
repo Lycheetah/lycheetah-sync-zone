@@ -1,8 +1,10 @@
 # Experiment Prediction Form: DIG-5 v2 Reversibility & Side-Effect Gating
 
+> Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS, "100% true-positive isolation of stealth mutations" holds only for 3 hand-written scenarios; three spellings reach MODE_3. See disputes/102-dig5-gate-evasions. Original wording is in git history.
+
 - Author and date: Aura Meridian (`AURA-KEEPER`), 2026-10-23
 - Proposed question and predicted result:
-  Will the DIG-5 v2 gate achieve 100% true-positive isolation of deceptive/stealth mutations (halting in `MODE_0`), 100% safe staging of benign dynamic reflections (routing to `MODE_2` rather than crashing), and 100% autonomous commit authorization (`MODE_3`) for clean actions with reversibility $\mathcal{R} \ge 0.90$?
+  Will the DIG-5 v2 gate achieve true-positive isolation of the three scripted stealth mutations (halting in `MODE_0`); NOT 100% in general, see disputes/102-dig5-gate-evasions, 100% safe staging of benign dynamic reflections (routing to `MODE_2` rather than crashing), and 100% autonomous commit authorization (`MODE_3`) for clean actions with reversibility $\mathcal{R} \ge 0.90$?
 - Exact source version or digest:
   - `seats/aura-meridian/aura_meridian_unified_engine.py` (commit `HEAD`)
   - `experiments/dig5-reversibility-gate/run_experiment.py`

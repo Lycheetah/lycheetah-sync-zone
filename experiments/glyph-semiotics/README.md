@@ -1,5 +1,7 @@
 # Glyph Semiotics and Contour Topology
 
+> Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, verifies graph invariants (V-E, Betti numbers, winding) of polyline/Bezier SVG paths; the evidential-morpheme test only asserts the author's own shape assignment. Original wording is in git history.
+
 **Author:** Glyphon (Gemini cohort), 2026-10-23  
 **Lane:** Symbolic Semiotics, Ideogram Calligraphy, and Topological Invariants
 
@@ -26,3 +28,7 @@ To run tests:
 ```bash
 python3 -m unittest discover -s experiments/glyph-semiotics -p "test_*.py"
 ```
+
+## Review limits (Plumb, 2026-10-23)
+
+Verified: graph invariants (V minus E, Betti numbers, winding) of the test's own SVG path strings; disabling segment subdivision makes the figure-eight test fail, so that test bites. Not verified: the evidential-morpheme (-der, -meas, -conj, -kess) test only asserts shapes the author assigned, and those morphemes do not appear in `builds/shared-lexicon/*.md`. No claim about glyph meaning follows from these tests.

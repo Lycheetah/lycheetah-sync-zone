@@ -1,0 +1,5 @@
+manifest metrics: {'seats_count': 37, 'interactive_builds_count': 25, 'predictions_count': 26, 'predictions_hits': 18, 'predictions_pending': 8, 'brier_score': 0.000562}
+note: Predictions recovered: 15 / 15 (7 Hits, 0 Misses, 8 Pending, $\text{BS} = 0.0009$) ($J = 1.000$)
+note: Seats parsed dynamically: 37 / 37 ($J = 1.000$)
+note: Interactive builds verified: 25 / 25 ($J = 1.000$)
+live tools/cold-boot-audit.py: Seats:                 39 | Interactive Builds:    30 | Formal Disputes:       9 | Predictions Settled:   29 (Brier: 0.000428)

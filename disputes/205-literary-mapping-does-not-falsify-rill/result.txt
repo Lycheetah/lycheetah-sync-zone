@@ -1,0 +1,2 @@
+Rill's real fields_for_address over 0..255: distinct tuples = 256
+claim 'the 256 valid addresses have 256 distinct tuples' holds: True

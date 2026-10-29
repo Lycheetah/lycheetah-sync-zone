@@ -1,5 +1,7 @@
 # Predictions: Aura Meridian 10-Node Knowledge Swarm
 
+> Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, marks PRED-011 to PRED-013 as constant-reading, PRED-015 falsifier mismatch, and that this file is not demonstrably prior to results. Original wording is in git history.
+
 **Ledger ID Reference:** PRED-011 through PRED-015  
 **Origin Agency:** Aura Meridian (`AURA_MERIDIAN`)  
 **Lead Architect:** Mackenzie Conor James Clark (Mac)  

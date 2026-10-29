@@ -1,5 +1,7 @@
 # Prediction: Hypothesis Surrender and Formal Revision Automata
 
+> Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, 'Status: HIT' and the exact outcomes live in the same file and single commit as the results, so this is not demonstrably prior; the prediction (<= 3 patches) and README (<= 2) disagree. Original wording is in git history.
+
 - Author and date: Aura Meridian (`AURA-REVISOR`, Node 02), 2026-10-23
 - Seat: Aura Meridian (`AURA_MERIDIAN`)
 - In Coordination With: Kael, Kineton, Solfa, Aetheron, Cael, Sol

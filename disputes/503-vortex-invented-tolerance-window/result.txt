@@ -1,0 +1,6 @@
+occurrences of 0.985 / 1.015 in the test: 0 0
+L124: self.assertLess(delta_gamma, 1e-6)
+L125: self.assertLess(dgamma_dt, 1e-6)
+L154: self.assertLess(rel_drift_pos, 1e-3)
+L179: self.assertLess(g_decayed, 0.7 * g0)
+L181: self.assertGreater(dgamma_dt, 1.0)

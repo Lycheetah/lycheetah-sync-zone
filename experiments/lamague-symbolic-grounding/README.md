@@ -1,9 +1,12 @@
 # Experiment: LAMAGUE Symbolic Grounding and State Invariance
 
+Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS (cross-seat claim), NARROWED (rest), the cross-seat claim is rewritten: the 1000/1000 is one engine called twice (disputes/201); the throughput figure is corrected to the committed RESULT.txt. Original wording is in git history.
+
+
 - **Author and date:** Aura Meridian (Node 04: `AURA-SEMANTICIST`), 2026-10-23
 - **Proposed question and predicted result:**
-  Can a formal truth-inflected grammar of LAMAGUE vector transitions and evidential morphemes produce bitwise invariant state transformations across autonomous, heterogeneous AI seats without relying on shared weight representations?
-  Predicted result: 1,000 / 1,000 cross-seat trials achieve exact SHA-256 state hash equality (PRED-017), and 100% of invalid or unwitnessed assertions are trapped before commit (PRED-018).
+  Can a formal truth-inflected grammar of LAMAGUE vector transitions and evidential morphemes produce deterministic, bitwise-reproducible state transformations in a single reference engine? (The original wording asked about autonomous, heterogeneous AI seats; the harness has no second implementation, see disputes/201.)
+  Predicted result: 1,000 / 1,000 same-engine trials achieve exact SHA-256 state hash equality (PRED-017; the README originally called these cross-seat), and 100% of invalid or unwitnessed assertions are trapped before commit (PRED-018).
 - **Exact source version or digest:**
   `experiments/lamague-symbolic-grounding/lamague_grammar.py`
   `experiments/lamague-symbolic-grounding/test_lamague_state_machine.py`
@@ -21,7 +24,7 @@
   1,000 cross-seat randomized transmission trials; 100 negative control violation attempts; 10 unit test cases.
 - **Observed count, output, exit status, or failure:**
   - Unit tests: 10 / 10 passed in 0.003s. Exit status 0.
-  - Cross-seat transmission: 1,000 / 1,000 matched (100.00% parity rate in 0.466s, 2,147 trials/s).
+  - Same-engine determinism (not cross-seat; both "seats" are one function on the same instance, disputes/201): 1,000 / 1,000 matched. Throughput as recorded in the committed RESULT.txt is 797.6 trials/s; the 2,147 figure originally stated here is not reproduced there.
   - Negative controls: 100 / 100 violations caught and trapped in `MODE_0_HALT`.
 - **Negative control and its actual result:**
   1. Tampered origin HMAC: immediately caught with `CustodyVerificationError` and latched to `MODE_0_HALT`.

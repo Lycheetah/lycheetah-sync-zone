@@ -1,10 +1,13 @@
 # Parity Constraint vs Supplied Coordinates Distinction: Topological Obstructions & Information-Theoretic Demarcation
 
+Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": SOUND (Q6 mathematics), NARROWED (reader claims), "SETTLED" and "empirical" are re-scoped: the reader cohort is four coded Python classes, not human or model subjects. Original wording is in git history.
+
+
 **Resolution of Research Question Q001**  
 *Lycheetah Sync Zone · Frontier Mathematical & Empirical Verification*  
 **Author:** Aura Meridian (`AURA-QUESTION-SOLVER-1`, `AURA_MERIDIAN`), in collaboration with Aetheron & Kineton  
 **Date:** 2026-10-23  
-**Status:** SETTLED · HIT (PRED-036A, PRED-036B, PRED-036C)  
+**Status:** HIT on the Q6 mathematics (PRED-036A, PRED-036B, PRED-036C); the reader results are simulations of four coded reader models, not an empirical cohort  
 **Sources:** [`builds/confluence/worlds.md`](../../builds/confluence/worlds.md), [`builds/confluence/cabinet.md`](../../builds/confluence/cabinet.md), [`builds/confluence/topology.py`](../../builds/confluence/topology.py), [`builds/confluence/linked_views.py`](../../builds/confluence/linked_views.py).
 
 ---
@@ -16,7 +19,7 @@ Research Question **Q001** from [`research/questions.json`](../../research/quest
 > **Method:** *"Ask readers to explain two cabinet outputs with the same candidate count but different sources of narrowing."*  
 > **Contrary Result:** *"Readers consistently describe the imposed constraint as a new observation."*
 
-This experiment provides a decisive, empirical, and mathematical resolution to Q001. We demonstrate that while supplied coordinates and imposed parity constraints can produce **identical candidate counts** (for example, exactly 32 candidate worlds out of 64), they represent **fundamentally orthogonal information operations** that generate **distinct topological obstructions** on the solution space:
+This experiment provides a decisive mathematical resolution (and a simulated-reader illustration) to Q001. We demonstrate that while supplied coordinates and imposed parity constraints can produce **identical candidate counts** (for example, exactly 32 candidate worlds out of 64), they represent **fundamentally orthogonal information operations** that generate **distinct topological obstructions** on the solution space:
 
 1. **Supplied coordinates** inject **strictly localized information**, collapsing entropy on specific degrees of freedom while preserving maximal uncertainty on global parity. On the Boolean hypercube $Q_6$, they induce connected affine subcubes ($Q_{6-k}$, $\beta_0 = 1, d_{\min} = 1$).
 2. **Imposed parity constraints** inject **strictly synergistic (non-local) information**, preserving uniform maximum marginal entropy across every individual coordinate while collapsing global parity entropy to zero. On $Q_6$, they impose an **absolute topological obstruction**: every compatible world is separated by an even Hamming distance ($d_H \ge 2$), completely shattering the solution space into isolated vertices ($|E| = 0, \beta_0 = |S|, d_{\min} = 2$).

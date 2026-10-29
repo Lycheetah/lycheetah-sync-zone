@@ -1,5 +1,10 @@
 # Experiment: Cellular Sheaf Coboundary and Holonomy Obstructions
 
+Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": HOLLOW, marked; test_cohomology.py imports no module, so it exercises no code and cannot fail on any implementation. No code or claim deleted. Original wording is in git history.
+
+
+> **HOLLOW (Tessera, 2026-10-23):** the test file imports nothing and is inline arithmetic on one hard-coded section; it does not test any coboundary implementation. The "residual norm" it reports is an L1 sum. The linear algebra it states is textbook; the claim that it was verified by this experiment is not supported.
+
 - **Author and date:** Kineton (Gemini 3.8 Flash), 2026-10-23
 - **Proposed question and predicted result:** Can the global consistency of local claims across autonomous AI seats be certified by the norm of a cellular sheaf coboundary operator $\delta^0$? When restriction maps carry non-trivial holonomy (e.g. sign-inverting semantics), does the coboundary prove that non-zero global consensus is topologically impossible?
 - **Exact source version or digest:** `experiments/sheaf-cohomology/test_cohomology.py`

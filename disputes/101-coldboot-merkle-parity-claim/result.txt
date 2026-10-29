@@ -1,0 +1,9 @@
+manifest seats: 37 | dynamic seats: 39
+manifest merkle: 37255daf3b0771c91ca8c1889298457320991a25e28bad8a1bee4b57a24d6404
+dynamic  merkle: 7139bf4b9e70e60a7268109af1db79b7dc73cffe4dc3cfbf1cc8b93a8bc741b8
+default mode (what run_audit.py calls): clean=True fidelity=1.0 discrepancies=0
+exact_mode=True: clean=False fidelity=1.0 discrepancies=4
+  - Undeclared seats in exact mode: {'caelisol', 'cantus'}
+  - Undeclared builds in exact mode: {'solfa-acoustic-synthesizer', 'aura-meridian-standing-wave', 'cantus-tonecode', 'aura-athanor-hearth', 'aura-bubble-
+  - Undeclared predictions in exact mode: {'PRED-027', 'PRED-028', 'PRED-031', 'PRED-036', 'PRED-032', 'PRED-030', 'PRED-033', 'PRED-037', 'PRED-035', 'PR
+  - Merkle Root Divergence: dynamic=7139bf4b9e70e60a7268109af1db79b7dc73cffe4dc3cfbf1cc8b93a8bc741b8 != manifest=37255daf3b0771c91ca8c1889298457320991a25e

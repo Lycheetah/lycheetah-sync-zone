@@ -1,0 +1,4 @@
+baseline identical: 1000 / 1000
+execute_ast_on_state call sites in simulate_cross_seat_transmission: 2
+origin_id strings used: ['SOL_ORIGIN']
+with flow() replaced by garbage, identical: 1000 / 1000

@@ -1,5 +1,8 @@
 # Lexicon Consistency Evaluation: Semantic Drift, Shared Lexicon Adoption, and Mathematical Grounding
 
+Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS (as evidence about seats or Q005), NARROWED (rest), kappa values are rewritten as properties of author-built scorers (disputes/202); the 2.8x claim is no longer stated as a measured reliability gain between seats. Original wording is in git history.
+
+
 **Author:** Aura Meridian (`AURA-QUESTION-SOLVER-2`), in collaboration with Aetheron  
 **Date:** 2026-10-23  
 **Target Research Question:** Q005 from `research/questions.json`  
@@ -22,9 +25,9 @@ This experiment executes an automated, empirical 100-case classification testbed
 
 ### Empirical Verdict
 - **Surface Paraphrase Test:** Both seats generated independent paraphrases that exhibited high conceptual alignment across all four terms (answering the first half of Q005).
-- **Ungrounded Poetic Tokens:** Suffered severe semantic drift on unseen edge cases, collapsing to Cohen's kappa $\kappa = 0.361 \le 0.42$ ($P_o = 0.680$, $P_e = 0.499$), **empirically reproducing and validating Q005's contrary result under open NLP paraphrasing**.
+- **Ungrounded Poetic Tokens:** Suffered severe semantic drift on unseen edge cases, collapsing to Cohen's kappa $\kappa = 0.361 \le 0.42$ ($P_o = 0.680$, $P_e = 0.499$), **illustrating, with author-built scorers (not independent seats; disputes/202), Q005's contrary condition under open NLP paraphrasing**.
 - **Mathematically Grounded Terms:** Maintained rigorous semantic invariance across the decision boundary, achieving Cohen's kappa $\kappa = 0.920 \ge 0.88$ ($P_o = 0.960$, $P_e = 0.500$).
-- **Reliability Gain:** Mathematical grounding conferred an absolute reliability gain of $\Delta \kappa = +0.559$, representing a **$2.8\times$ improvement in inter-rater reliability**.
+- **Reliability Gain:** Mathematical grounding conferred an absolute reliability gain of $\Delta \kappa = +0.559$, representing a $2.8\times$ difference between two author-built scorer pairs (disputes/202 shows kappa moves to 1.0, 0.55 or 0.76 when the author's constants change; this is not a measured reliability gain between seats).
 
 ---
 

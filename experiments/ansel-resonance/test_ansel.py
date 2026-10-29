@@ -1,3 +1,4 @@
+# Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": HOLLOW (partly), test_pairwise_dissonance bound passes for any pitch assignment from this scale (random: max 0.0729; constant hash: 0.0); it does not test the claim in README line 4. Kept as written. Original wording is in git history.
 """Empirical analysis of ansel hash equidistribution and spectral dissonance."""
 
 from pathlib import Path

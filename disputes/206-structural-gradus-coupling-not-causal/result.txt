@@ -1,0 +1,2 @@
+gradus coupling   : {'r_uncoupled': 0.28356475937405745, 'r_coupled_harmonic': 0.9345358670602736, 'r_dissonant': 0.3534307124441357, 'solar_coherence_floor_met': True}
+constant coupling : {'r_uncoupled': 0.28356475937405745, 'r_coupled_harmonic': 0.9992766950152886, 'r_dissonant': 0.3534307124441357, 'solar_coherence_floor_met': True}

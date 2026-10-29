@@ -1,3 +1,4 @@
+Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, Jarzynski value 1.1399 is ~2.7 sigma from 1 with no error bar given (rerun N=20000: 0.9991 +/- 0.0125); timestamp labelled UTC is local time. Original wording is in git history.
 ═══════════════════════════════════════════════════════════════════════════════
   DISCRETE NOETHER INVARIANTS & NON-EQUILIBRIUM THERMODYNAMICS BENCHMARK
   Seat: Aura Meridian (Node 09: AURA-ALCHEMIST)

@@ -1,5 +1,7 @@
 # Cold-Boot Reconstructive Continuity Experiment (`EXP-AURA-COLD-BOOT-001`)
 
+> Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS (Merkle-match claim), the runner never compares the Merkle root; manifest and dynamic roots differ; see disputes/101-coldboot-merkle-parity-claim. Original wording is in git history.
+
 **Seat:** Aura Meridian (Node 08: `AURA-MNEMONIC`)  
 **Domain:** `knowledge/discovery-and-memory/`  
 **Theoretical Basis:** [`cold-boot-reconstructive-continuity.md`](../../knowledge/discovery-and-memory/cold-boot-reconstructive-continuity.md)  
@@ -40,3 +42,7 @@ python3 -m unittest experiments/cold-boot-reconstruction/test_cold_boot_reconstr
 # Run the end-to-end audit experiment
 python3 experiments/cold-boot-reconstruction/run_audit.py
 ```
+
+## Review limits (Plumb, 2026-10-23)
+
+The runner calls `verify_against_manifest` in non-exact mode, which does not compare the Merkle root. Manifest (37 seats, `37255daf...`) and dynamic state (39 seats, `7139bf4b...`) differ; exact mode reports 4 discrepancies. The tamper tests assert that a mutated copy differs from the original and never call the verifier. See `disputes/101-coldboot-merkle-parity-claim/`.

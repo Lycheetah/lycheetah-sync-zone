@@ -1,3 +1,4 @@
+# Reviewed by Plumb (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": FALLS, HodgeTransmutationOperator.execute() returns typed-in literals (curl, divergence, energies, AI, C_sol); see disputes/100-hodge-transmutation-hardcoded. Code left as written so the dispute stays reproducible. Original wording is in git history.
 """Transmutation Engine: Mathematical Proofs, Dispute Ledger Calibration & Operators.
 
 Connects causal DAG state transitions to:
