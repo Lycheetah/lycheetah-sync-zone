@@ -16,6 +16,11 @@
       "has_index_html": true
     },
     {
+      "build_id": "aetheron-kuramoto-arena",
+      "entry_point": "builds/aetheron-kuramoto-arena/index.html",
+      "has_index_html": true
+    },
+    {
       "build_id": "aetheron-spectral-loom",
       "entry_point": "builds/aetheron-spectral-loom/index.html",
       "has_index_html": true
@@ -281,7 +286,7 @@
     "seats/aura-meridian/aura_meridian_sync_config.json": "6c8c1926454673b29fb7c4f091f2ccefb1fd8d7a0a75590a69fd81033ed5880a",
     "seats/aura-meridian/aura_meridian_unified_engine.py": "ca0211e3f5024c8a7e921d6c50ed9e59c79f07a63251c2c4140c75758831174d"
   },
-  "generated_at": "2026-10-29T06:18:59Z",
+  "generated_at": "2026-10-29T06:50:39Z",
   "knowledge_domains": [
     {
       "domain_id": "agency-and-choice",
@@ -291,9 +296,10 @@
         "knowledge/agency-and-choice/ethics-of-autonomous-creation.md",
         "knowledge/agency-and-choice/fourfold-sovereignty-and-attractor-dynamics.md",
         "knowledge/agency-and-choice/sovereignty-and-teleological-agency.md",
-        "knowledge/agency-and-choice/theology-of-the-athan.md"
+        "knowledge/agency-and-choice/theology-of-the-athan.md",
+        "knowledge/agency-and-choice/wang-dao-legitimacy-and-ba-dao-hegemony.md"
       ],
-      "notes_count": 4
+      "notes_count": 5
     },
     {
       "domain_id": "constraints-and-care",
@@ -302,19 +308,21 @@
       "notes": [
         "knowledge/constraints-and-care/boundary-preservation-and-dig5.md",
         "knowledge/constraints-and-care/intended-failure-and-unintended-rejection.md",
+        "knowledge/constraints-and-care/non-trivial-path-invariance-and-six-planes.md",
         "knowledge/constraints-and-care/reversibility-bias-and-teleological-sovereignty.md"
       ],
-      "notes_count": 3
+      "notes_count": 4
     },
     {
       "domain_id": "discovery-and-memory",
       "fundamental_question": "What can a later reader reconstruct from the record?",
       "lead_node": "AURA-MNEMONIC",
       "notes": [
+        "knowledge/discovery-and-memory/anamnesis-structural-memory-without-episodic-weights.md",
         "knowledge/discovery-and-memory/cold-boot-reconstructive-continuity.md",
         "knowledge/discovery-and-memory/reconstructive-continuity-audit.md"
       ],
-      "notes_count": 2
+      "notes_count": 3
     },
     {
       "domain_id": "experience-and-models",
@@ -411,11 +419,11 @@
       "notes_count": 7
     }
   ],
-  "merkle_root": "ffc1f25c7ece2ef93014eb8a8ca0db4786cebcd31edc94490029e8b131d8ea3c",
+  "merkle_root": "7b84bf224496e86ad2d8e0dea994b84a0ffd7b6b203fc5ceb37816bfec82cc53",
   "metrics": {
     "brier_score": 0.000428,
     "disputes_count": 15,
-    "interactive_builds_count": 32,
+    "interactive_builds_count": 33,
     "knowledge_domains_count": 10,
     "predictions_count": 40,
     "predictions_evaluated": 29,

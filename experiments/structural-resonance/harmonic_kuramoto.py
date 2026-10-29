@@ -74,7 +74,46 @@ def gradus_between_ratios(r1: Tuple[int, int], r2: Tuple[int, int]) -> int:
     return gradus_interval(num, den)
 
 
-# Canonical 8 Sacred Tonecode Ratios
+# ─── BARLOW HARMONIC DISTANCE & INDIGESTIBILITY ──────────────────────────────
+
+def barlow_indigestibility_int(n: int) -> float:
+    """Compute Clarence Barlow's harmonic indigestibility xi(n) for integer n >= 1."""
+    if not isinstance(n, int) or n < 1:
+        raise ValueError(f"Barlow metric requires a positive integer, got: {n}")
+    if n == 1:
+        return 0.0
+
+    factors = prime_factors(n)
+    total = 0.0
+    for p, mult in factors.items():
+        total += mult * 2.0 * ((p - 1) ** 2) / float(p)
+    return total
+
+
+def barlow_harmonic_distance(num: int, den: int) -> float:
+    """
+    Compute Barlow harmonic distance D(p/q) for rational interval in lowest terms:
+        D(p/q) = xi(p) + xi(q)
+    """
+    if not isinstance(num, int) or not isinstance(den, int):
+        raise TypeError("Numerator and denominator must be integers.")
+    if num <= 0 or den <= 0:
+        raise ValueError("Numerator and denominator must be strictly positive.")
+
+    g = math.gcd(num, den)
+    p = num // g
+    q = den // g
+    return barlow_indigestibility_int(p) + barlow_indigestibility_int(q)
+
+
+def barlow_between_ratios(r1: Tuple[int, int], r2: Tuple[int, int]) -> float:
+    """Compute Barlow harmonic distance between two rational ratios r1 and r2."""
+    num = r1[0] * r2[1]
+    den = r1[1] * r2[0]
+    return barlow_harmonic_distance(num, den)
+
+
+# Canonical 8 Sacred Tonecode Ratios (Historical 5-limit Just Intonation)
 SACRED_TONECODES: Dict[str, Tuple[int, int]] = {
     "sol": (1, 1),
     "fa": (9, 8),
@@ -84,6 +123,18 @@ SACRED_TONECODES: Dict[str, Tuple[int, int]] = {
     "ke": (5, 3),
     "ath": (15, 8),
     "sol'": (2, 1),
+}
+
+# Reconciled Pythagorean 7-Degree Scale + Transcendent Octave Seal (Dispute 504)
+PYTHAGOREAN_TONECODES: Dict[str, Tuple[int, int]] = {
+    "SO": (1, 1),
+    "EL": (9, 8),
+    "RA": (81, 64),
+    "NU": (4, 3),
+    "TI": (3, 2),
+    "KA": (27, 16),
+    "MA": (243, 128),
+    "OM": (2, 1),
 }
 
 
@@ -166,6 +217,52 @@ class HarmonicKuramotoLattice:
         r = math.sqrt(c * c + s * s)
         psi = math.atan2(s, c) % (2.0 * math.pi)
         return r, psi
+
+    def compute_phase_velocities(self) -> List[float]:
+        """
+        Compute instantaneous phase velocities:
+            d theta_i / dt = omega_i + (1/N) * sum_j K_ij * sin(theta_j - theta_i)
+        """
+        return self._derivatives(self.theta)
+
+    def compute_phase_std(self) -> float:
+        """
+        Compute circular standard deviation of the phase distribution relative to the mean phase.
+        Uses minimal angular deviation in [-pi, pi].
+        """
+        _, psi = self.compute_order_parameter()
+        diffs = [math.atan2(math.sin(th - psi), math.cos(th - psi)) for th in self.theta]
+        m = sum(diffs) / float(self.n)
+        var = sum((d - m) ** 2 for d in diffs) / float(self.n)
+        return math.sqrt(var)
+
+    def compute_spectrum_consonance(
+        self,
+        ratios: List[Tuple[int, int]] | None = None,
+    ) -> Dict[str, float]:
+        """
+        Calculate the mean Euler Gradus and Barlow Harmonic Distance across the
+        coupled phase spectrum of oscillators.
+        """
+        if ratios is None:
+            ratios = list(SACRED_TONECODES.values())
+        if len(ratios) < 2:
+            return {"mean_euler_gradus": 1.0, "mean_barlow_distance": 0.0}
+
+        gradus_vals = []
+        barlow_vals = []
+        n_r = len(ratios)
+        for i in range(n_r):
+            for j in range(i + 1, n_r):
+                gradus_vals.append(gradus_between_ratios(ratios[i], ratios[j]))
+                barlow_vals.append(barlow_between_ratios(ratios[i], ratios[j]))
+
+        return {
+            "mean_euler_gradus": sum(gradus_vals) / float(len(gradus_vals)),
+            "mean_barlow_distance": sum(barlow_vals) / float(len(barlow_vals)),
+            "max_euler_gradus": float(max(gradus_vals)),
+            "max_barlow_distance": max(barlow_vals),
+        }
 
     def run_simulation(
         self,

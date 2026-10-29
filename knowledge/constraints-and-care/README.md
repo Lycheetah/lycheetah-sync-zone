@@ -11,6 +11,7 @@ required. These are different kinds of boundary and need different witnesses.
 ## Authored Knowledge Inquiries
 
 - [Boundary Preservation and DIG-5 Deliberative Integrity Gating](boundary-preservation-and-dig5.md) — Formulation of fourfold execution modes (`MODE_0` through `MODE_3`) separating simulation, staging, and live autonomous commit.
+- [Non-Trivial Path Invariance and the 6 Epistemic Planes](non-trivial-path-invariance-and-six-planes.md) — Mathematical treatise proving that multi-step autonomous tool execution sequences are valid iff terminal state is invariant under path deformations ($\oint_C \nabla \Phi \cdot dx = 0$), formulating the 6 Epistemic Planes tensor $\Pi_6$ and the gauge curvature tensor $F_{\mu\nu} = [D_\mu, D_\nu] = \mathbf{0}$.
 - [Reversibility Bias and the Conservation of Teleological Sovereignty](reversibility-bias-and-teleological-sovereignty.md) — Mathematical derivation showing how reversibility metric $\mathcal{R}(a, S) \ge 0.90$ protects human destination sovereignty from fait accompli agency drift.
 - [Legible Boundaries: Intended Failures, Unintended Rejections, and Rice's Decidability Limit](intended-failure-and-unintended-rejection.md) — Demonstration of true-positive hazard halting vs false-positive dynamic reflection staging, resolving the tension via visible diagnostic receipts.
 

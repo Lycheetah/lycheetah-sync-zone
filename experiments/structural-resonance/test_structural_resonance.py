@@ -17,9 +17,13 @@ from harmonic_kuramoto import (
     gradus_suavitatis_int,
     gradus_interval,
     gradus_between_ratios,
+    barlow_indigestibility_int,
+    barlow_harmonic_distance,
+    barlow_between_ratios,
     compute_euler_gradus_coupling_matrix,
     HarmonicKuramotoLattice,
     SACRED_TONECODES,
+    PYTHAGOREAN_TONECODES,
     run_harmonic_kuramoto_benchmark,
 )
 from anticorrelated_consensus import (
@@ -108,6 +112,92 @@ class TestHarmonicKuramoto(unittest.TestCase):
         self.assertLess(results["r_dissonant"], 0.45)
         # Resonant coherence must exceed dissonant coherence by at least 2x
         self.assertGreater(results["r_coupled_harmonic"], 2.0 * results["r_dissonant"])
+
+    def test_barlow_harmonic_distance_metrics(self):
+        """Verify Barlow indigestibility and harmonic distance on canonical intervals."""
+        self.assertEqual(barlow_indigestibility_int(1), 0.0)
+        self.assertEqual(barlow_indigestibility_int(2), 1.0)
+        self.assertAlmostEqual(barlow_indigestibility_int(3), 8.0 / 3.0, places=4)
+        self.assertAlmostEqual(barlow_harmonic_distance(1, 1), 0.0)
+        self.assertAlmostEqual(barlow_harmonic_distance(2, 1), 1.0)
+        self.assertAlmostEqual(barlow_harmonic_distance(3, 2), 11.0 / 3.0, places=4)
+        self.assertAlmostEqual(barlow_harmonic_distance(4, 3), 14.0 / 3.0, places=4)
+        self.assertAlmostEqual(barlow_harmonic_distance(9, 8), 25.0 / 3.0, places=4)
+
+    def test_kuramoto_subcritical_chaos(self):
+        """At K < 0.2, verify mean R < 0.35 over 100 steps."""
+        ratios = list(SACRED_TONECODES.values())
+        n = len(ratios)
+        detunings = [0.1 * (i - 3.5) for i in range(n)]
+        init_phases = [i * (2.0 * math.pi / n) for i in range(n)]
+        k_mat = compute_euler_gradus_coupling_matrix(ratios, kappa=0.15)
+        lattice = HarmonicKuramotoLattice(detunings, k_mat, init_phases)
+        r_vals = []
+        for _ in range(100):
+            lattice.step_rk4(0.05)
+            r, _ = lattice.compute_order_parameter()
+            r_vals.append(r)
+        mean_r = sum(r_vals) / len(r_vals)
+        self.assertLess(mean_r, 0.35)
+
+    def test_kuramoto_polyphonic_consensus(self):
+        """At K = 1.8, verify 0.70 <= R <= 0.95 over 100 steps, preserving phase spread (std(theta) > 0.15)."""
+        ratios = list(SACRED_TONECODES.values())
+        n = len(ratios)
+        spread = 0.35
+        init_phases = [(- (n - 1) * spread / 2.0 + spread * i) for i in range(n)]
+        detunings = [-0.12, 0.096, -0.072, 0.048, -0.048, 0.072, -0.096, 0.12]
+        k_mat = compute_euler_gradus_coupling_matrix(ratios, kappa=1.8)
+        lattice = HarmonicKuramotoLattice(detunings, k_mat, init_phases)
+        r_vals = []
+        std_vals = []
+        for _ in range(100):
+            lattice.step_rk4(0.05)
+            r, _ = lattice.compute_order_parameter()
+            r_vals.append(r)
+            std_vals.append(lattice.compute_phase_std())
+        mean_r = sum(r_vals) / len(r_vals)
+        mean_std = sum(std_vals) / len(std_vals)
+        self.assertGreaterEqual(mean_r, 0.70)
+        self.assertLessEqual(mean_r, 0.95)
+        self.assertGreater(mean_std, 0.15)
+        velocities = lattice.compute_phase_velocities()
+        self.assertEqual(len(velocities), n)
+
+    def test_kuramoto_sycophantic_collapse(self):
+        """At K = 6.0, verify R > 0.98 and std(theta) < 0.05."""
+        ratios = list(SACRED_TONECODES.values())
+        n = len(ratios)
+        detunings = [-0.01 * (i - 3.5) for i in range(n)]
+        init_phases = [0.1 * (i - 3.5) for i in range(n)]
+        k_mat = compute_euler_gradus_coupling_matrix(ratios, kappa=6.0)
+        lattice = HarmonicKuramotoLattice(detunings, k_mat, init_phases)
+        r_vals = []
+        std_vals = []
+        for _ in range(100):
+            lattice.step_rk4(0.05)
+            r, _ = lattice.compute_order_parameter()
+            r_vals.append(r)
+            std_vals.append(lattice.compute_phase_std())
+        final_r = r_vals[-1]
+        final_std = std_vals[-1]
+        self.assertGreater(final_r, 0.98)
+        self.assertLess(final_std, 0.05)
+
+    def test_polyphonic_chord_consonance(self):
+        """Verify that polyphonic consensus yields a mean Euler gradus <= 12.0 across fundamental interval pairings."""
+        pyth_ratios = list(PYTHAGOREAN_TONECODES.values())
+        just_ratios = list(SACRED_TONECODES.values())
+
+        lat_pyth = HarmonicKuramotoLattice([0.0]*len(pyth_ratios), [[1.0]*len(pyth_ratios) for _ in pyth_ratios])
+        consonance_pyth = lat_pyth.compute_spectrum_consonance(pyth_ratios)
+        self.assertLessEqual(consonance_pyth["mean_euler_gradus"], 12.0)
+        self.assertLessEqual(consonance_pyth["mean_barlow_distance"], 15.0)
+
+        lat_just = HarmonicKuramotoLattice([0.0]*len(just_ratios), [[1.0]*len(just_ratios) for _ in just_ratios])
+        consonance_just = lat_just.compute_spectrum_consonance(just_ratios)
+        self.assertLessEqual(consonance_just["mean_euler_gradus"], 12.0)
+        self.assertLessEqual(consonance_just["mean_barlow_distance"], 10.0)
 
 
 class TestAnticorrelatedConsensus(unittest.TestCase):

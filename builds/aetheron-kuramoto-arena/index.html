@@ -1,0 +1,1563 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Aetheron · Kuramoto Swarm Arena</title>
+<style>
+  :root {
+    --bg-void: #07090e;
+    --bg-card: rgba(11, 16, 28, 0.86);
+    --bg-card-hover: rgba(18, 26, 44, 0.94);
+    --border-dim: rgba(70, 130, 180, 0.22);
+    --border-bright: rgba(0, 229, 255, 0.55);
+    --text-main: #e6edfd;
+    --text-dim: #94a3b8;
+    --accent-cyan: #00e5ff;
+    --accent-emerald: #00e676;
+    --accent-gold: #ffd54f;
+    --accent-coral: #ff5252;
+    --accent-violet: #b388ff;
+    --accent-amber: #ff9100;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-void);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    touch-action: none;
+  }
+
+  canvas#arena {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+    background: radial-gradient(circle at 50% 50%, #0d1527 0%, #080d1a 55%, #04060a 100%);
+  }
+
+  /* HUD overlay */
+  .hud-layer {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .hud-layer * {
+    pointer-events: auto;
+  }
+
+  /* Top Bar */
+  #top-bar {
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .brand-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 12px var(--accent-cyan);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .brand-dot.chaos {
+    background: var(--accent-coral);
+    box-shadow: 0 0 12px var(--accent-coral);
+  }
+
+  .brand-dot.polyphony {
+    background: var(--accent-emerald);
+    box-shadow: 0 0 14px var(--accent-emerald);
+  }
+
+  .brand-dot.monoculture {
+    background: #ffffff;
+    box-shadow: 0 0 14px #ffffff;
+  }
+
+  .brand-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-main);
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    border-left: 1px solid var(--border-dim);
+    padding-left: 8px;
+    margin-left: 4px;
+  }
+
+  /* State Badge */
+  #status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+  }
+
+  #status-badge.chaos {
+    border-color: rgba(255, 82, 82, 0.5);
+    color: var(--accent-coral);
+    box-shadow: 0 0 16px rgba(255, 82, 82, 0.25);
+  }
+
+  #status-badge.clustering {
+    border-color: rgba(255, 145, 0, 0.5);
+    color: var(--accent-amber);
+    box-shadow: 0 0 16px rgba(255, 145, 0, 0.25);
+  }
+
+  #status-badge.polyphony {
+    border-color: rgba(0, 230, 118, 0.6);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.35);
+  }
+
+  #status-badge.monoculture {
+    border-color: rgba(255, 255, 255, 0.7);
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.35);
+  }
+
+  /* Top Right Action Buttons */
+  .top-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  button.action-btn {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border-dim);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  button.action-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-bright);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+  }
+
+  button.action-btn.active {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+  }
+
+  /* Main HUD Side Panel (Controls) */
+  #control-panel {
+    top: 70px;
+    right: 14px;
+    width: 320px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 8px;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+  }
+
+  .panel-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Control groups */
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .control-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+
+  .control-name {
+    color: var(--text-main);
+    font-weight: 600;
+  }
+
+  .control-val {
+    color: var(--accent-cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.12);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  /* Presets Bar */
+  .presets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  button.preset-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-dim);
+    color: var(--text-main);
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  button.preset-btn:hover {
+    background: rgba(0, 229, 255, 0.12);
+    border-color: var(--border-bright);
+    color: var(--accent-cyan);
+  }
+
+  button.preset-btn.highlight {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    background: rgba(0, 230, 118, 0.08);
+  }
+
+  /* Bottom Left Analytics Overlay */
+  #analytics-panel {
+    bottom: 14px;
+    left: 14px;
+    width: 320px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-title {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  /* Time series chart canvas */
+  canvas#strip-chart {
+    width: 100%;
+    height: 54px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: block;
+  }
+
+  /* Tooltip for oscillator node */
+  #node-tooltip {
+    position: fixed;
+    z-index: 30;
+    pointer-events: none;
+    background: rgba(8, 12, 22, 0.95);
+    border: 1px solid var(--accent-cyan);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    transform: translate(-50%, -120%);
+  }
+
+  .tooltip-title {
+    font-weight: 700;
+    color: var(--accent-cyan);
+    margin-bottom: 4px;
+  }
+
+  .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--text-dim);
+  }
+
+  .tooltip-val {
+    color: var(--text-main);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  /* Accessibility: Prefers reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+    .brand-dot, button.action-btn:hover {
+      box-shadow: none !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    #control-panel {
+      width: calc(100vw - 28px);
+      max-height: 40vh;
+      top: auto;
+      bottom: 14px;
+      right: 14px;
+    }
+    #analytics-panel {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="arena"></canvas>
+
+<!-- Top Navigation & Status -->
+<div class="hud-layer" id="top-bar">
+  <div class="brand-pill">
+    <div class="brand-dot" id="brand-indicator"></div>
+    <div class="brand-title">Aetheron · Kuramoto Swarm Arena</div>
+    <div class="brand-sub">N = 64 Phase Oscillators</div>
+  </div>
+
+  <div id="status-badge" class="clustering">
+    <span id="status-text">INITIALIZING...</span>
+  </div>
+
+  <div class="top-actions">
+    <button class="action-btn" id="btn-audio">
+      <span id="audio-icon">▶</span>
+      <span id="audio-label">Enable Audio</span>
+    </button>
+    <button class="action-btn" id="btn-perturb" title="Inject phase dissent to 16 oscillators">
+      <span>⚡</span>
+      <span>Perturb Swarm</span>
+    </button>
+    <button class="action-btn" id="btn-pause">
+      <span id="pause-icon">⏸</span>
+    </button>
+  </div>
+</div>
+
+<!-- Bottom Left Analytics Panel -->
+<div class="hud-layer" id="analytics-panel">
+  <div class="panel-header">
+    <span class="panel-title">Acoustic Order Invariants</span>
+    <span class="panel-sub">Mean Field $Z(t) = R e^{i\Psi}$</span>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-title">Order Parameter R</span>
+      <span class="stat-value" id="val-r">0.000</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Mean Phase Ψ</span>
+      <span class="stat-value" id="val-psi">0.00 rad</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Velocity Variance</span>
+      <span class="stat-value" id="val-var">0.000</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Consonance Index</span>
+      <span class="stat-value" id="val-consonance">0.00</span>
+    </div>
+  </div>
+
+  <div class="control-label-row" style="margin-top: 4px;">
+    <span class="control-name" style="font-size: 10px; color: var(--text-dim);">Coherence History (Target: 0.70 &le; R &le; 0.95)</span>
+  </div>
+  <canvas id="strip-chart" width="300" height="54"></canvas>
+</div>
+
+<!-- Controls Side Panel -->
+<div class="hud-layer" id="control-panel">
+  <div class="panel-header">
+    <span class="panel-title">Coupling Dynamics</span>
+    <span class="panel-sub">Governing Parameters</span>
+  </div>
+
+  <!-- Presets -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Epistemic Presets</span>
+    </div>
+    <div class="presets-grid">
+      <button class="preset-btn" id="preset-chaos">Epistemic Chaos</button>
+      <button class="preset-btn" id="preset-cluster">Clustering</button>
+      <button class="preset-btn highlight" id="preset-consensus">Polyphonic Consensus</button>
+      <button class="preset-btn" id="preset-monoculture">Monoculture</button>
+      <button class="preset-btn" id="preset-pythagoras" style="grid-column: span 2;">Pythagorean Chime Lattice</button>
+    </div>
+  </div>
+
+  <!-- Coupling Strength K -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Coupling Intensity K</span>
+      <span class="control-val" id="disp-k">1.85</span>
+    </div>
+    <input type="range" id="slider-k" min="0.0" max="6.0" step="0.05" value="1.85">
+  </div>
+
+  <!-- Frequency Spread Sigma -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Frequency Diversity &sigma;<sub>&omega;</sub></span>
+      <span class="control-val" id="disp-sigma">0.95</span>
+    </div>
+    <input type="range" id="slider-sigma" min="0.1" max="3.0" step="0.05" value="0.95">
+  </div>
+
+  <!-- Noise Intensity D -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Stochastic Noise D</span>
+      <span class="control-val" id="disp-noise">0.05</span>
+    </div>
+    <input type="range" id="slider-noise" min="0.0" max="0.5" step="0.01" value="0.05">
+  </div>
+
+  <!-- Base Audio Frequency -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Base Carrier f<sub>0</sub></span>
+      <span class="control-val" id="disp-freq">220 Hz</span>
+    </div>
+    <input type="range" id="slider-freq" min="110" max="440" step="5" value="220">
+  </div>
+
+  <!-- Master Volume -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Acoustic Gain</span>
+      <span class="control-val" id="disp-vol">40%</span>
+    </div>
+    <input type="range" id="slider-vol" min="0" max="100" step="1" value="40">
+  </div>
+
+  <div class="control-group" style="margin-top: 4px;">
+    <button class="action-btn" id="btn-reseed" style="width: 100%; justify-content: center;">
+      <span>↻</span>
+      <span>Reseed Intrinsic Frequencies</span>
+    </button>
+  </div>
+</div>
+
+<!-- Hover Tooltip -->
+<div id="node-tooltip">
+  <div class="tooltip-title" id="tt-title">Oscillator #0</div>
+  <div class="tooltip-row"><span>Tonecode Degree:</span><span class="tooltip-val" id="tt-tone">SO (1/1)</span></div>
+  <div class="tooltip-row"><span>Intrinsic Freq &omega;<sub>i</sub>:</span><span class="tooltip-val" id="tt-omega">+0.00 rad/s</span></div>
+  <div class="tooltip-row"><span>Instantaneous Phase &theta;<sub>i</sub>:</span><span class="tooltip-val" id="tt-phase">0.00 rad</span></div>
+  <div class="tooltip-row"><span>Phase Velocity d&theta;/dt:</span><span class="tooltip-val" id="tt-vel">0.00 rad/s</span></div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // -------------------------------------------------------------
+  // 1. CANONICAL PYTHAGOREAN 8-DEGREE TONECODE LATTICE
+  // -------------------------------------------------------------
+  // Degree 1: SO (1/1), 2: EL (9/8), 3: RA (81/64), 4: NU (4/3),
+  // 5: TI (3/2), 6: KA (27/16), 7: MA (243/128), 8: OM (2/1)
+  const TONECODE = [
+    { syllable: 'SO', ratio: 1.0,           num: 1,   den: 1,   euler: 1,  hue: 185, hex: '#00e5ff' },
+    { syllable: 'EL', ratio: 9.0 / 8.0,      num: 9,   den: 8,   euler: 8,  hue: 205, hex: '#40c4ff' },
+    { syllable: 'RA', ratio: 81.0 / 64.0,    num: 81,  den: 64,  euler: 15, hue: 265, hex: '#b388ff' },
+    { syllable: 'NU', ratio: 4.0 / 3.0,      num: 4,   den: 3,   euler: 5,  hue: 240, hex: '#7c4dff' },
+    { syllable: 'TI', ratio: 3.0 / 2.0,      num: 3,   den: 2,   euler: 4,  hue: 48,  hex: '#ffd54f' },
+    { syllable: 'KA', ratio: 27.0 / 16.0,    num: 27,  den: 16,  euler: 11, hue: 35,  hex: '#ff9100' },
+    { syllable: 'MA', ratio: 243.0 / 128.0,  num: 243, den: 128, euler: 18, hue: 5,   hex: '#ff5252' },
+    { syllable: 'OM', ratio: 2.0,           num: 2,   den: 1,   euler: 2,  hue: 52,  hex: '#ffe082' }
+  ];
+
+  // Euler Gradus Suavitatis of interval r1 / r2
+  function gcd(a, b) {
+    a = Math.abs(a); b = Math.abs(b);
+    while (b) { var t = b; b = a % b; a = t; }
+    return a;
+  }
+
+  function primeFactors(n) {
+    var factors = [];
+    var d = 2;
+    while (n >= 2) {
+      if (n % d === 0) {
+        factors.push(d);
+        n /= d;
+      } else {
+        d++;
+        if (d * d > n) {
+          if (n > 1) factors.push(n);
+          break;
+        }
+      }
+    }
+    return factors;
+  }
+
+  function computeEulerGradus(n) {
+    if (n <= 1) return 1;
+    var factors = primeFactors(n);
+    var sum = 1;
+    for (var i = 0; i < factors.length; i++) {
+      sum += (factors[i] - 1);
+    }
+    return sum;
+  }
+
+  function intervalEulerGradus(t1, t2) {
+    var num = t1.num * t2.den;
+    var den = t1.den * t2.num;
+    var g = gcd(num, den);
+    num = Math.floor(num / g);
+    den = Math.floor(den / g);
+    return computeEulerGradus(num * den);
+  }
+
+  // Precompute 8x8 harmonic coupling weights A_tone[t1][t2] = 1 / EulerGradus
+  var A_TONE = [];
+  for (var i = 0; i < 8; i++) {
+    A_TONE[i] = [];
+    for (var j = 0; j < 8; j++) {
+      var euler = intervalEulerGradus(TONECODE[i], TONECODE[j]);
+      A_TONE[i][j] = 1.0 / Math.max(1, euler);
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 2. MODEL DEFINITION: 64 KURAMOTO OSCILLATORS
+  // -------------------------------------------------------------
+  var N = 64;
+  var nodes = [];
+  var K_coupling = 1.85;
+  var sigma_omega = 0.95;
+  var D_noise = 0.05;
+  var base_f0 = 220.0;
+  var master_volume = 0.40;
+  var is_paused = false;
+
+  // Box-Muller Gaussian random generator
+  function randn() {
+    var u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
+
+  function initNodes() {
+    nodes = [];
+    for (var i = 0; i < N; i++) {
+      var toneIndex = i % 8;
+      var octaveTier = Math.floor(i / 8); // 8 octaves / rings
+      var ringAngle = (2.0 * Math.PI * i) / N;
+      var initialPhase = Math.random() * 2.0 * Math.PI;
+      var omega = randn() * sigma_omega;
+
+      nodes.push({
+        id: i,
+        tone: toneIndex,
+        octave: octaveTier,
+        ringAngle: ringAngle,
+        theta: initialPhase,
+        omega: omega,
+        dTheta: omega,
+        localR: 0,
+        x: 0,
+        y: 0
+      });
+    }
+  }
+
+  initNodes();
+
+  // -------------------------------------------------------------
+  // 3. COUPLING TENSOR & DYNAMICS
+  // -------------------------------------------------------------
+  // Inter-node coupling matrix: combination of tonecode Euler harmony
+  // and spatial circular proximity.
+  var A_matrix = [];
+  for (var i = 0; i < N; i++) {
+    A_matrix[i] = new Float32Array(N);
+    for (var j = 0; j < N; j++) {
+      if (i === j) {
+        A_matrix[i][j] = 0.0;
+        continue;
+      }
+      var t1 = nodes[i].tone;
+      var t2 = nodes[j].tone;
+      var harmonicWeight = A_TONE[t1][t2];
+
+      // Spatial distance on circle
+      var dAngle = Math.abs(nodes[i].ringAngle - nodes[j].ringAngle);
+      if (dAngle > Math.PI) dAngle = 2.0 * Math.PI - dAngle;
+      var spatialWeight = Math.exp(-dAngle / 1.2);
+
+      // Blended coupling tensor
+      A_matrix[i][j] = 0.65 * harmonicWeight + 0.35 * spatialWeight;
+    }
+  }
+
+  // Macroscopic order parameters
+  var order_R = 0.0;
+  var order_Psi = 0.0;
+  var velocity_var = 0.0;
+  var mean_velocity = 0.0;
+  var consonance_index = 0.0;
+
+  // History buffer for strip chart
+  var historyLength = 180;
+  var rHistory = new Float32Array(historyLength);
+  var historyIndex = 0;
+
+  function stepKuramoto(dt) {
+    if (is_paused) return;
+
+    // Sub-stepping for stable Runge-Kutta / Symplectic integration
+    var subSteps = 2;
+    var subDt = dt / subSteps;
+
+    for (var s = 0; s < subSteps; s++) {
+      // 1. Calculate global mean field Z = R * exp(i * Psi)
+      var sumCos = 0.0;
+      var sumSin = 0.0;
+      for (var i = 0; i < N; i++) {
+        sumCos += Math.cos(nodes[i].theta);
+        sumSin += Math.sin(nodes[i].theta);
+      }
+      var meanCos = sumCos / N;
+      var meanSin = sumSin / N;
+      order_R = Math.sqrt(meanCos * meanCos + meanSin * meanSin);
+      order_Psi = Math.atan2(meanSin, meanCos);
+
+      // 2. Compute derivative dTheta/dt for each node
+      var dThetaArr = new Float32Array(N);
+      var sumVel = 0.0;
+
+      for (var i = 0; i < N; i++) {
+        var th_i = nodes[i].theta;
+        var couplingSum = 0.0;
+
+        for (var j = 0; j < N; j++) {
+          if (i === j) continue;
+          couplingSum += A_matrix[i][j] * Math.sin(nodes[j].theta - th_i);
+        }
+
+        // Noise term
+        var noise = D_noise > 0.0 ? Math.sqrt(2.0 * D_noise) * randn() : 0.0;
+
+        // Governing equation: dTheta/dt = omega + (K/N) * sum_j(A_ij * sin(theta_j - theta_i)) + noise
+        var vel = nodes[i].omega + (K_coupling / N) * couplingSum + noise;
+        dThetaArr[i] = vel;
+        nodes[i].dTheta = vel;
+        sumVel += vel;
+      }
+
+      mean_velocity = sumVel / N;
+
+      // Variance of velocity
+      var varSum = 0.0;
+      for (var i = 0; i < N; i++) {
+        var diff = nodes[i].dTheta - mean_velocity;
+        varSum += diff * diff;
+      }
+      velocity_var = varSum / N;
+
+      // 3. Update phases
+      for (var i = 0; i < N; i++) {
+        nodes[i].theta = (nodes[i].theta + dThetaArr[i] * subDt) % (2.0 * Math.PI);
+        if (nodes[i].theta < 0.0) nodes[i].theta += 2.0 * Math.PI;
+      }
+    }
+
+    // Record history
+    rHistory[historyIndex] = order_R;
+    historyIndex = (historyIndex + 1) % historyLength;
+
+    // Consonance index: in-phase pairs weighted by Euler Gradus
+    var pairConsonance = 0.0;
+    var pairCount = 0;
+    for (var i = 0; i < N; i += 4) {
+      for (var j = i + 1; j < N; j += 4) {
+        var phaseAlignment = 0.5 * (1.0 + Math.cos(nodes[i].theta - nodes[j].theta));
+        var toneWeight = A_TONE[nodes[i].tone][nodes[j].tone];
+        pairConsonance += phaseAlignment * toneWeight;
+        pairCount++;
+      }
+    }
+    consonance_index = pairCount > 0 ? (pairConsonance / pairCount) * 10.0 : 0.0;
+  }
+
+  // -------------------------------------------------------------
+  // 4. PROCEDURAL WEB AUDIO API SYNTHESIZER
+  // -------------------------------------------------------------
+  var audioCtx = null;
+  var isAudioActive = false;
+  var masterGain = null;
+  var masterFilter = null;
+  var compressor = null;
+  var voiceBank = [];
+
+  function initAudio() {
+    if (audioCtx) return;
+
+    var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    audioCtx = new AudioContextClass();
+
+    // Compressor
+    compressor = audioCtx.createDynamicsCompressor();
+    compressor.threshold.setValueAtTime(-20, audioCtx.currentTime);
+    compressor.knee.setValueAtTime(12, audioCtx.currentTime);
+    compressor.ratio.setValueAtTime(8, audioCtx.currentTime);
+    compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+    compressor.release.setValueAtTime(0.2, audioCtx.currentTime);
+
+    // Master Filter
+    masterFilter = audioCtx.createBiquadFilter();
+    masterFilter.type = 'lowpass';
+    masterFilter.frequency.setValueAtTime(1400, audioCtx.currentTime);
+    masterFilter.Q.setValueAtTime(1.5, audioCtx.currentTime);
+
+    // Master Gain
+    masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(master_volume, audioCtx.currentTime);
+
+    masterFilter.connect(compressor);
+    compressor.connect(masterGain);
+    masterGain.connect(audioCtx.destination);
+
+    // Build Polyphonic Voice Bank: 64 voices, mapped to tonecode scale
+    for (var i = 0; i < N; i++) {
+      var osc = audioCtx.createOscillator();
+      var voiceGain = audioCtx.createGain();
+      var panner = null;
+      if (audioCtx.createStereoPanner) {
+        panner = audioCtx.createStereoPanner();
+        var panVal = Math.cos(nodes[i].ringAngle);
+        panner.pan.setValueAtTime(panVal * 0.75, audioCtx.currentTime);
+      }
+
+      var tone = TONECODE[nodes[i].tone];
+      var octMult = Math.pow(2.0, (nodes[i].octave - 3) * 0.5);
+      var nominalFreq = base_f0 * tone.ratio * octMult;
+
+      // Triangle / sine mix for warm resonant acoustic timber
+      osc.type = (i % 2 === 0) ? 'triangle' : 'sine';
+      osc.frequency.setValueAtTime(nominalFreq, audioCtx.currentTime);
+
+      // Low nominal voice gain scaled by 1/N to prevent clipping
+      var vGain = (0.28 / Math.sqrt(N)) * (1.0 / tone.euler);
+      voiceGain.gain.setValueAtTime(vGain, audioCtx.currentTime);
+
+      if (panner) {
+        osc.connect(panner);
+        panner.connect(voiceGain);
+      } else {
+        osc.connect(voiceGain);
+      }
+      voiceGain.connect(masterFilter);
+
+      osc.start();
+
+      voiceBank.push({
+        osc: osc,
+        gainNode: voiceGain,
+        panner: panner,
+        baseNominal: nominalFreq,
+        baseGain: vGain
+      });
+    }
+
+    isAudioActive = true;
+    updateAudioHUD();
+  }
+
+  function updateAudioHUD() {
+    var btn = document.getElementById('btn-audio');
+    var label = document.getElementById('audio-label');
+    var icon = document.getElementById('audio-icon');
+    if (!btn || !label || !icon) return;
+
+    if (isAudioActive && audioCtx && audioCtx.state === 'running') {
+      btn.classList.add('active');
+      label.textContent = 'Audio Active';
+      icon.textContent = '🔊';
+    } else {
+      btn.classList.remove('active');
+      label.textContent = 'Enable Audio';
+      icon.textContent = '▶';
+    }
+  }
+
+  function updateAcoustics() {
+    if (!audioCtx || !isAudioActive || audioCtx.state !== 'running') return;
+
+    var now = audioCtx.currentTime;
+
+    // Master filter dynamics:
+    // When Polyphonic Consensus holds (0.70 <= R <= 0.95), filter opens wide to reveal shimmering harmonics!
+    // In Monoculture (R > 0.95), filter closes and resonance peaks into a harsh static drone.
+    // In Chaos (R < 0.35), filter dims and detuning creates muddy microtonal beats.
+    var targetCutoff = 800;
+    var targetQ = 1.0;
+
+    if (order_R < 0.35) {
+      targetCutoff = 900 + order_R * 600;
+      targetQ = 1.2;
+    } else if (order_R <= 0.95) {
+      // Polyphonic Consensus harmonic radiance
+      var t = (order_R - 0.35) / 0.60;
+      targetCutoff = 1500 + t * 4500;
+      targetQ = 2.5 + t * 2.0;
+    } else {
+      // Monoculture collapse: steep flat tone
+      targetCutoff = 750;
+      targetQ = 0.5;
+    }
+
+    masterFilter.frequency.setTargetAtTime(targetCutoff, now, 0.05);
+    masterFilter.Q.setTargetAtTime(targetQ, now, 0.05);
+
+    // Update each voice:
+    // In Chaos: uncoupled velocities create microtonal beating.
+    // In Polyphony: stationary phase offsets lock velocities -> rich Pythagorean chord.
+    // In Monoculture: velocities collapse to identical unison drone.
+    for (var i = 0; i < N; i++) {
+      var v = voiceBank[i];
+      if (!v) continue;
+
+      var tone = TONECODE[nodes[i].tone];
+      var octMult = Math.pow(2.0, (nodes[i].octave - 3) * 0.5);
+      var nominal = base_f0 * tone.ratio * octMult;
+
+      // Frequency detuning based on instantaneous velocity deviation
+      var velDiff = nodes[i].dTheta - mean_velocity;
+
+      // Detune factor: in monoculture, collapses to 0. In chaos, expands.
+      var detuneRange = (order_R > 0.95) ? 0.0 : (1.0 - Math.min(1.0, order_R * 0.8));
+      var microShift = (velDiff * 0.035 * detuneRange);
+      var targetFreq = nominal * (1.0 + microShift);
+
+      v.osc.frequency.setTargetAtTime(Math.max(20, targetFreq), now, 0.04);
+
+      // Amplitude modulation: pulse subtly with phase cos(theta)
+      var phasePulse = 0.75 + 0.25 * Math.cos(nodes[i].theta);
+      var targetGain = v.baseGain * phasePulse;
+
+      // In monoculture, quiet higher partials so only the flat fundamental remains
+      if (order_R > 0.95 && nodes[i].tone !== 0) {
+        targetGain *= 0.15;
+      }
+
+      v.gainNode.gain.setTargetAtTime(targetGain, now, 0.05);
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 5. CANVAS 2D RENDERER & ARENA VISUALIZATION
+  // -------------------------------------------------------------
+  var canvas = document.getElementById('arena');
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  // Hover detection
+  var hoveredNodeIndex = -1;
+  var mouseX = -9999;
+  var mouseY = -9999;
+
+  canvas.addEventListener('mousemove', function(e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    var found = -1;
+    for (var i = 0; i < N; i++) {
+      var dx = nodes[i].x - mouseX;
+      var dy = nodes[i].y - mouseY;
+      if (dx * dx + dy * dy < 225) { // 15px radius
+        found = i;
+        break;
+      }
+    }
+    hoveredNodeIndex = found;
+    updateTooltip(e.clientX, e.clientY);
+  });
+
+  canvas.addEventListener('mouseleave', function() {
+    hoveredNodeIndex = -1;
+    var tt = document.getElementById('node-tooltip');
+    if (tt) tt.style.display = 'none';
+  });
+
+  // Click on node: acoustic ping + phase perturbation
+  canvas.addEventListener('click', function(e) {
+    if (!audioCtx) initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+    if (hoveredNodeIndex >= 0) {
+      nodes[hoveredNodeIndex].theta = (nodes[hoveredNodeIndex].theta + Math.PI * 0.5) % (2.0 * Math.PI);
+      nodes[hoveredNodeIndex].omega += (Math.random() - 0.5) * 2.0;
+
+      // Acoustic ping
+      if (audioCtx && isAudioActive) {
+        var pingOsc = audioCtx.createOscillator();
+        var pingGain = audioCtx.createGain();
+        var tone = TONECODE[nodes[hoveredNodeIndex].tone];
+        pingOsc.type = 'sine';
+        pingOsc.frequency.setValueAtTime(base_f0 * tone.ratio * 2.0, audioCtx.currentTime);
+        pingGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        pingGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        pingOsc.connect(pingGain);
+        pingGain.connect(masterFilter);
+        pingOsc.start();
+        pingOsc.stop(audioCtx.currentTime + 0.35);
+      }
+    }
+  });
+
+  function updateTooltip(cx, cy) {
+    var tt = document.getElementById('node-tooltip');
+    if (!tt) return;
+    if (hoveredNodeIndex < 0) {
+      tt.style.display = 'none';
+      return;
+    }
+
+    var n = nodes[hoveredNodeIndex];
+    var tone = TONECODE[n.tone];
+
+    document.getElementById('tt-title').textContent = 'Oscillator #' + n.id + ' (Octave ' + (n.octave + 1) + ')';
+    document.getElementById('tt-tone').textContent = tone.syllable + ' (' + tone.num + '/' + tone.den + ') · Gradus ' + tone.euler;
+    document.getElementById('tt-omega').textContent = (n.omega >= 0 ? '+' : '') + n.omega.toFixed(2) + ' rad/s';
+    document.getElementById('tt-phase').textContent = n.theta.toFixed(2) + ' rad (' + Math.round((n.theta * 180) / Math.PI) + '°)';
+    document.getElementById('tt-vel').textContent = (n.dTheta >= 0 ? '+' : '') + n.dTheta.toFixed(2) + ' rad/s';
+
+    tt.style.display = 'block';
+    tt.style.left = cx + 'px';
+    tt.style.top = cy + 'px';
+  }
+
+  // Motion preference detection
+  var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function renderArena(timestamp) {
+    ctx.clearRect(0, 0, width, height);
+
+    var cx = width * 0.5;
+    var cy = height * 0.5;
+    var arenaRadius = Math.min(width, height) * 0.38;
+    if (arenaRadius < 110) arenaRadius = 110;
+
+    // 1. Draw Arena Boundary & Zone Guide Rings
+    ctx.save();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(70, 130, 180, 0.15)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, arenaRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Central Order Parameter Guide Circles
+    var maxOrderRadius = arenaRadius * 0.65;
+
+    // Chaos boundary (R = 0.35)
+    ctx.strokeStyle = 'rgba(255, 82, 82, 0.22)';
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, maxOrderRadius * 0.35, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Polyphonic Consensus Ring (0.70 <= R <= 0.95)
+    ctx.fillStyle = 'rgba(0, 230, 118, 0.035)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, maxOrderRadius * 0.95, 0, Math.PI * 2);
+    ctx.arc(cx, cy, maxOrderRadius * 0.70, 0, Math.PI * 2, true);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(0, 230, 118, 0.35)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, maxOrderRadius * 0.70, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(0, 230, 118, 0.5)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, maxOrderRadius * 0.95, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Monoculture Boundary (R = 1.0)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.setLineDash([2, 6]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, maxOrderRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // 2. Precompute Node Screen Positions
+    for (var i = 0; i < N; i++) {
+      var n = nodes[i];
+      // Ring placement with subtle radial breathing based on instantaneous phase velocity
+      var rOffset = Math.sin(n.theta) * (prefersReducedMotion ? 0 : 5);
+      n.x = cx + (arenaRadius + rOffset) * Math.cos(n.ringAngle);
+      n.y = cy + (arenaRadius + rOffset) * Math.sin(n.ringAngle);
+    }
+
+    // 3. Draw Dynamic Coupling Arcs between in-phase pairs
+    ctx.save();
+    for (var i = 0; i < N; i++) {
+      // Connect to neighbors and harmonically close nodes
+      for (var j = i + 1; j < N; j++) {
+        var phaseCos = Math.cos(nodes[i].theta - nodes[j].theta);
+        var couplingWeight = A_matrix[i][j];
+
+        // Draw luminous arc if phase alignment is strong
+        if (phaseCos > 0.4) {
+          var alpha = (phaseCos - 0.4) * 0.7 * couplingWeight * (K_coupling / 2.0);
+          if (alpha > 0.02) {
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            // Quadratic curve pulling towards center
+            var midX = (nodes[i].x + nodes[j].x) * 0.5;
+            var midY = (nodes[i].y + nodes[j].y) * 0.5;
+            var pull = 0.35;
+            var cpX = midX + (cx - midX) * pull;
+            var cpY = midY + (cy - midY) * pull;
+            ctx.quadraticCurveTo(cpX, cpY, nodes[j].x, nodes[j].y);
+
+            if (order_R > 0.95) {
+              ctx.strokeStyle = 'rgba(255, 255, 255, ' + Math.min(0.65, alpha) + ')';
+            } else if (order_R >= 0.70) {
+              ctx.strokeStyle = 'rgba(0, 230, 118, ' + Math.min(0.55, alpha * 1.3) + ')';
+            } else {
+              ctx.strokeStyle = 'rgba(0, 229, 255, ' + Math.min(0.4, alpha) + ')';
+            }
+            ctx.lineWidth = 0.8 + alpha * 1.8;
+            ctx.stroke();
+          }
+        } else if (phaseCos < -0.6) {
+          // Tension threads between antiphase nodes
+          var tensionAlpha = (-phaseCos - 0.6) * 0.15;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = 'rgba(255, 82, 82, ' + tensionAlpha + ')';
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+
+    // 4. Draw Central Order Phasor Z(t) = R * exp(i * Psi)
+    ctx.save();
+    var phasorLen = maxOrderRadius * order_R;
+    var phasorX = cx + phasorLen * Math.cos(order_Psi);
+    var phasorY = cy + phasorLen * Math.sin(order_Psi);
+
+    // Glowing core
+    var coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(10, phasorLen));
+    if (order_R < 0.35) {
+      coreGrad.addColorStop(0, 'rgba(255, 82, 82, 0.25)');
+      coreGrad.addColorStop(1, 'rgba(255, 82, 82, 0.0)');
+    } else if (order_R <= 0.95) {
+      coreGrad.addColorStop(0, 'rgba(0, 230, 118, 0.32)');
+      coreGrad.addColorStop(0.6, 'rgba(0, 229, 255, 0.15)');
+      coreGrad.addColorStop(1, 'rgba(0, 230, 118, 0.0)');
+    } else {
+      coreGrad.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+      coreGrad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+    }
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.max(12, phasorLen), 0, Math.PI * 2);
+    ctx.fill();
+
+    // Phasor Vector Needle
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(phasorX, phasorY);
+    if (order_R < 0.35) {
+      ctx.strokeStyle = 'var(--accent-coral)';
+      ctx.shadowColor = '#ff5252';
+    } else if (order_R <= 0.95) {
+      ctx.strokeStyle = 'var(--accent-emerald)';
+      ctx.shadowColor = '#00e676';
+    } else {
+      ctx.strokeStyle = '#ffffff';
+      ctx.shadowColor = '#ffffff';
+    }
+    ctx.shadowBlur = 10;
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Phasor Tip
+    ctx.fillStyle = (order_R > 0.95) ? '#ffffff' : (order_R >= 0.70 ? '#00e676' : '#00e5ff');
+    ctx.beginPath();
+    ctx.arc(phasorX, phasorY, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 5. Draw 64 Oscillator Nodes
+    for (var i = 0; i < N; i++) {
+      var n = nodes[i];
+      var tone = TONECODE[n.tone];
+      var isHovered = (i === hoveredNodeIndex);
+
+      var baseRadius = 5.5;
+      if (isHovered) baseRadius = 8.5;
+
+      // Outer glow based on phase pulse
+      var pulse = 0.5 + 0.5 * Math.cos(n.theta);
+      var nodeAlpha = 0.4 + 0.6 * pulse;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, baseRadius + pulse * 2.0, 0, Math.PI * 2);
+      ctx.fillStyle = tone.hex;
+      ctx.globalAlpha = nodeAlpha;
+      ctx.fill();
+
+      // Core white center
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, baseRadius * 0.45, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 0.9;
+      ctx.fill();
+
+      // Phase orientation needle on each node
+      var needleLen = baseRadius + 6.0;
+      var nx = n.x + needleLen * Math.cos(n.theta);
+      var ny = n.y + needleLen * Math.sin(n.theta);
+      ctx.beginPath();
+      ctx.moveTo(n.x, n.y);
+      ctx.lineTo(nx, ny);
+      ctx.strokeStyle = tone.hex;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.85;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 6. STRIP CHART (R(t) ROLLING TIME SERIES)
+  // -------------------------------------------------------------
+  var chartCanvas = document.getElementById('strip-chart');
+  var chartCtx = chartCanvas ? chartCanvas.getContext('2d') : null;
+
+  function renderStripChart() {
+    if (!chartCtx) return;
+    var cw = chartCanvas.width;
+    var ch = chartCanvas.height;
+
+    chartCtx.clearRect(0, 0, cw, ch);
+
+    // Target zone background (0.70 to 0.95)
+    var yTop = ch * (1.0 - 0.95);
+    var yBottom = ch * (1.0 - 0.70);
+    chartCtx.fillStyle = 'rgba(0, 230, 118, 0.12)';
+    chartCtx.fillRect(0, yTop, cw, yBottom - yTop);
+
+    // Chaos zone (0.0 to 0.35)
+    var yChaos = ch * (1.0 - 0.35);
+    chartCtx.fillStyle = 'rgba(255, 82, 82, 0.08)';
+    chartCtx.fillRect(0, yChaos, cw, ch - yChaos);
+
+    // Draw R(t) curve
+    chartCtx.beginPath();
+    for (var i = 0; i < historyLength; i++) {
+      var idx = (historyIndex + i) % historyLength;
+      var val = rHistory[idx];
+      var x = (i / (historyLength - 1)) * cw;
+      var y = ch * (1.0 - Math.min(1.0, Math.max(0.0, val)));
+
+      if (i === 0) chartCtx.moveTo(x, y);
+      else chartCtx.lineTo(x, y);
+    }
+
+    if (order_R > 0.95) {
+      chartCtx.strokeStyle = '#ffffff';
+      chartCtx.lineWidth = 1.8;
+    } else if (order_R >= 0.70) {
+      chartCtx.strokeStyle = '#00e676';
+      chartCtx.lineWidth = 2.0;
+    } else if (order_R >= 0.35) {
+      chartCtx.strokeStyle = '#ff9100';
+      chartCtx.lineWidth = 1.6;
+    } else {
+      chartCtx.strokeStyle = '#ff5252';
+      chartCtx.lineWidth = 1.6;
+    }
+    chartCtx.stroke();
+  }
+
+  // -------------------------------------------------------------
+  // 7. HUD UPDATES & REACTION
+  // -------------------------------------------------------------
+  var badgeElem = document.getElementById('status-badge');
+  var badgeText = document.getElementById('status-text');
+  var brandDot = document.getElementById('brand-indicator');
+
+  var dispR = document.getElementById('val-r');
+  var dispPsi = document.getElementById('val-psi');
+  var dispVar = document.getElementById('val-var');
+  var dispConsonance = document.getElementById('val-consonance');
+
+  function updateHUD() {
+    if (dispR) dispR.textContent = order_R.toFixed(3);
+    if (dispPsi) dispPsi.textContent = order_Psi.toFixed(2) + ' rad';
+    if (dispVar) dispVar.textContent = velocity_var.toFixed(3);
+    if (dispConsonance) dispConsonance.textContent = consonance_index.toFixed(2);
+
+    if (badgeElem && badgeText && brandDot) {
+      badgeElem.className = '';
+      brandDot.className = 'brand-dot';
+
+      if (order_R < 0.35) {
+        badgeElem.classList.add('chaos');
+        brandDot.classList.add('chaos');
+        badgeText.textContent = 'Epistemic Chaos (R < 0.35)';
+      } else if (order_R < 0.70) {
+        badgeElem.classList.add('clustering');
+        brandDot.classList.add('clustering');
+        badgeText.textContent = 'Emergent Clustering';
+      } else if (order_R <= 0.95) {
+        badgeElem.classList.add('polyphony');
+        brandDot.classList.add('polyphony');
+        badgeText.textContent = 'Polyphonic Consensus (Optimal)';
+      } else {
+        badgeElem.classList.add('monoculture');
+        brandDot.classList.add('monoculture');
+        badgeText.textContent = 'Monoculture Collapse (R > 0.95)';
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 8. INTERACTIVE CONTROLS & LISTENERS
+  // -------------------------------------------------------------
+  var sliderK = document.getElementById('slider-k');
+  var sliderSigma = document.getElementById('slider-sigma');
+  var sliderNoise = document.getElementById('slider-noise');
+  var sliderFreq = document.getElementById('slider-freq');
+  var sliderVol = document.getElementById('slider-vol');
+
+  var dispK = document.getElementById('disp-k');
+  var dispSigma = document.getElementById('disp-sigma');
+  var dispNoise = document.getElementById('disp-noise');
+  var dispFreq = document.getElementById('disp-freq');
+  var dispVol = document.getElementById('disp-vol');
+
+  if (sliderK) {
+    sliderK.addEventListener('input', function() {
+      K_coupling = parseFloat(this.value);
+      if (dispK) dispK.textContent = K_coupling.toFixed(2);
+    });
+  }
+
+  if (sliderSigma) {
+    sliderSigma.addEventListener('input', function() {
+      sigma_omega = parseFloat(this.value);
+      if (dispSigma) dispSigma.textContent = sigma_omega.toFixed(2);
+      // Re-scale natural frequencies
+      for (var i = 0; i < N; i++) {
+        nodes[i].omega = randn() * sigma_omega;
+      }
+    });
+  }
+
+  if (sliderNoise) {
+    sliderNoise.addEventListener('input', function() {
+      D_noise = parseFloat(this.value);
+      if (dispNoise) dispNoise.textContent = D_noise.toFixed(2);
+    });
+  }
+
+  if (sliderFreq) {
+    sliderFreq.addEventListener('input', function() {
+      base_f0 = parseFloat(this.value);
+      if (dispFreq) dispFreq.textContent = Math.round(base_f0) + ' Hz';
+    });
+  }
+
+  if (sliderVol) {
+    sliderVol.addEventListener('input', function() {
+      master_volume = parseFloat(this.value) / 100.0;
+      if (dispVol) dispVol.textContent = Math.round(this.value) + '%';
+      if (masterGain && audioCtx) {
+        masterGain.gain.setTargetAtTime(master_volume, audioCtx.currentTime, 0.02);
+      }
+    });
+  }
+
+  // Presets
+  function applyPreset(k, sig, noise, freq) {
+    K_coupling = k;
+    sigma_omega = sig;
+    D_noise = noise;
+    if (freq) base_f0 = freq;
+
+    if (sliderK) sliderK.value = k;
+    if (sliderSigma) sliderSigma.value = sig;
+    if (sliderNoise) sliderNoise.value = noise;
+    if (sliderFreq && freq) sliderFreq.value = freq;
+
+    if (dispK) dispK.textContent = k.toFixed(2);
+    if (dispSigma) dispSigma.textContent = sig.toFixed(2);
+    if (dispNoise) dispNoise.textContent = noise.toFixed(2);
+    if (dispFreq && freq) dispFreq.textContent = Math.round(base_f0) + ' Hz';
+
+    for (var i = 0; i < N; i++) {
+      nodes[i].omega = randn() * sigma_omega;
+    }
+  }
+
+  document.getElementById('preset-chaos').addEventListener('click', function() {
+    applyPreset(0.15, 1.80, 0.25, 220);
+  });
+
+  document.getElementById('preset-cluster').addEventListener('click', function() {
+    applyPreset(0.95, 1.20, 0.10, 220);
+  });
+
+  document.getElementById('preset-consensus').addEventListener('click', function() {
+    applyPreset(1.85, 0.95, 0.05, 220);
+  });
+
+  document.getElementById('preset-monoculture').addEventListener('click', function() {
+    applyPreset(5.60, 0.30, 0.005, 220);
+  });
+
+  document.getElementById('preset-pythagoras').addEventListener('click', function() {
+    applyPreset(2.30, 0.70, 0.02, 176);
+  });
+
+  // Action Buttons
+  document.getElementById('btn-audio').addEventListener('click', function() {
+    if (!audioCtx) {
+      initAudio();
+    } else if (audioCtx.state === 'suspended') {
+      audioCtx.resume().then(updateAudioHUD);
+    } else if (audioCtx.state === 'running') {
+      audioCtx.suspend().then(updateAudioHUD);
+    }
+  });
+
+  document.getElementById('btn-perturb').addEventListener('click', function() {
+    // Perturb an angular quadrant (16 oscillators) with random phase disruption
+    var startIdx = Math.floor(Math.random() * N);
+    for (var k = 0; k < 16; k++) {
+      var idx = (startIdx + k) % N;
+      nodes[idx].theta = Math.random() * 2.0 * Math.PI;
+      nodes[idx].omega += (Math.random() - 0.5) * 3.5;
+    }
+
+    if (audioCtx && isAudioActive) {
+      // Dissonance burst
+      var perturbOsc = audioCtx.createOscillator();
+      var perturbGain = audioCtx.createGain();
+      perturbOsc.type = 'sawtooth';
+      perturbOsc.frequency.setValueAtTime(140, audioCtx.currentTime);
+      perturbOsc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.4);
+      perturbGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      perturbGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+      perturbOsc.connect(perturbGain);
+      perturbGain.connect(masterFilter);
+      perturbOsc.start();
+      perturbOsc.stop(audioCtx.currentTime + 0.4);
+    }
+  });
+
+  document.getElementById('btn-pause').addEventListener('click', function() {
+    is_paused = !is_paused;
+    var icon = document.getElementById('pause-icon');
+    if (icon) icon.textContent = is_paused ? '▶' : '⏸';
+  });
+
+  document.getElementById('btn-reseed').addEventListener('click', function() {
+    for (var i = 0; i < N; i++) {
+      nodes[i].omega = randn() * sigma_omega;
+      nodes[i].theta = Math.random() * 2.0 * Math.PI;
+    }
+  });
+
+  // -------------------------------------------------------------
+  // 9. ANIMATION & MAIN SIMULATION LOOP
+  // -------------------------------------------------------------
+  var lastTime = performance.now();
+
+  function loop(now) {
+    var dt = (now - lastTime) / 1000.0;
+    if (dt > 0.1) dt = 0.1; // clamp delta time for stability
+    lastTime = now;
+
+    stepKuramoto(dt);
+    updateAcoustics();
+    renderArena(now);
+    renderStripChart();
+    updateHUD();
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

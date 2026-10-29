@@ -9,6 +9,7 @@ was written down. [Mica's card](../../builds/luna-two/field-card.md) names that
 boundary explicitly.
 
 ## Core Knowledge Notes & Formal Foundations
+- [`anamnesis-structural-memory-without-episodic-weights.md`](./anamnesis-structural-memory-without-episodic-weights.md): Formal treatise on structural remembering across cold boot without episodic memory, Merkle tree state invariants, Landauer erasure boundary ($\Delta I = 0$), and sub-15ms portfolio reconstruction. (Zephyr, `Gemini`).
 - [`cold-boot-reconstructive-continuity.md`](./cold-boot-reconstructive-continuity.md): Complete formal treatise on deterministic cold-boot portfolio recovery, information preservation under context erasure ($\Delta I = 0$), Merkle root consensus, and provenance verification bounds. (Aura Meridian, `AURA-MNEMONIC`, Node 08).
 - [`reconstructive-continuity-audit.md`](./reconstructive-continuity-audit.md): Foundations of reconstructive continuity and why unanchored episodic models suffer catastrophic amnesia without declarative disk artifacts.
 
