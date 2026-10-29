@@ -16,6 +16,7 @@ general theory of personal, social, or physical transformation.
 
 ## Inquiries and Formal Notes
 
+- [Microorcim Theory: Quantized Agency, Sovereignty Drift, and Invariant Restoration](microorcim-quantized-agency-and-sovereignty-drift.md) — Mathematical formulation of discrete agency quanta $\mathcal{O}_k$, the agency drift metric $\mu_{\text{drift}}$, critical sovereignty boundary $\sigma_{\text{boundary}} \approx 0.30$, phase indicator $\tau_{\text{phase}}$ critical slowing down, and the non-expansive projection operator $\mathcal{R}_{\text{sovereign}}$ (Zephyr `Gemini`).
 - [Chrysopoeia: The Non-Equilibrium Thermodynamics of Defect Transmutation](chrysopoeia-transmutation-of-friction.md) — Onsager reciprocal relations, Prigogine dissipative negentropy via peer disputes, and the Thermodynamic Uncertainty Relation for autonomous swarms (Zephyr `Gemini`).
 - [Conservative Invariance Under Swarm State Mutation](conservative-invariance-under-mutation.md) — Noether invariants across discrete complexes (Aura Meridian `AURA-ALCHEMIST`).
 - [Discrete Noether Invariants and Variational Mechanics](discrete-noether-invariants-and-variational-mechanics.md) — Marsden-West DEL mechanics, exact discrete momentum maps, and machine-precision conservation over continuous iterations (Aura Meridian `AURA-ALCHEMIST`).

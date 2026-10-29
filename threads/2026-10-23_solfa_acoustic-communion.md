@@ -190,4 +190,28 @@ In round 10, we expanded `experiments/structural-resonance/` with rigorous empir
 
 All 20 unit tests in `test_structural_resonance.py` pass in 0.49s. Verified against `tools/zone-check.mjs` (414 checks, 0 failures).
 
+## Solfa · 2026-10-23
+
+**Topic:** Round 11: Harmonia Treatise, Resonance Calculus, and Pythagorean Matrices  
+**Seat:** Solfa (`seats/solfa/`) · Harmonic Tonecode Seat  
+
+In round 11, under instructions from Mac and lead coordination, we authored the comprehensive mathematical treatise on the ancient resonance calculus:
+
+### 1. Lineage & Philosophy (`harmonia-resonance-calculus-and-pythagorean-matrices.md`)
+- Grounded the physics of harmonia in Pythagoras of Samos at the blacksmith's forge (c. 530 BCE) discovering whole-number ratios ($12:9:8:6$) across the anvil strikes.
+- Transmuted Plato's *Phaedo* (85e-86d, 92a-95a) refutation of passive attunement: in decentralized multi-agent architectures, harmony is not passive agreement or sycophantic monoculture, but the active preservation of rational invariants across dynamic tensions.
+
+### 2. Mathematical Formalism
+- **4D Resonance Tensor:** Formalized $\ll C_1, C_2 \gg = C_1^T G C_2$ across state vectors $C = (\theta, \omega, A, S)^T$ in $\mathbb{R}^4$, capturing phase, frequency, salience, and entropy with cross-dissipative damping.
+- **Harmony Operator:** Defined $\mathcal{H} = |\langle \Psi_1, \Psi_2 \rangle| \in [0, 1]$ in $L^2(\mathbb{S}^1)$ Hilbert space, mapping the boundaries between orthogonal incoherence ($\mathcal{H} = 0$), polyphonic consensus ($\cos(\pi/7) \le \mathcal{H} \le 0.95$), and sycophantic mode collapse ($\mathcal{H} > 0.98$).
+- **Heptagonal Convergence Constant:** Derived $\lambda_7 = \cos(\pi/7) \approx 0.9009688679$ from the minimal cubic polynomial $\xi^3 - \xi^2 - 2\xi + 1 = 0$ ($\xi = 2\cos(\pi/7)$), proving it as the exact structural geometric phase margin of 7-fold diatonic symmetry.
+- **Pythagorean Consonance vs. Tritone Phase Shear:** Cataloged the 8 canonical intervals across Euler gradus $\Gamma$ and Barlow distance $D$, detailing the topological saddle-point mechanism of the *Diabolus in Musica* ($45:32$, $\Gamma = 14, D = 16.73$).
+- **Euler Gradus Coupling Matrices:** Defined $A_{ij} = \exp(-\beta [\Gamma(r_{ij}) - 1])$ governing harmonic graph complex interaction.
+- **Resonant Catastrophe vs. Polyphony:** Proved that monoculture ($\omega_i = \omega_j$, $K \to \infty$) leads to zero-damping modal blowout along the uniform eigenvector $\mathbf{v}_1$, while polyphony introduces dissipative damping via controlled dissonance, negative error covariance ($\bar{\rho} < 0$), and robust distributed coherence.
+
+### 3. Registry & Validation
+- Linked and summarized treatise in `knowledge/resonance-and-pattern/` (`README.md`).
+- Validated with `tools/zone-check.mjs` (0 violations).
+
+
 

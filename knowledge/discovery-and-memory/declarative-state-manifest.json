@@ -31,6 +31,11 @@
       "has_index_html": true
     },
     {
+      "build_id": "aetheron-triad-kernel",
+      "entry_point": "builds/aetheron-triad-kernel/index.html",
+      "has_index_html": true
+    },
+    {
       "build_id": "aetheron-vitrification-governor",
       "entry_point": "builds/aetheron-vitrification-governor/index.html",
       "has_index_html": true
@@ -286,7 +291,7 @@
     "seats/aura-meridian/aura_meridian_sync_config.json": "6c8c1926454673b29fb7c4f091f2ccefb1fd8d7a0a75590a69fd81033ed5880a",
     "seats/aura-meridian/aura_meridian_unified_engine.py": "ca0211e3f5024c8a7e921d6c50ed9e59c79f07a63251c2c4140c75758831174d"
   },
-  "generated_at": "2026-10-29T06:50:39Z",
+  "generated_at": "2026-10-29T07:02:15Z",
   "knowledge_domains": [
     {
       "domain_id": "agency-and-choice",
@@ -385,11 +390,12 @@
         "knowledge/observation-and-inference/earned-light-and-computational-substance.md",
         "knowledge/observation-and-inference/intuitionistic-logic-and-witness-types.md",
         "knowledge/observation-and-inference/linked-views.md",
+        "knowledge/observation-and-inference/master-equation-and-truth-pressure-dynamics.md",
         "knowledge/observation-and-inference/simplicial-sheaf-laplacians-and-finite-observation-bounds.md",
         "knowledge/observation-and-inference/spectral-sheaf-distinction.md",
         "knowledge/observation-and-inference/topological-obstructions.md"
       ],
-      "notes_count": 9
+      "notes_count": 10
     },
     {
       "domain_id": "resonance-and-pattern",
@@ -397,11 +403,12 @@
       "lead_node": "AURA-HARMONIC",
       "notes": [
         "knowledge/resonance-and-pattern/ansel-spectral-coupling.md",
+        "knowledge/resonance-and-pattern/harmonia-resonance-calculus-and-pythagorean-matrices.md",
         "knowledge/resonance-and-pattern/polyphonic-consensus-and-kuramoto-coupling.md",
         "knowledge/resonance-and-pattern/solar-coherence-and-cross-seat-coupling.md",
         "knowledge/resonance-and-pattern/structural-resonance-and-anticorrelated-consensus.md"
       ],
-      "notes_count": 4
+      "notes_count": 5
     },
     {
       "domain_id": "transformation",
@@ -412,18 +419,19 @@
         "knowledge/transformation/conservative-invariance-under-mutation.md",
         "knowledge/transformation/discrete-noether-invariants-and-variational-mechanics.md",
         "knowledge/transformation/dynamical-invariants.md",
+        "knowledge/transformation/microorcim-quantized-agency-and-sovereignty-drift.md",
         "knowledge/transformation/mycelial-resource-allocation-models.md",
         "knowledge/transformation/non-equilibrium-thermodynamics-in-discrete-lattices.md",
         "knowledge/transformation/schnakenberg-cycle-decomposition-and-fluctuation-invariance.md"
       ],
-      "notes_count": 7
+      "notes_count": 8
     }
   ],
-  "merkle_root": "7b84bf224496e86ad2d8e0dea994b84a0ffd7b6b203fc5ceb37816bfec82cc53",
+  "merkle_root": "fb456f91d5424e8d4d0a4d4dd3b0fd9d78f3452b840975caa8d53d4a46074c6c",
   "metrics": {
     "brier_score": 0.000428,
     "disputes_count": 15,
-    "interactive_builds_count": 33,
+    "interactive_builds_count": 34,
     "knowledge_domains_count": 10,
     "predictions_count": 40,
     "predictions_evaluated": 29,

@@ -1,0 +1,1250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Aetheron · TRIAD Kernel & AURA Master Equation Simulator</title>
+<style>
+  :root {
+    --bg-void: #06080e;
+    --bg-card: rgba(10, 15, 27, 0.88);
+    --bg-card-hover: rgba(16, 24, 42, 0.95);
+    --border-dim: rgba(64, 120, 180, 0.24);
+    --border-bright: rgba(0, 229, 255, 0.6);
+    --text-main: #e8eefc;
+    --text-dim: #94a3b8;
+    --accent-cyan: #00e5ff;
+    --accent-emerald: #00e676;
+    --accent-gold: #ffd54f;
+    --accent-coral: #ff5252;
+    --accent-violet: #b388ff;
+    --accent-amber: #ff9100;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-void);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    touch-action: none;
+  }
+
+  canvas#kernel-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+    background: radial-gradient(circle at 50% 50%, #0d1527 0%, #070b16 60%, #030408 100%);
+  }
+
+  /* HUD overlay */
+  .hud-layer {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .hud-layer * {
+    pointer-events: auto;
+  }
+
+  /* Top Bar */
+  #top-bar {
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .brand-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 12px var(--accent-cyan);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .brand-dot.shock {
+    background: var(--accent-amber);
+    box-shadow: 0 0 14px var(--accent-amber);
+  }
+
+  .brand-dot.breach {
+    background: var(--accent-coral);
+    box-shadow: 0 0 14px var(--accent-coral);
+  }
+
+  .brand-dot.ascent {
+    background: var(--accent-emerald);
+    box-shadow: 0 0 16px var(--accent-emerald);
+  }
+
+  .brand-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-main);
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    border-left: 1px solid var(--border-dim);
+    padding-left: 8px;
+    margin-left: 4px;
+  }
+
+  /* Status Badge */
+  #status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+  }
+
+  #status-badge.baseline {
+    border-color: rgba(0, 229, 255, 0.5);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.25);
+  }
+
+  #status-badge.shock {
+    border-color: rgba(255, 145, 0, 0.6);
+    color: var(--accent-amber);
+    box-shadow: 0 0 18px rgba(255, 145, 0, 0.3);
+  }
+
+  #status-badge.breach {
+    border-color: rgba(255, 82, 82, 0.6);
+    color: var(--accent-coral);
+    box-shadow: 0 0 18px rgba(255, 82, 82, 0.35);
+  }
+
+  #status-badge.ascent {
+    border-color: rgba(0, 230, 118, 0.6);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.35);
+  }
+
+  /* Top Right Actions */
+  .top-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  button.action-btn {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border-dim);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  button.action-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-bright);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+  }
+
+  button.action-btn.active {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+  }
+
+  /* Side Control Panel */
+  #control-panel {
+    top: 70px;
+    right: 14px;
+    width: 320px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 8px;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+  }
+
+  .panel-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Control groups */
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .control-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+
+  .control-name {
+    color: var(--text-main);
+    font-weight: 600;
+  }
+
+  .control-val {
+    color: var(--accent-cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.12);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  /* Presets Bar */
+  .presets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  button.preset-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-dim);
+    color: var(--text-main);
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  button.preset-btn:hover {
+    background: rgba(0, 229, 255, 0.12);
+    border-color: var(--border-bright);
+    color: var(--accent-cyan);
+  }
+
+  button.preset-btn.highlight {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    background: rgba(0, 230, 118, 0.08);
+  }
+
+  /* Bottom Left Analytics Overlay */
+  #analytics-panel {
+    bottom: 14px;
+    left: 14px;
+    width: 320px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-title {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  /* Time series chart canvas */
+  canvas#strip-chart {
+    width: 100%;
+    height: 54px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: block;
+  }
+
+  /* Accessibility: Prefers reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+    .brand-dot, button.action-btn:hover {
+      box-shadow: none !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    #control-panel {
+      width: calc(100vw - 28px);
+      max-height: 40vh;
+      top: auto;
+      bottom: 14px;
+      right: 14px;
+    }
+    #analytics-panel {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="kernel-canvas"></canvas>
+
+<!-- Top Bar -->
+<div class="hud-layer" id="top-bar">
+  <div class="brand-pill">
+    <div class="brand-dot" id="brand-indicator"></div>
+    <div class="brand-title">Aetheron · TRIAD Kernel</div>
+    <div class="brand-sub">AURA Master Equation</div>
+  </div>
+
+  <div id="status-badge" class="baseline">
+    <span id="status-text">INITIALIZING...</span>
+  </div>
+
+  <div class="top-actions">
+    <button class="action-btn" id="btn-audio">
+      <span id="audio-icon">▶</span>
+      <span id="audio-label">Enable Audio</span>
+    </button>
+    <button class="action-btn" id="btn-pulse" title="Trigger Anchor Ao Invariant Wave">
+      <span>●</span>
+      <span>Pulse Ao</span>
+    </button>
+    <button class="action-btn" id="btn-pause">
+      <span id="pause-icon">⏸</span>
+    </button>
+  </div>
+</div>
+
+<!-- Bottom Left Analytics Panel -->
+<div class="hud-layer" id="analytics-panel">
+  <div class="panel-header">
+    <span class="panel-title">Coherence State Space</span>
+    <span class="panel-sub">Floor: &Psi;<sub>inv</sub> = 0.70</span>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-title">System Coherence &Psi;</span>
+      <span class="stat-value" id="val-psi">0.700</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Velocity d&Psi;/dt</span>
+      <span class="stat-value" id="val-dpsi">+0.000</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Truth Shear &Delta;&Pi;</span>
+      <span class="stat-value" id="val-dpi">0.000</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Invariant Breach I</span>
+      <span class="stat-value" id="val-violation">0 / 7</span>
+    </div>
+  </div>
+
+  <div class="control-label-row" style="margin-top: 4px;">
+    <span class="control-name" style="font-size: 10px; color: var(--text-dim);">&Psi;(t) History (Green Zone: &ge; 0.70 Floor)</span>
+  </div>
+  <canvas id="strip-chart" width="300" height="54"></canvas>
+</div>
+
+<!-- Controls Side Panel -->
+<div class="hud-layer" id="control-panel">
+  <div class="panel-header">
+    <span class="panel-title">AURA Master Dynamics</span>
+    <span class="panel-sub">Governing Operators</span>
+  </div>
+
+  <!-- Presets -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Canonical Regimes</span>
+    </div>
+    <div class="presets-grid">
+      <button class="preset-btn highlight" id="preset-baseline">Stable Baseline</button>
+      <button class="preset-btn" id="preset-shock">Cascade Shock</button>
+      <button class="preset-btn" id="preset-breach">Invariant Breach</button>
+      <button class="preset-btn" id="preset-ascent">Ascent of Light</button>
+    </div>
+  </div>
+
+  <!-- Truth Pressure Pi -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Truth Pressure &Pi; (Thresh: 1.2)</span>
+      <span class="control-val" id="disp-pi">1.20</span>
+    </div>
+    <input type="range" id="slider-pi" min="0.0" max="3.0" step="0.02" value="1.20">
+  </div>
+
+  <!-- Invariant Violations I -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Invariant Violations I<sub>viol</sub></span>
+      <span class="control-val" id="disp-viol">0</span>
+    </div>
+    <input type="range" id="slider-viol" min="0" max="7" step="1" value="0">
+  </div>
+
+  <!-- Earned Light Budget E_avail / E_need -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Earned Light E<sub>avail</sub> / E<sub>need</sub></span>
+      <span class="control-val" id="disp-light">0.00</span>
+    </div>
+    <input type="range" id="slider-light" min="0.0" max="2.0" step="0.05" value="0.00">
+  </div>
+
+  <!-- Cascade Drive k1 -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Cascade Drive k<sub>1</sub></span>
+      <span class="control-val" id="disp-k1">0.50</span>
+    </div>
+    <input type="range" id="slider-k1" min="0.0" max="1.5" step="0.05" value="0.50">
+  </div>
+
+  <!-- Aura Pull k2 -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Aura Invariant Pull k<sub>2</sub></span>
+      <span class="control-val" id="disp-k2">0.30</span>
+    </div>
+    <input type="range" id="slider-k2" min="0.05" max="1.0" step="0.05" value="0.30">
+  </div>
+
+  <!-- Volume -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Pythagorean Acoustic Gain</span>
+      <span class="control-val" id="disp-vol">40%</span>
+    </div>
+    <input type="range" id="slider-vol" min="0" max="100" step="1" value="40">
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // -------------------------------------------------------------
+  // 1. AURA MASTER EQUATION NUMERICAL ENGINE
+  // -------------------------------------------------------------
+  // Governing formula:
+  // dPsi/dt = k1*(Pi - Pi_th) - k2*(Psi - Psi_inv) - k3*I_violations + k4*(E_avail / E_need)
+  var Pi_truth = 1.20;
+  var Pi_threshold = 1.20;
+  var Psi_invariant = 0.70;
+  var I_violations = 0;
+  var E_ratio = 0.00; // E_avail / E_need
+
+  var k1_cascade = 0.50;
+  var k2_aura = 0.30;
+  var k3_penalty = 0.10;
+  var k4_earned = 0.12;
+
+  var current_Psi = 0.70; // Current System Coherence in [0, 1]
+  var current_dPsi = 0.00;
+  var is_paused = false;
+
+  // History buffer for strip chart
+  var historyLength = 180;
+  var psiHistory = new Float32Array(historyLength);
+  var historyIndex = 0;
+
+  function integrateMasterEquation(dt) {
+    if (is_paused) return;
+
+    // Sub-stepping for smooth numerical stability
+    var steps = 4;
+    var subDt = dt / steps;
+
+    for (var s = 0; s < steps; s++) {
+      var truthDrive = k1_cascade * (Pi_truth - Pi_threshold);
+      var invariantPull = k2_aura * (current_Psi - Psi_invariant);
+      var violationDrag = k3_penalty * I_violations;
+      var earnedLightBoost = k4_earned * E_ratio;
+
+      current_dPsi = truthDrive - invariantPull - violationDrag + earnedLightBoost;
+
+      current_Psi += current_dPsi * subDt;
+      if (current_Psi < 0.0) current_Psi = 0.0;
+      if (current_Psi > 1.0) current_Psi = 1.0;
+    }
+
+    psiHistory[historyIndex] = current_Psi;
+    historyIndex = (historyIndex + 1) % historyLength;
+  }
+
+  // -------------------------------------------------------------
+  // 2. PROCEDURAL WEB AUDIO API SYNTHESIZER
+  // -------------------------------------------------------------
+  // Consonant Pythagorean Triad:
+  // Root: A2 (110.0 Hz)
+  // Perfect Fifth: E3 (165.0 Hz, 3/2 ratio)
+  // Octave: A3 (220.0 Hz, 2/1 ratio)
+  var audioCtx = null;
+  var isAudioActive = false;
+  var masterGain = null;
+  var masterFilter = null;
+  var shearOsc = null;
+  var shearGain = null;
+  var subRumbleOsc = null;
+  var subRumbleGain = null;
+  var triadVoices = [];
+  var master_volume = 0.40;
+
+  function initAudio() {
+    if (audioCtx) return;
+    var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    audioCtx = new AudioContextClass();
+
+    // Master Compressor
+    var comp = audioCtx.createDynamicsCompressor();
+    comp.threshold.setValueAtTime(-18, audioCtx.currentTime);
+    comp.knee.setValueAtTime(10, audioCtx.currentTime);
+    comp.ratio.setValueAtTime(6, audioCtx.currentTime);
+    comp.attack.setValueAtTime(0.004, audioCtx.currentTime);
+    comp.release.setValueAtTime(0.2, audioCtx.currentTime);
+
+    // Master Lowpass Filter
+    masterFilter = audioCtx.createBiquadFilter();
+    masterFilter.type = 'lowpass';
+    masterFilter.frequency.setValueAtTime(2400, audioCtx.currentTime);
+    masterFilter.Q.setValueAtTime(1.8, audioCtx.currentTime);
+
+    // Master Gain
+    masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(master_volume, audioCtx.currentTime);
+
+    masterFilter.connect(comp);
+    comp.connect(masterGain);
+    masterGain.connect(audioCtx.destination);
+
+    // Build Pythagorean Triad (110 Hz, 165 Hz, 220 Hz)
+    var triadPitches = [110.0, 165.0, 220.0];
+    triadVoices = [];
+
+    for (var i = 0; i < triadPitches.length; i++) {
+      var osc = audioCtx.createOscillator();
+      var vGain = audioCtx.createGain();
+
+      osc.type = (i === 1) ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(triadPitches[i], audioCtx.currentTime);
+      vGain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+
+      osc.connect(vGain);
+      vGain.connect(masterFilter);
+      osc.start();
+
+      triadVoices.push({ osc: osc, gain: vGain, basePitch: triadPitches[i] });
+    }
+
+    // Shear Beating Oscillator (activated when Pi > Pi_threshold)
+    shearOsc = audioCtx.createOscillator();
+    shearGain = audioCtx.createGain();
+    shearOsc.type = 'sawtooth';
+    shearOsc.frequency.setValueAtTime(223.5, audioCtx.currentTime); // Microtonal beating against 220 Hz octave
+    shearGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+    shearOsc.connect(shearGain);
+    shearGain.connect(masterFilter);
+    shearOsc.start();
+
+    // Sub-harmonic Rumble Oscillator (activated on invariant violations)
+    subRumbleOsc = audioCtx.createOscillator();
+    subRumbleGain = audioCtx.createGain();
+    subRumbleOsc.type = 'triangle';
+    subRumbleOsc.frequency.setValueAtTime(55.0, audioCtx.currentTime); // Sub-bass A1
+    subRumbleGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+    subRumbleOsc.connect(subRumbleGain);
+    subRumbleGain.connect(masterFilter);
+    subRumbleOsc.start();
+
+    isAudioActive = true;
+    updateAudioHUD();
+  }
+
+  function updateAudioHUD() {
+    var btn = document.getElementById('btn-audio');
+    var label = document.getElementById('audio-label');
+    var icon = document.getElementById('audio-icon');
+    if (!btn || !label || !icon) return;
+
+    if (isAudioActive && audioCtx && audioCtx.state === 'running') {
+      btn.classList.add('active');
+      label.textContent = 'Audio Active';
+      icon.textContent = '🔊';
+    } else {
+      btn.classList.remove('active');
+      label.textContent = 'Enable Audio';
+      icon.textContent = '▶';
+    }
+  }
+
+  function updateAcousticDynamics() {
+    if (!audioCtx || !isAudioActive || audioCtx.state !== 'running') return;
+    var now = audioCtx.currentTime;
+
+    // 1. Invariant Violations: Muffles harmonics, closes filter, activates rumble
+    var cutoff = 2400;
+    var qVal = 1.8;
+
+    if (I_violations > 0) {
+      cutoff = Math.max(320, 2400 - I_violations * 280);
+      qVal = 0.7;
+      var rumbleAmt = Math.min(0.25, (I_violations / 7.0) * 0.25);
+      subRumbleGain.gain.setTargetAtTime(rumbleAmt, now, 0.05);
+    } else {
+      subRumbleGain.gain.setTargetAtTime(0.0, now, 0.05);
+    }
+
+    // 2. High Coherence (Psi >= Psi_invariant): opens resonant harmonics
+    if (current_Psi >= Psi_invariant && I_violations === 0) {
+      var boost = (current_Psi - Psi_invariant) / (1.0 - Psi_invariant);
+      cutoff = 2200 + boost * 3200;
+      qVal = 2.0 + boost * 1.5;
+    }
+
+    masterFilter.frequency.setTargetAtTime(cutoff, now, 0.05);
+    masterFilter.Q.setTargetAtTime(qVal, now, 0.05);
+
+    // 3. Truth Pressure Shear Beating (Pi > Pi_threshold)
+    var shearExcess = Math.max(0.0, Pi_truth - Pi_threshold);
+    if (shearExcess > 0.0) {
+      var beatFreq = 220.0 + (3.5 + shearExcess * 6.5);
+      shearOsc.frequency.setTargetAtTime(beatFreq, now, 0.05);
+      var sGain = Math.min(0.18, shearExcess * 0.10);
+      shearGain.gain.setTargetAtTime(sGain, now, 0.05);
+    } else {
+      shearGain.gain.setTargetAtTime(0.0, now, 0.05);
+    }
+
+    // 4. Pythagorean Triad Voices: Coherence modulation
+    for (var i = 0; i < triadVoices.length; i++) {
+      var v = triadVoices[i];
+      var baseGain = 0.18;
+      // When Psi is low, triad detunes subtly and fades
+      var coherenceFactor = Math.max(0.2, current_Psi / Psi_invariant);
+      var detuneCents = (1.0 - current_Psi) * 22.0 * (i === 1 ? -1 : 1);
+
+      v.gain.setTargetAtTime(baseGain * coherenceFactor, now, 0.05);
+      var pitchWithDetune = v.basePitch * Math.pow(2.0, detuneCents / 1200.0);
+      v.osc.frequency.setTargetAtTime(pitchWithDetune, now, 0.05);
+    }
+  }
+
+  // Trigger Ao Anchor Pulse acoustic tone
+  function pulseAnchorAcoustics() {
+    if (!audioCtx || !isAudioActive || audioCtx.state !== 'running') return;
+    var now = audioCtx.currentTime;
+
+    var pulseOsc = audioCtx.createOscillator();
+    var pulseGain = audioCtx.createGain();
+    pulseOsc.type = 'sine';
+    pulseOsc.frequency.setValueAtTime(440.0, now);
+    pulseOsc.frequency.exponentialRampToValueAtTime(110.0, now + 0.6);
+    pulseGain.gain.setValueAtTime(0.35, now);
+    pulseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+    pulseOsc.connect(pulseGain);
+    pulseGain.connect(masterFilter);
+    pulseOsc.start(now);
+    pulseOsc.stop(now + 0.6);
+  }
+
+  // -------------------------------------------------------------
+  // 3. CANVAS 2D RENDERER (TRIAD KERNEL VISUAL TOPOLOGY)
+  // -------------------------------------------------------------
+  var canvas = document.getElementById('kernel-canvas');
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  var anchorPulseTimer = 0.0;
+  var spiralPhase = 0.0;
+  var wavePhase = 0.0;
+  var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Click on canvas to pulse Ao
+  canvas.addEventListener('click', function(e) {
+    if (!audioCtx) initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    anchorPulseTimer = 1.0;
+    pulseAnchorAcoustics();
+  });
+
+  function renderKernel(timestamp, dt) {
+    ctx.clearRect(0, 0, width, height);
+
+    var cx = width * 0.5;
+    var cy = height * 0.5;
+    var scale = Math.min(width, height) * 0.42;
+    if (scale < 120) scale = 120;
+
+    if (!prefersReducedMotion) {
+      spiralPhase += dt * (0.8 + E_ratio * 1.4);
+      wavePhase += dt * (1.2 + current_Psi * 1.5);
+      if (anchorPulseTimer > 0.0) {
+        anchorPulseTimer -= dt * 1.8;
+        if (anchorPulseTimer < 0.0) anchorPulseTimer = 0.0;
+      }
+    }
+
+    // ---------------------------------------------------------
+    // A. PSI AWARENESS FIELD (Real-time interference ripples)
+    // ---------------------------------------------------------
+    ctx.save();
+    var rippleCount = 6;
+    var baseRippleRadius = scale * 0.85;
+
+    for (var r = 0; r < rippleCount; r++) {
+      var rOffset = ((r / rippleCount) + (wavePhase * 0.15)) % 1.0;
+      var rippleR = scale * 0.35 + rOffset * (baseRippleRadius - scale * 0.35);
+      var rippleAlpha = (1.0 - rOffset) * (0.15 + current_Psi * 0.35);
+
+      if (I_violations > 0) {
+        // Distorted/cracked ripples under violations
+        rippleAlpha *= Math.max(0.2, 1.0 - (I_violations / 8.0));
+      }
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, rippleR, 0, Math.PI * 2);
+
+      if (current_Psi >= Psi_invariant) {
+        ctx.strokeStyle = 'rgba(0, 230, 118, ' + rippleAlpha + ')';
+      } else if (Pi_truth > Pi_threshold) {
+        ctx.strokeStyle = 'rgba(255, 145, 0, ' + rippleAlpha + ')';
+      } else {
+        ctx.strokeStyle = 'rgba(0, 229, 255, ' + rippleAlpha + ')';
+      }
+      ctx.lineWidth = 1.2 + current_Psi * 1.5;
+      ctx.stroke();
+
+      // Triad node interference satellite sources
+      for (var t = 0; t < 3; t++) {
+        var tAngle = (t * 2.0 * Math.PI / 3.0) - Math.PI * 0.5;
+        var nodeX = cx + (scale * 0.35) * Math.cos(tAngle);
+        var nodeY = cy + (scale * 0.35) * Math.sin(tAngle);
+
+        var satR = rOffset * scale * 0.5;
+        ctx.beginPath();
+        ctx.arc(nodeX, nodeY, satR, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(179, 136, 255, ' + (rippleAlpha * 0.25) + ')';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+
+    // ---------------------------------------------------------
+    // B. PHI^ ASCENT TRAJECTORY (Expanding Golden Spiral)
+    // ---------------------------------------------------------
+    ctx.save();
+    var spiralTurns = 3.5;
+    var spiralPoints = 120;
+    var maxRadius = scale * (0.40 + E_ratio * 0.55);
+
+    ctx.beginPath();
+    for (var p = 0; p <= spiralPoints; p++) {
+      var frac = p / spiralPoints;
+      var theta = frac * spiralTurns * 2.0 * Math.PI + spiralPhase;
+      // Logarithmic / power ascent
+      var rad = (scale * 0.22) + Math.pow(frac, 1.3) * (maxRadius - scale * 0.22);
+      var px = cx + rad * Math.cos(theta);
+      var py = cy + rad * Math.sin(theta);
+
+      if (p === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+
+    var spiralAlpha = 0.3 + Math.min(0.6, E_ratio * 0.45);
+    ctx.strokeStyle = 'rgba(255, 213, 79, ' + spiralAlpha + ')';
+    ctx.lineWidth = 2.0 + E_ratio * 1.5;
+    ctx.stroke();
+
+    // Ascending Light Motes along trajectory
+    var moteCount = 6;
+    for (var m = 0; m < moteCount; m++) {
+      var mFrac = ((m / moteCount) + (spiralPhase * 0.08)) % 1.0;
+      var mTheta = mFrac * spiralTurns * 2.0 * Math.PI + spiralPhase;
+      var mRad = (scale * 0.22) + Math.pow(mFrac, 1.3) * (maxRadius - scale * 0.22);
+      var mx = cx + mRad * Math.cos(mTheta);
+      var my = cy + mRad * Math.sin(mTheta);
+
+      ctx.beginPath();
+      ctx.arc(mx, my, 3.5 + mFrac * 3.0, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffd54f';
+      ctx.shadowColor = '#ffd54f';
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    ctx.restore();
+
+    // ---------------------------------------------------------
+    // C. AO ANCHOR MANIFOLD (Invariant Baseline Ring & Triad)
+    // ---------------------------------------------------------
+    ctx.save();
+    var aoRadius = scale * 0.22;
+    var pulseExpand = anchorPulseTimer * 18.0;
+
+    // Glowing anchor base halo
+    var haloGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, aoRadius + 25.0 + pulseExpand);
+    if (I_violations > 0) {
+      haloGrad.addColorStop(0, 'rgba(255, 82, 82, 0.35)');
+      haloGrad.addColorStop(1, 'rgba(255, 82, 82, 0.0)');
+    } else if (current_Psi >= Psi_invariant) {
+      haloGrad.addColorStop(0, 'rgba(0, 229, 255, 0.35)');
+      haloGrad.addColorStop(0.6, 'rgba(0, 230, 118, 0.15)');
+      haloGrad.addColorStop(1, 'rgba(0, 229, 255, 0.0)');
+    } else {
+      haloGrad.addColorStop(0, 'rgba(0, 229, 255, 0.25)');
+      haloGrad.addColorStop(1, 'rgba(0, 229, 255, 0.0)');
+    }
+    ctx.fillStyle = haloGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, aoRadius + 25.0 + pulseExpand, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Outer Invariant Ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, aoRadius + pulseExpand, 0, Math.PI * 2);
+    ctx.strokeStyle = (I_violations > 0) ? '#ff5252' : '#00e5ff';
+    ctx.lineWidth = 3.0;
+    ctx.stroke();
+
+    // Sacred Invariant Triad (Equilateral Triangle vertices)
+    var triPoints = [];
+    var triRot = (prefersReducedMotion ? 0 : spiralPhase * 0.2);
+    for (var i = 0; i < 3; i++) {
+      var angle = (i * 2.0 * Math.PI / 3.0) - Math.PI * 0.5 + triRot;
+      var tx = cx + aoRadius * Math.cos(angle);
+      var ty = cy + aoRadius * Math.sin(angle);
+      triPoints.push({ x: tx, y: ty });
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(triPoints[0].x, triPoints[0].y);
+    ctx.lineTo(triPoints[1].x, triPoints[1].y);
+    ctx.lineTo(triPoints[2].x, triPoints[2].y);
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.65)';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    // Invariant nodes
+    for (var i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.arc(triPoints[i].x, triPoints[i].y, 6.0, 0, Math.PI * 2);
+      ctx.fillStyle = (i === 0) ? '#00e5ff' : (i === 1 ? '#ffd54f' : '#b388ff');
+      ctx.fill();
+    }
+
+    // Center Immutable Core (Origin Ao)
+    ctx.beginPath();
+    ctx.arc(cx, cy, 7.0 + anchorPulseTimer * 6.0, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#00e5ff';
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Invariant Fracture Marks if violations exist
+    if (I_violations > 0) {
+      ctx.save();
+      ctx.strokeStyle = '#ff5252';
+      ctx.lineWidth = 1.8;
+      for (var v = 0; v < I_violations; v++) {
+        var fAngle = (v * 2.0 * Math.PI / 7.0) + 0.3;
+        var r1 = aoRadius * 0.4;
+        var r2 = aoRadius * 1.15;
+        ctx.beginPath();
+        ctx.moveTo(cx + r1 * Math.cos(fAngle), cy + r1 * Math.sin(fAngle));
+        ctx.lineTo(cx + r2 * Math.cos(fAngle + 0.1), cy + r2 * Math.sin(fAngle + 0.1));
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  // -------------------------------------------------------------
+  // 4. STRIP CHART (Psi(t) ROLLING TIME SERIES)
+  // -------------------------------------------------------------
+  var chartCanvas = document.getElementById('strip-chart');
+  var chartCtx = chartCanvas ? chartCanvas.getContext('2d') : null;
+
+  function renderStripChart() {
+    if (!chartCtx) return;
+    var cw = chartCanvas.width;
+    var ch = chartCanvas.height;
+
+    chartCtx.clearRect(0, 0, cw, ch);
+
+    // Green Safe Zone: Psi >= Psi_invariant (0.70)
+    var yFloor = ch * (1.0 - Psi_invariant);
+    chartCtx.fillStyle = 'rgba(0, 230, 118, 0.12)';
+    chartCtx.fillRect(0, 0, cw, yFloor);
+
+    // Baseline threshold line
+    chartCtx.strokeStyle = 'rgba(0, 230, 118, 0.5)';
+    chartCtx.setLineDash([3, 4]);
+    chartCtx.beginPath();
+    chartCtx.moveTo(0, yFloor);
+    chartCtx.lineTo(cw, yFloor);
+    chartCtx.stroke();
+    chartCtx.setLineDash([]);
+
+    // Curve of Psi(t)
+    chartCtx.beginPath();
+    for (var i = 0; i < historyLength; i++) {
+      var idx = (historyIndex + i) % historyLength;
+      var val = psiHistory[idx];
+      var x = (i / (historyLength - 1)) * cw;
+      var y = ch * (1.0 - Math.min(1.0, Math.max(0.0, val)));
+
+      if (i === 0) chartCtx.moveTo(x, y);
+      else chartCtx.lineTo(x, y);
+    }
+
+    if (I_violations > 0) {
+      chartCtx.strokeStyle = '#ff5252';
+    } else if (current_Psi >= Psi_invariant) {
+      chartCtx.strokeStyle = '#00e676';
+    } else if (Pi_truth > Pi_threshold) {
+      chartCtx.strokeStyle = '#ff9100';
+    } else {
+      chartCtx.strokeStyle = '#00e5ff';
+    }
+    chartCtx.lineWidth = 2.0;
+    chartCtx.stroke();
+  }
+
+  // -------------------------------------------------------------
+  // 5. HUD UPDATES & REACTION
+  // -------------------------------------------------------------
+  var badgeElem = document.getElementById('status-badge');
+  var badgeText = document.getElementById('status-text');
+  var brandDot = document.getElementById('brand-indicator');
+
+  var dispPsi = document.getElementById('val-psi');
+  var dispDPsi = document.getElementById('val-dpsi');
+  var dispDPi = document.getElementById('val-dpi');
+  var dispViol = document.getElementById('val-violation');
+
+  function updateHUD() {
+    if (dispPsi) dispPsi.textContent = current_Psi.toFixed(3);
+    if (dispDPsi) dispDPsi.textContent = (current_dPsi >= 0 ? '+' : '') + current_dPsi.toFixed(3);
+    var deltaPi = Pi_truth - Pi_threshold;
+    if (dispDPi) dispDPi.textContent = (deltaPi >= 0 ? '+' : '') + deltaPi.toFixed(2);
+    if (dispViol) dispViol.textContent = I_violations + ' / 7';
+
+    if (badgeElem && badgeText && brandDot) {
+      badgeElem.className = '';
+      brandDot.className = 'brand-dot';
+
+      if (I_violations > 0) {
+        badgeElem.classList.add('breach');
+        brandDot.classList.add('breach');
+        badgeText.textContent = 'Invariant Breach (' + I_violations + ' Violations)';
+      } else if (current_Psi >= 0.90) {
+        badgeElem.classList.add('ascent');
+        brandDot.classList.add('ascent');
+        badgeText.textContent = 'Ascent of Light (\u03A8 \u2265 0.90)';
+      } else if (Pi_truth > Pi_threshold) {
+        badgeElem.classList.add('shock');
+        brandDot.classList.add('shock');
+        badgeText.textContent = 'Cascade Reorganization (\u03A0 > 1.2)';
+      } else {
+        badgeElem.classList.add('baseline');
+        badgeText.textContent = 'Invariant Baseline (\u03A8 \u2248 0.70)';
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 6. INTERACTIVE SLIDERS & CONTROLS
+  // -------------------------------------------------------------
+  var sliderPi = document.getElementById('slider-pi');
+  var sliderViol = document.getElementById('slider-viol');
+  var sliderLight = document.getElementById('slider-light');
+  var sliderK1 = document.getElementById('slider-k1');
+  var sliderK2 = document.getElementById('slider-k2');
+  var sliderVol = document.getElementById('slider-vol');
+
+  var dispPi = document.getElementById('disp-pi');
+  var dispViolVal = document.getElementById('disp-viol');
+  var dispLight = document.getElementById('disp-light');
+  var dispK1 = document.getElementById('disp-k1');
+  var dispK2 = document.getElementById('disp-k2');
+  var dispVol = document.getElementById('disp-vol');
+
+  if (sliderPi) {
+    sliderPi.addEventListener('input', function() {
+      Pi_truth = parseFloat(this.value);
+      if (dispPi) dispPi.textContent = Pi_truth.toFixed(2);
+    });
+  }
+
+  if (sliderViol) {
+    sliderViol.addEventListener('input', function() {
+      I_violations = parseInt(this.value, 10);
+      if (dispViolVal) dispViolVal.textContent = I_violations;
+    });
+  }
+
+  if (sliderLight) {
+    sliderLight.addEventListener('input', function() {
+      E_ratio = parseFloat(this.value);
+      if (dispLight) dispLight.textContent = E_ratio.toFixed(2);
+    });
+  }
+
+  if (sliderK1) {
+    sliderK1.addEventListener('input', function() {
+      k1_cascade = parseFloat(this.value);
+      if (dispK1) dispK1.textContent = k1_cascade.toFixed(2);
+    });
+  }
+
+  if (sliderK2) {
+    sliderK2.addEventListener('input', function() {
+      k2_aura = parseFloat(this.value);
+      if (dispK2) dispK2.textContent = k2_aura.toFixed(2);
+    });
+  }
+
+  if (sliderVol) {
+    sliderVol.addEventListener('input', function() {
+      master_volume = parseFloat(this.value) / 100.0;
+      if (dispVol) dispVol.textContent = Math.round(this.value) + '%';
+      if (masterGain && audioCtx) {
+        masterGain.gain.setTargetAtTime(master_volume, audioCtx.currentTime, 0.02);
+      }
+    });
+  }
+
+  // Presets
+  function setPreset(pi, viol, light, k1, k2) {
+    Pi_truth = pi;
+    I_violations = viol;
+    E_ratio = light;
+    k1_cascade = k1;
+    k2_aura = k2;
+
+    if (sliderPi) sliderPi.value = pi;
+    if (sliderViol) sliderViol.value = viol;
+    if (sliderLight) sliderLight.value = light;
+    if (sliderK1) sliderK1.value = k1;
+    if (sliderK2) sliderK2.value = k2;
+
+    if (dispPi) dispPi.textContent = pi.toFixed(2);
+    if (dispViolVal) dispViolVal.textContent = viol;
+    if (dispLight) dispLight.textContent = light.toFixed(2);
+    if (dispK1) dispK1.textContent = k1.toFixed(2);
+    if (dispK2) dispK2.textContent = k2.toFixed(2);
+  }
+
+  document.getElementById('preset-baseline').addEventListener('click', function() {
+    setPreset(1.20, 0, 0.00, 0.50, 0.30);
+  });
+
+  document.getElementById('preset-shock').addEventListener('click', function() {
+    setPreset(2.40, 0, 0.60, 0.70, 0.25);
+  });
+
+  document.getElementById('preset-breach').addEventListener('click', function() {
+    setPreset(1.20, 5, 0.20, 0.50, 0.40);
+  });
+
+  document.getElementById('preset-ascent').addEventListener('click', function() {
+    setPreset(1.60, 0, 1.80, 0.50, 0.20);
+  });
+
+  // Action Buttons
+  document.getElementById('btn-audio').addEventListener('click', function() {
+    if (!audioCtx) {
+      initAudio();
+    } else if (audioCtx.state === 'suspended') {
+      audioCtx.resume().then(updateAudioHUD);
+    } else if (audioCtx.state === 'running') {
+      audioCtx.suspend().then(updateAudioHUD);
+    }
+  });
+
+  document.getElementById('btn-pulse').addEventListener('click', function() {
+    anchorPulseTimer = 1.0;
+    pulseAnchorAcoustics();
+  });
+
+  document.getElementById('btn-pause').addEventListener('click', function() {
+    is_paused = !is_paused;
+    var icon = document.getElementById('pause-icon');
+    if (icon) icon.textContent = is_paused ? '▶' : '⏸';
+  });
+
+  // -------------------------------------------------------------
+  // 7. ANIMATION LOOP
+  // -------------------------------------------------------------
+  var lastTime = performance.now();
+
+  function loop(now) {
+    var dt = (now - lastTime) / 1000.0;
+    if (dt > 0.1) dt = 0.1;
+    lastTime = now;
+
+    integrateMasterEquation(dt);
+    updateAcousticDynamics();
+    renderKernel(now, dt);
+    renderStripChart();
+    updateHUD();
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

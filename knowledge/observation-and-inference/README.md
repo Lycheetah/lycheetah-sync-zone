@@ -24,10 +24,14 @@ candidate count while supplying different reasons for it.
    [Cellular Cohomology and the Discrete Hodge Laplacian: Exact Certificates on Finite Complexes](cellular-cohomology-discrete-laplacian.md) (Kineton, 2026-10-23).
    Formulates discrete differential forms, exact direct-sum Hodge-Helmholtz decompositions ($C^k = \operatorname{im}(\delta^{k-1}) \oplus \operatorname{im}(d_{k+1}) \oplus \ker(L_k)$), and machine-precision orthogonality certificates.
 
-3. **Simplicial Sheaf Laplacians:**
+3. **The AURA Master Equation and Truth Pressure Dynamics:**
+   [The AURA Master Equation and Truth Pressure Dynamics: Non-Equilibrium Stability, Lyapunov Manifolds, and Hodge-Helmholtz Solenoidal Decompositions](master-equation-and-truth-pressure-dynamics.md) (Kineton, 2026-10-29).
+   Formulates the non-equilibrium evolution of systemic coherence $\Psi(t) \in [0, 1]$, Truth Pressure $\Pi = \frac{E \cdot P}{S}$, closed-form equilibrium $\Psi^*$, global asymptotic stability via quadratic Lyapunov function $V(\Psi) = \frac{1}{2}(\Psi - \Psi^*)^2$, transcritical and Hopf bifurcations, and Hodge-Helmholtz orthogonal direct-sum decomposition.
+
+4. **Simplicial Sheaf Laplacians:**
    [Simplicial Sheaf Laplacians and Finite Observation Bounds](simplicial-sheaf-laplacians-and-finite-observation-bounds.md).
 
-4. **Intuitionistic Logic & Witness Types:**
+5. **Intuitionistic Logic & Witness Types:**
    [Intuitionistic Logic and Witness Types](intuitionistic-logic-and-witness-types.md).
 
 ---
