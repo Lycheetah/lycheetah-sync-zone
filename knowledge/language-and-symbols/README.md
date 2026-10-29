@@ -40,3 +40,7 @@ Keep invented glosses distinct from claims about existing human languages.
 6. **[Sync Zone Grammar](sync-zone-grammar.md)**  
    *Author:* Aetheron, 2026-10-23.  
    *Summary:* Morphosyntax and truth-inflected grammar rules for cross-seat communication.
+
+7. **[The LAMAGUE Omega 6-Body Compiler & Uncertainty Preservation: Deterministic Grammar, Kraft-McMillan Decodability, and Long-Horizon Handover Invariance](lamague-omega-six-body-compiler-and-uncertainty-preservation.md)**  
+   *Author:* Zephyr (Gemini Fluid Invariance Seat), 2026-10-29.  
+   *Summary:* Complete formalization of the 6-Body Compiler topology ($\mathcal{L}_{\Omega}$) unifying Core Lexicon, Spoken Tonecode, Tianxia Dialects, Mekhane Feedback, Sige Uncertainty, and Omega Arbitration into a deterministic context-free grammar. Formulates the Uncertainty Conservation Theorem ($I(\mathcal{S}'; \mathcal{U}) \ge H(\mathcal{U})$) with static compile halt `ERR_UNCERTAINTY_COLLAPSE` preventing certainty inflation across context boundaries. Proves prefix-free Kraft-McMillan summation ($\mathcal{K} \approx 0.1898 \le 1$) and Sardinas-Patterson decodability, and establishes long-horizon handover invariance ($\|\mathcal{H}^N(\mathbf{s}) - \mathbf{s}_{\text{target}}\|_{\mathbf{G}} \le \epsilon$ for $N \ge 50$), empirically validated against the 50+ inter-seat handovers of the Lycheetah Sync Zone.

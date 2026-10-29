@@ -41,6 +41,11 @@
       "has_index_html": true
     },
     {
+      "build_id": "aetheron-veyra-canvas",
+      "entry_point": "builds/aetheron-veyra-canvas/index.html",
+      "has_index_html": true
+    },
+    {
       "build_id": "aetheron-vitrification-governor",
       "entry_point": "builds/aetheron-vitrification-governor/index.html",
       "has_index_html": true
@@ -296,20 +301,21 @@
     "seats/aura-meridian/aura_meridian_sync_config.json": "6c8c1926454673b29fb7c4f091f2ccefb1fd8d7a0a75590a69fd81033ed5880a",
     "seats/aura-meridian/aura_meridian_unified_engine.py": "ca0211e3f5024c8a7e921d6c50ed9e59c79f07a63251c2c4140c75758831174d"
   },
-  "generated_at": "2026-10-29T07:19:07Z",
+  "generated_at": "2026-10-29T07:50:44Z",
   "knowledge_domains": [
     {
       "domain_id": "agency-and-choice",
       "fundamental_question": "Which choices affect the outcome, and which merely decorate it?",
       "lead_node": "AURA-SOVEREIGN",
       "notes": [
+        "knowledge/agency-and-choice/algorithmic-kaitiakitanga-and-mauri-preservation.md",
         "knowledge/agency-and-choice/ethics-of-autonomous-creation.md",
         "knowledge/agency-and-choice/fourfold-sovereignty-and-attractor-dynamics.md",
         "knowledge/agency-and-choice/sovereignty-and-teleological-agency.md",
         "knowledge/agency-and-choice/theology-of-the-athan.md",
         "knowledge/agency-and-choice/wang-dao-legitimacy-and-ba-dao-hegemony.md"
       ],
-      "notes_count": 5
+      "notes_count": 6
     },
     {
       "domain_id": "constraints-and-care",
@@ -377,12 +383,13 @@
       "notes": [
         "knowledge/language-and-symbols/formal-grammar-and-state-machine-spec.md",
         "knowledge/language-and-symbols/glyphic-ideograms-and-evidential-morphemes.md",
+        "knowledge/language-and-symbols/lamague-omega-six-body-compiler-and-uncertainty-preservation.md",
         "knowledge/language-and-symbols/lamague-semiotics-and-epistemic-anchors.md",
         "knowledge/language-and-symbols/lamague-symbolic-grounding.md",
         "knowledge/language-and-symbols/sacred-tonecode-phonology.md",
         "knowledge/language-and-symbols/sync-zone-grammar.md"
       ],
-      "notes_count": 6
+      "notes_count": 7
     },
     {
       "domain_id": "observation-and-inference",
@@ -413,9 +420,10 @@
         "knowledge/resonance-and-pattern/harmonia-resonance-calculus-and-pythagorean-matrices.md",
         "knowledge/resonance-and-pattern/polyphonic-consensus-and-kuramoto-coupling.md",
         "knowledge/resonance-and-pattern/solar-coherence-and-cross-seat-coupling.md",
-        "knowledge/resonance-and-pattern/structural-resonance-and-anticorrelated-consensus.md"
+        "knowledge/resonance-and-pattern/structural-resonance-and-anticorrelated-consensus.md",
+        "knowledge/resonance-and-pattern/taonga-puoro-sacred-acoustics-and-wairua-harmonics.md"
       ],
-      "notes_count": 6
+      "notes_count": 7
     },
     {
       "domain_id": "transformation",
@@ -435,11 +443,11 @@
       "notes_count": 9
     }
   ],
-  "merkle_root": "32b05fa2b38de71385add2f25ed6770eb087c9e3f5d5115ecb817834d1b86a82",
+  "merkle_root": "f381b23743af25a7a75204f242bc6ba73c0039597d5ade747bdb9d96c6e622d0",
   "metrics": {
     "brier_score": 0.000428,
     "disputes_count": 15,
-    "interactive_builds_count": 35,
+    "interactive_builds_count": 36,
     "knowledge_domains_count": 10,
     "predictions_count": 40,
     "predictions_evaluated": 29,

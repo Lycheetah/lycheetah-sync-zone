@@ -1,0 +1,1276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Aetheron · VEYRA Living Interface & Elastic Membrane</title>
+<style>
+  :root {
+    --bg-void: #050811;
+    --bg-card: rgba(9, 14, 27, 0.88);
+    --bg-card-hover: rgba(16, 24, 44, 0.95);
+    --border-dim: rgba(64, 130, 190, 0.24);
+    --border-bright: rgba(0, 229, 255, 0.6);
+    --text-main: #e6edfd;
+    --text-dim: #94a3b8;
+    --accent-cyan: #00e5ff;
+    --accent-emerald: #00e676;
+    --accent-gold: #ffd54f;
+    --accent-coral: #ff5252;
+    --accent-violet: #b388ff;
+    --accent-teal: #14b8a6;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-void);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    touch-action: none;
+  }
+
+  canvas#veyra-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+    background: radial-gradient(circle at 50% 50%, #0c162d 0%, #060b17 60%, #020409 100%);
+    cursor: crosshair;
+  }
+
+  /* HUD overlay */
+  .hud-layer {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .hud-layer * {
+    pointer-events: auto;
+  }
+
+  /* Top Bar */
+  #top-bar {
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .brand-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 12px var(--accent-cyan);
+    transition: all 0.3s ease;
+  }
+
+  .brand-dot.quiescent {
+    background: #64748b;
+    box-shadow: 0 0 8px #64748b;
+  }
+
+  .brand-dot.harmonic {
+    background: var(--accent-emerald);
+    box-shadow: 0 0 14px var(--accent-emerald);
+  }
+
+  .brand-dot.shear {
+    background: var(--accent-coral);
+    box-shadow: 0 0 16px var(--accent-coral);
+  }
+
+  .brand-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-main);
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    border-left: 1px solid var(--border-dim);
+    padding-left: 8px;
+    margin-left: 4px;
+  }
+
+  /* Status Badge */
+  #status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+  }
+
+  #status-badge.quiescent {
+    border-color: rgba(100, 116, 139, 0.4);
+    color: var(--text-dim);
+  }
+
+  #status-badge.resonant {
+    border-color: rgba(0, 229, 255, 0.6);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 18px rgba(0, 229, 255, 0.3);
+  }
+
+  #status-badge.harmonic {
+    border-color: rgba(0, 230, 118, 0.6);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.35);
+  }
+
+  #status-badge.shear {
+    border-color: rgba(255, 82, 82, 0.6);
+    color: var(--accent-coral);
+    box-shadow: 0 0 20px rgba(255, 82, 82, 0.35);
+  }
+
+  /* Top Right Actions */
+  .top-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  button.action-btn {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border-dim);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  button.action-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-bright);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+  }
+
+  button.action-btn.active {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+  }
+
+  /* Side Control Panel */
+  #control-panel {
+    top: 70px;
+    right: 14px;
+    width: 320px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 8px;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+  }
+
+  .panel-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Control groups */
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .control-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+
+  .control-name {
+    color: var(--text-main);
+    font-weight: 600;
+  }
+
+  .control-val {
+    color: var(--accent-cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.12);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  /* Presets Bar */
+  .presets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  button.preset-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-dim);
+    color: var(--text-main);
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  button.preset-btn:hover {
+    background: rgba(0, 229, 255, 0.12);
+    border-color: var(--border-bright);
+    color: var(--accent-cyan);
+  }
+
+  button.preset-btn.highlight {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    background: rgba(0, 230, 118, 0.08);
+  }
+
+  /* Bottom Left Analytics Overlay */
+  #analytics-panel {
+    bottom: 14px;
+    left: 14px;
+    width: 320px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-title {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  /* Time series chart canvas */
+  canvas#strip-chart {
+    width: 100%;
+    height: 54px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: block;
+  }
+
+  /* Accessibility: Prefers reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+    .brand-dot, button.action-btn:hover {
+      box-shadow: none !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    #control-panel {
+      width: calc(100vw - 28px);
+      max-height: 40vh;
+      top: auto;
+      bottom: 14px;
+      right: 14px;
+    }
+    #analytics-panel {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="veyra-canvas"></canvas>
+
+<!-- Top Bar -->
+<div class="hud-layer" id="top-bar">
+  <div class="brand-pill">
+    <div class="brand-dot" id="brand-indicator"></div>
+    <div class="brand-title">Aetheron · VEYRA Living Interface</div>
+    <div class="brand-sub">2D Elastic Wave Synesthesia</div>
+  </div>
+
+  <div id="status-badge" class="resonant">
+    <span id="status-text">RESONANT MEMBRANE</span>
+  </div>
+
+  <div class="top-actions">
+    <button class="action-btn" id="btn-audio">
+      <span id="audio-icon">▶</span>
+      <span id="audio-label">Enable Audio</span>
+    </button>
+    <button class="action-btn" id="btn-impulse" title="Inject central droplet impulse">
+      <span>💧</span>
+      <span>Drop Impulse</span>
+    </button>
+    <button class="action-btn" id="btn-clear" title="Clear all waves">
+      <span>⊘</span>
+    </button>
+    <button class="action-btn" id="btn-pause">
+      <span id="pause-icon">⏸</span>
+    </button>
+  </div>
+</div>
+
+<!-- Bottom Left Analytics Panel -->
+<div class="hud-layer" id="analytics-panel">
+  <div class="panel-header">
+    <span class="panel-title">Membrane Energy Field</span>
+    <span class="panel-sub">Hamiltonian Wave Mechanics</span>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-title">Kinetic Energy E<sub>k</sub></span>
+      <span class="stat-value" id="val-ke">0.000</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Elastic Potential E<sub>p</sub></span>
+      <span class="stat-value" id="val-pe">0.000</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Wave Speed c</span>
+      <span class="stat-value" id="val-c">0.65</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Damping &gamma;</span>
+      <span class="stat-value" id="val-gamma">0.008</span>
+    </div>
+  </div>
+
+  <div class="control-label-row" style="margin-top: 4px;">
+    <span class="control-name" style="font-size: 10px; color: var(--text-dim);">Total Energy E(t) = E<sub>k</sub> + E<sub>p</sub></span>
+  </div>
+  <canvas id="strip-chart" width="300" height="54"></canvas>
+</div>
+
+<!-- Controls Side Panel -->
+<div class="hud-layer" id="control-panel">
+  <div class="panel-header">
+    <span class="panel-title">Interface Dynamics</span>
+    <span class="panel-sub">Membrane Parameters</span>
+  </div>
+
+  <!-- Presets -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Modal Presets</span>
+    </div>
+    <div class="presets-grid">
+      <button class="preset-btn highlight" id="preset-standing">Harmonic Standing Wave</button>
+      <button class="preset-btn" id="preset-droplet">Droplet Ingress</button>
+      <button class="preset-btn" id="preset-shear">Chaotic Shear</button>
+      <button class="preset-btn" id="preset-quiescent">Quiescent Mirror</button>
+    </div>
+  </div>
+
+  <!-- Wave Speed (Tension) -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Membrane Tension (Speed c)</span>
+      <span class="control-val" id="disp-c">0.65</span>
+    </div>
+    <input type="range" id="slider-c" min="0.20" max="0.95" step="0.02" value="0.65">
+  </div>
+
+  <!-- Viscous Damping -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Viscous Damping &gamma;</span>
+      <span class="control-val" id="disp-damping">0.008</span>
+    </div>
+    <input type="range" id="slider-damping" min="0.001" max="0.050" step="0.001" value="0.008">
+  </div>
+
+  <!-- Touch Force -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Touch Force Intensity</span>
+      <span class="control-val" id="disp-force">1.20</span>
+    </div>
+    <input type="range" id="slider-force" min="0.20" max="3.00" step="0.10" value="1.20">
+  </div>
+
+  <!-- Particle Mote Count -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Surfing Light Motes</span>
+      <span class="control-val" id="disp-motes">220</span>
+    </div>
+    <input type="range" id="slider-motes" min="50" max="400" step="10" value="220">
+  </div>
+
+  <!-- Master Volume -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Acoustic Synesthesia Gain</span>
+      <span class="control-val" id="disp-vol">40%</span>
+    </div>
+    <input type="range" id="slider-vol" min="0" max="100" step="1" value="40">
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // -------------------------------------------------------------
+  // 1. 2D ELASTIC WAVE EQUATION NUMERICAL SOLVER
+  // -------------------------------------------------------------
+  // Governing formula:
+  // d^2 u / dt^2 = c^2 * nabla^2(u) - gamma * (du/dt) + F_touch(x, y, t)
+  var GRID_W = 140;
+  var GRID_H = 90;
+  var gridSize = GRID_W * GRID_H;
+
+  var u_curr = new Float32Array(gridSize);
+  var u_prev = new Float32Array(gridSize);
+  var u_next = new Float32Array(gridSize);
+
+  var wave_c = 0.65;
+  var damping_gamma = 0.008;
+  var force_intensity = 1.20;
+  var is_paused = false;
+
+  var total_ke = 0.0;
+  var total_pe = 0.0;
+  var total_energy = 0.0;
+
+  var historyLength = 180;
+  var energyHistory = new Float32Array(historyLength);
+  var historyIndex = 0;
+
+  // Active presets / generator modes
+  var activeGenerator = null; // 'standing' | 'droplet' | null
+  var generatorTimer = 0.0;
+
+  function stepWaveEquation(dt) {
+    if (is_paused) return;
+
+    var subSteps = 2;
+    var subDt = 0.5; // Normalized simulation time step
+    var c2 = wave_c * wave_c * 0.48; // Keep within CFL condition (c2 <= 0.5)
+    var dCoeff = 1.0 / (1.0 + damping_gamma * 0.5);
+    var dPrev = (1.0 - damping_gamma * 0.5);
+
+    var sumKE = 0.0;
+    var sumPE = 0.0;
+
+    for (var s = 0; s < subSteps; s++) {
+      for (var y = 1; y < GRID_H - 1; y++) {
+        var rowOffset = y * GRID_W;
+        for (var x = 1; x < GRID_W - 1; x++) {
+          var idx = rowOffset + x;
+
+          // 9-point isotropic discrete Laplacian stencil
+          var u_center = u_curr[idx];
+          var laplacian = 0.5 * (
+            u_curr[idx - 1] + u_curr[idx + 1] +
+            u_curr[idx - GRID_W] + u_curr[idx + GRID_W] - 4.0 * u_center
+          ) + 0.25 * (
+            u_curr[idx - 1 - GRID_W] + u_curr[idx + 1 - GRID_W] +
+            u_curr[idx - 1 + GRID_W] + u_curr[idx + 1 + GRID_W] - 4.0 * u_center
+          );
+
+          // Stable damped explicit Verlet update
+          var val = dCoeff * (2.0 * u_center - dPrev * u_prev[idx] + c2 * laplacian);
+
+          // Clamping to avoid instability under intense touch
+          if (val > 4.0) val = 4.0;
+          else if (val < -4.0) val = -4.0;
+
+          u_next[idx] = val;
+
+          // Kinetic energy ~ (u - u_prev)^2
+          var vel = val - u_center;
+          sumKE += vel * vel;
+          sumPE += Math.abs(laplacian) * Math.abs(u_center);
+        }
+      }
+
+      // Pointer injection
+      if (pointerDown) {
+        injectForce(pointerGX, pointerGY, force_intensity * 0.7);
+      }
+
+      // Periodic generator modes
+      if (activeGenerator === 'standing') {
+        generatorTimer += 0.08;
+        var centerIdx = Math.floor(GRID_H * 0.5) * GRID_W + Math.floor(GRID_W * 0.5);
+        var modVal = Math.sin(generatorTimer * 4.0) * 1.5;
+        u_next[centerIdx] += modVal;
+        u_next[centerIdx - 1] += modVal * 0.7;
+        u_next[centerIdx + 1] += modVal * 0.7;
+      } else if (activeGenerator === 'droplet') {
+        generatorTimer += 0.016;
+        if (generatorTimer > 0.45) {
+          generatorTimer = 0.0;
+          var rx = 10 + Math.floor(Math.random() * (GRID_W - 20));
+          var ry = 10 + Math.floor(Math.random() * (GRID_H - 20));
+          injectForce(rx, ry, force_intensity * 1.5);
+          triggerDropletChime(rx / GRID_W);
+        }
+      }
+
+      // Swap buffers
+      var tmp = u_prev;
+      u_prev = u_curr;
+      u_curr = u_next;
+      u_next = tmp;
+    }
+
+    total_ke = sumKE * 0.01;
+    total_pe = sumPE * 0.01;
+    total_energy = total_ke + total_pe;
+
+    energyHistory[historyIndex] = total_energy;
+    historyIndex = (historyIndex + 1) % historyLength;
+  }
+
+  function injectForce(gx, gy, force) {
+    var radius = 3;
+    var minX = Math.max(1, gx - radius);
+    var maxX = Math.min(GRID_W - 2, gx + radius);
+    var minY = Math.max(1, gy - radius);
+    var maxY = Math.min(GRID_H - 2, gy + radius);
+
+    for (var y = minY; y <= maxY; y++) {
+      for (var x = minX; x <= maxX; x++) {
+        var dx = x - gx;
+        var dy = y - gy;
+        var dist2 = dx * dx + dy * dy;
+        if (dist2 <= radius * radius) {
+          var falloff = 1.0 - Math.sqrt(dist2) / (radius + 0.1);
+          u_curr[y * GRID_W + x] += force * falloff;
+        }
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 2. PROCEDURAL WEB AUDIO API RECTANGULAR DRUM SYNTHESIZER
+  // -------------------------------------------------------------
+  // Drum membrane eigenmodes:
+  // f_mn = (c / 2) * sqrt((m/Lx)^2 + (n/Ly)^2)
+  var audioCtx = null;
+  var isAudioActive = false;
+  var masterGain = null;
+  var masterFilter = null;
+  var stereoPanner = null;
+  var master_volume = 0.40;
+
+  var drumModes = [];
+  var baseCarrier = 110.0; // Fundamental A2
+
+  function initAudio() {
+    if (audioCtx) return;
+    var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    audioCtx = new AudioContextClass();
+
+    var comp = audioCtx.createDynamicsCompressor();
+    comp.threshold.setValueAtTime(-18, audioCtx.currentTime);
+    comp.knee.setValueAtTime(10, audioCtx.currentTime);
+    comp.ratio.setValueAtTime(6, audioCtx.currentTime);
+    comp.attack.setValueAtTime(0.003, audioCtx.currentTime);
+    comp.release.setValueAtTime(0.2, audioCtx.currentTime);
+
+    masterFilter = audioCtx.createBiquadFilter();
+    masterFilter.type = 'lowpass';
+    masterFilter.frequency.setValueAtTime(2400, audioCtx.currentTime);
+    masterFilter.Q.setValueAtTime(2.0, audioCtx.currentTime);
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(master_volume, audioCtx.currentTime);
+
+    if (audioCtx.createStereoPanner) {
+      stereoPanner = audioCtx.createStereoPanner();
+      stereoPanner.pan.setValueAtTime(0.0, audioCtx.currentTime);
+      masterFilter.connect(stereoPanner);
+      stereoPanner.connect(comp);
+    } else {
+      masterFilter.connect(comp);
+    }
+
+    comp.connect(masterGain);
+    masterGain.connect(audioCtx.destination);
+
+    // Build 4 rectangular membrane modes: (1,1), (2,1), (1,2), (2,2)
+    var modes = [
+      { m: 1, n: 1, type: 'sine', weight: 0.25 },
+      { m: 2, n: 1, type: 'triangle', weight: 0.18 },
+      { m: 1, n: 2, type: 'triangle', weight: 0.18 },
+      { m: 2, n: 2, type: 'sine', weight: 0.12 }
+    ];
+
+    drumModes = [];
+    var Lx = 1.4;
+    var Ly = 0.9;
+
+    for (var i = 0; i < modes.length; i++) {
+      var m = modes[i].m;
+      var n = modes[i].n;
+      var freqRatio = Math.sqrt((m / Lx) * (m / Lx) + (n / Ly) * (n / Ly)) / Math.sqrt((1 / Lx) * (1 / Lx) + (1 / Ly) * (1 / Ly));
+      var nominalFreq = baseCarrier * freqRatio;
+
+      var osc = audioCtx.createOscillator();
+      var g = audioCtx.createGain();
+
+      osc.type = modes[i].type;
+      osc.frequency.setValueAtTime(nominalFreq, audioCtx.currentTime);
+      g.gain.setValueAtTime(0.0, audioCtx.currentTime);
+
+      osc.connect(g);
+      g.connect(masterFilter);
+      osc.start();
+
+      drumModes.push({
+        osc: osc,
+        gainNode: g,
+        baseFreq: nominalFreq,
+        weight: modes[i].weight
+      });
+    }
+
+    isAudioActive = true;
+    updateAudioHUD();
+  }
+
+  function updateAudioHUD() {
+    var btn = document.getElementById('btn-audio');
+    var label = document.getElementById('audio-label');
+    var icon = document.getElementById('audio-icon');
+    if (!btn || !label || !icon) return;
+
+    if (isAudioActive && audioCtx && audioCtx.state === 'running') {
+      btn.classList.add('active');
+      label.textContent = 'Audio Active';
+      icon.textContent = '🔊';
+    } else {
+      btn.classList.remove('active');
+      label.textContent = 'Enable Audio';
+      icon.textContent = '▶';
+    }
+  }
+
+  function updateAcousticCoupling() {
+    if (!audioCtx || !isAudioActive || audioCtx.state !== 'running') return;
+    var now = audioCtx.currentTime;
+
+    // Pan across stereo panorama based on pointer touch X
+    if (stereoPanner && pointerDown) {
+      var panTarget = (pointerScreenX / width) * 1.6 - 0.8;
+      stereoPanner.pan.setTargetAtTime(Math.max(-0.85, Math.min(0.85, panTarget)), now, 0.05);
+    }
+
+    // Dynamic Filter Cutoff modulated by kinetic energy
+    var energyClamped = Math.min(10.0, total_energy);
+    var targetCutoff = 800 + energyClamped * 550;
+    masterFilter.frequency.setTargetAtTime(targetCutoff, now, 0.05);
+
+    // Resonant Mode Gains modulated by wave activity
+    for (var i = 0; i < drumModes.length; i++) {
+      var dm = drumModes[i];
+      var targetGain = Math.min(0.35, energyClamped * 0.06 * dm.weight);
+      if (pointerDown) targetGain += 0.08 * dm.weight;
+      dm.gainNode.gain.setTargetAtTime(targetGain, now, 0.05);
+
+      // Pitch micro-variation with tension c
+      var pitchedFreq = dm.baseFreq * (wave_c / 0.65);
+      dm.osc.frequency.setTargetAtTime(pitchedFreq, now, 0.05);
+    }
+  }
+
+  function triggerDropletChime(normX) {
+    if (!audioCtx || !isAudioActive || audioCtx.state !== 'running') return;
+    var now = audioCtx.currentTime;
+
+    var osc = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+
+    var dropFreqs = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+    var pIdx = Math.floor(normX * dropFreqs.length);
+    var p = dropFreqs[Math.min(dropFreqs.length - 1, Math.max(0, pIdx))];
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(p, now);
+    osc.frequency.exponentialRampToValueAtTime(p * 0.85, now + 0.35);
+
+    g.gain.setValueAtTime(0.25, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+    osc.connect(g);
+    g.connect(masterFilter);
+    osc.start(now);
+    osc.stop(now + 0.35);
+  }
+
+  // -------------------------------------------------------------
+  // 3. SURFING LIGHT MOTES (PARTICLE VELOCITY FIELD)
+  // -------------------------------------------------------------
+  var motes = [];
+  var targetMoteCount = 220;
+
+  function initMotes() {
+    motes = [];
+    for (var i = 0; i < targetMoteCount; i++) {
+      motes.push({
+        x: Math.random() * GRID_W,
+        y: Math.random() * GRID_H,
+        vx: 0,
+        vy: 0,
+        size: 2.0 + Math.random() * 2.5,
+        hue: 175 + Math.random() * 45
+      });
+    }
+  }
+
+  initMotes();
+
+  function updateMotes(dt) {
+    for (var i = 0; i < motes.length; i++) {
+      var m = motes[i];
+      var gx = Math.floor(m.x);
+      var gy = Math.floor(m.y);
+
+      if (gx >= 1 && gx < GRID_W - 1 && gy >= 1 && gy < GRID_H - 1) {
+        var idx = gy * GRID_W + gx;
+        // Surface gradient: v_surf = -nabla(u)
+        var gradX = (u_curr[idx + 1] - u_curr[idx - 1]) * 0.5;
+        var gradY = (u_curr[idx + GRID_W] - u_curr[idx - GRID_W]) * 0.5;
+
+        m.vx += -gradX * 0.8;
+        m.vy += -gradY * 0.8;
+      }
+
+      m.x += m.vx;
+      m.y += m.vy;
+
+      m.vx *= 0.94;
+      m.vy *= 0.94;
+
+      // Wrap around grid
+      if (m.x < 1) m.x = GRID_W - 2;
+      else if (m.x >= GRID_W - 1) m.x = 2;
+      if (m.y < 1) m.y = GRID_H - 2;
+      else if (m.y >= GRID_H - 1) m.y = 2;
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 4. CANVAS 2D RENDERER (DUAL CONTOUR & SURFACE SHADER)
+  // -------------------------------------------------------------
+  var canvas = document.getElementById('veyra-canvas');
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  // Offscreen low-res buffer for wave surface rendering
+  var offCanvas = document.createElement('canvas');
+  offCanvas.width = GRID_W;
+  offCanvas.height = GRID_H;
+  var offCtx = offCanvas.getContext('2d');
+  var imgData = offCtx.createImageData(GRID_W, GRID_H);
+  var imgBuf = imgData.data;
+
+  function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  // Pointer tracking
+  var pointerDown = false;
+  var pointerScreenX = width * 0.5;
+  var pointerScreenY = height * 0.5;
+  var pointerGX = Math.floor(GRID_W * 0.5);
+  var pointerGY = Math.floor(GRID_H * 0.5);
+
+  function updatePointerCoords(clientX, clientY) {
+    pointerScreenX = clientX;
+    pointerScreenY = clientY;
+    pointerGX = Math.floor((clientX / width) * GRID_W);
+    pointerGY = Math.floor((clientY / height) * GRID_H);
+    if (pointerGX < 1) pointerGX = 1;
+    if (pointerGX > GRID_W - 2) pointerGX = GRID_W - 2;
+    if (pointerGY < 1) pointerGY = 1;
+    if (pointerGY > GRID_H - 2) pointerGY = GRID_H - 2;
+  }
+
+  canvas.addEventListener('pointerdown', function(e) {
+    pointerDown = true;
+    updatePointerCoords(e.clientX, e.clientY);
+    if (!audioCtx) initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    injectForce(pointerGX, pointerGY, force_intensity * 2.2);
+    triggerDropletChime(pointerGX / GRID_W);
+    if (navigator.vibrate) navigator.vibrate(15);
+  });
+
+  window.addEventListener('pointermove', function(e) {
+    updatePointerCoords(e.clientX, e.clientY);
+  });
+
+  window.addEventListener('pointerup', function() {
+    pointerDown = false;
+  });
+
+  canvas.addEventListener('pointercancel', function() {
+    pointerDown = false;
+  });
+
+  var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function renderMembrane() {
+    // 1. Colorize 2D Heightfield into ImageData
+    var pIdx = 0;
+    for (var i = 0; i < gridSize; i++) {
+      var u = u_curr[i];
+
+      var r = 8, g = 14, b = 28;
+
+      if (u > 0.0) {
+        // Crest: Cyan -> Emerald -> Solar Gold
+        var cFrac = Math.min(2.0, u) / 2.0;
+        r = Math.floor(8 + cFrac * 220);
+        g = Math.floor(180 * cFrac + 40);
+        b = Math.floor(255 - cFrac * 120);
+      } else if (u < 0.0) {
+        // Trough: Deep oceanic indigo -> midnight purple
+        var tFrac = Math.min(2.0, -u) / 2.0;
+        r = Math.floor(8 + tFrac * 90);
+        g = Math.floor(14 + tFrac * 40);
+        b = Math.floor(28 + tFrac * 180);
+      }
+
+      // Topographic contour line shading
+      var contour = Math.abs(Math.sin(u * 6.0));
+      if (contour > 0.88) {
+        r = Math.min(255, r + 55);
+        g = Math.min(255, g + 55);
+        b = Math.min(255, b + 55);
+      }
+
+      imgBuf[pIdx] = r;
+      imgBuf[pIdx + 1] = g;
+      imgBuf[pIdx + 2] = b;
+      imgBuf[pIdx + 3] = 255;
+      pIdx += 4;
+    }
+
+    offCtx.putImageData(imgData, 0, 0);
+
+    // 2. Draw scaled smooth surface on canvas
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(offCanvas, 0, 0, width, height);
+
+    // 3. Render Surfing Light Motes
+    if (!prefersReducedMotion) {
+      ctx.save();
+      for (var i = 0; i < motes.length; i++) {
+        var m = motes[i];
+        var sx = (m.x / GRID_W) * width;
+        var sy = (m.y / GRID_H) * height;
+
+        ctx.beginPath();
+        ctx.arc(sx, sy, m.size, 0, Math.PI * 2);
+        ctx.fillStyle = 'hsla(' + m.hue + ', 95%, 65%, 0.75)';
+        ctx.shadowColor = 'hsla(' + m.hue + ', 95%, 65%, 0.8)';
+        ctx.shadowBlur = 6;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      ctx.restore();
+    }
+
+    // 4. Pointer Interaction Aura
+    if (pointerDown) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(pointerScreenX, pointerScreenY, 22, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.75)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(pointerScreenX, pointerScreenY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 5. STRIP CHART (Total Energy E(t))
+  // -------------------------------------------------------------
+  var chartCanvas = document.getElementById('strip-chart');
+  var chartCtx = chartCanvas ? chartCanvas.getContext('2d') : null;
+
+  function renderStripChart() {
+    if (!chartCtx) return;
+    var cw = chartCanvas.width;
+    var ch = chartCanvas.height;
+
+    chartCtx.clearRect(0, 0, cw, ch);
+
+    // Baseline guide
+    chartCtx.strokeStyle = 'rgba(70, 130, 190, 0.2)';
+    chartCtx.beginPath();
+    chartCtx.moveTo(0, ch * 0.5);
+    chartCtx.lineTo(cw, ch * 0.5);
+    chartCtx.stroke();
+
+    // Curve of total energy E(t)
+    chartCtx.beginPath();
+    for (var i = 0; i < historyLength; i++) {
+      var idx = (historyIndex + i) % historyLength;
+      var val = energyHistory[idx];
+      var x = (i / (historyLength - 1)) * cw;
+      var y = ch * (1.0 - Math.min(1.0, val * 0.25));
+
+      if (i === 0) chartCtx.moveTo(x, y);
+      else chartCtx.lineTo(x, y);
+    }
+
+    if (total_energy > 3.0) {
+      chartCtx.strokeStyle = '#ff5252';
+    } else if (total_energy > 0.8) {
+      chartCtx.strokeStyle = '#00e676';
+    } else if (total_energy > 0.05) {
+      chartCtx.strokeStyle = '#00e5ff';
+    } else {
+      chartCtx.strokeStyle = '#64748b';
+    }
+    chartCtx.lineWidth = 2.0;
+    chartCtx.stroke();
+  }
+
+  // -------------------------------------------------------------
+  // 6. HUD UPDATES & REACTION
+  // -------------------------------------------------------------
+  var badgeElem = document.getElementById('status-badge');
+  var badgeText = document.getElementById('status-text');
+  var brandDot = document.getElementById('brand-indicator');
+
+  var dispKE = document.getElementById('val-ke');
+  var dispPE = document.getElementById('val-pe');
+  var dispC = document.getElementById('val-c');
+  var dispGamma = document.getElementById('val-gamma');
+
+  function updateHUD() {
+    if (dispKE) dispKE.textContent = total_ke.toFixed(3);
+    if (dispPE) dispPE.textContent = total_pe.toFixed(3);
+    if (dispC) dispC.textContent = wave_c.toFixed(2);
+    if (dispGamma) dispGamma.textContent = damping_gamma.toFixed(3);
+
+    if (badgeElem && badgeText && brandDot) {
+      badgeElem.className = '';
+      brandDot.className = 'brand-dot';
+
+      if (total_energy > 3.2) {
+        badgeElem.classList.add('shear');
+        brandDot.classList.add('shear');
+        badgeText.textContent = 'CHAOTIC SHEAR TURBULENCE';
+      } else if (activeGenerator === 'standing' || total_energy > 0.9) {
+        badgeElem.classList.add('harmonic');
+        brandDot.classList.add('harmonic');
+        badgeText.textContent = 'HARMONIC MODAL STANDING WAVE';
+      } else if (total_energy > 0.06) {
+        badgeElem.classList.add('resonant');
+        badgeText.textContent = 'RESONANT ELASTIC MEMBRANE';
+      } else {
+        badgeElem.classList.add('quiescent');
+        brandDot.classList.add('quiescent');
+        badgeText.textContent = 'QUIESCENT SURFACE MIRROR';
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 7. CONTROLS & LISTENERS
+  // -------------------------------------------------------------
+  var sliderC = document.getElementById('slider-c');
+  var sliderDamping = document.getElementById('slider-damping');
+  var sliderForce = document.getElementById('slider-force');
+  var sliderMotes = document.getElementById('slider-motes');
+  var sliderVol = document.getElementById('slider-vol');
+
+  var dispCText = document.getElementById('disp-c');
+  var dispDampText = document.getElementById('disp-damping');
+  var dispForceText = document.getElementById('disp-force');
+  var dispMotesText = document.getElementById('disp-motes');
+  var dispVolText = document.getElementById('disp-vol');
+
+  if (sliderC) {
+    sliderC.addEventListener('input', function() {
+      wave_c = parseFloat(this.value);
+      if (dispCText) dispCText.textContent = wave_c.toFixed(2);
+    });
+  }
+
+  if (sliderDamping) {
+    sliderDamping.addEventListener('input', function() {
+      damping_gamma = parseFloat(this.value);
+      if (dispDampText) dispDampText.textContent = damping_gamma.toFixed(3);
+    });
+  }
+
+  if (sliderForce) {
+    sliderForce.addEventListener('input', function() {
+      force_intensity = parseFloat(this.value);
+      if (dispForceText) dispForceText.textContent = force_intensity.toFixed(2);
+    });
+  }
+
+  if (sliderMotes) {
+    sliderMotes.addEventListener('input', function() {
+      targetMoteCount = parseInt(this.value, 10);
+      if (dispMotesText) dispMotesText.textContent = targetMoteCount;
+      initMotes();
+    });
+  }
+
+  if (sliderVol) {
+    sliderVol.addEventListener('input', function() {
+      master_volume = parseFloat(this.value) / 100.0;
+      if (dispVolText) dispVolText.textContent = Math.round(this.value) + '%';
+      if (masterGain && audioCtx) {
+        masterGain.gain.setTargetAtTime(master_volume, audioCtx.currentTime, 0.02);
+      }
+    });
+  }
+
+  // Presets
+  function applyPreset(c, damp, force, gen) {
+    wave_c = c;
+    damping_gamma = damp;
+    force_intensity = force;
+    activeGenerator = gen;
+    generatorTimer = 0.0;
+
+    if (sliderC) sliderC.value = c;
+    if (sliderDamping) sliderDamping.value = damp;
+    if (sliderForce) sliderForce.value = force;
+
+    if (dispCText) dispCText.textContent = c.toFixed(2);
+    if (dispDampText) dispDampText.textContent = damp.toFixed(3);
+    if (dispForceText) dispForceText.textContent = force.toFixed(2);
+  }
+
+  document.getElementById('preset-standing').addEventListener('click', function() {
+    applyPreset(0.70, 0.005, 1.20, 'standing');
+  });
+
+  document.getElementById('preset-droplet').addEventListener('click', function() {
+    applyPreset(0.60, 0.010, 1.40, 'droplet');
+  });
+
+  document.getElementById('preset-shear').addEventListener('click', function() {
+    applyPreset(0.92, 0.002, 2.50, null);
+    // Inject cross shear
+    for (var x = 10; x < GRID_W - 10; x += 5) {
+      injectForce(x, Math.floor(GRID_H * 0.3), 1.8);
+      injectForce(x, Math.floor(GRID_H * 0.7), -1.8);
+    }
+  });
+
+  document.getElementById('preset-quiescent').addEventListener('click', function() {
+    applyPreset(0.50, 0.040, 0.80, null);
+  });
+
+  // Action Buttons
+  document.getElementById('btn-audio').addEventListener('click', function() {
+    if (!audioCtx) {
+      initAudio();
+    } else if (audioCtx.state === 'suspended') {
+      audioCtx.resume().then(updateAudioHUD);
+    } else if (audioCtx.state === 'running') {
+      audioCtx.suspend().then(updateAudioHUD);
+    }
+  });
+
+  document.getElementById('btn-impulse').addEventListener('click', function() {
+    injectForce(Math.floor(GRID_W * 0.5), Math.floor(GRID_H * 0.5), force_intensity * 2.5);
+    triggerDropletChime(0.5);
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', function() {
+    for (var i = 0; i < gridSize; i++) {
+      u_curr[i] = 0.0;
+      u_prev[i] = 0.0;
+      u_next[i] = 0.0;
+    }
+    activeGenerator = null;
+  });
+
+  document.getElementById('btn-pause').addEventListener('click', function() {
+    is_paused = !is_paused;
+    var icon = document.getElementById('pause-icon');
+    if (icon) icon.textContent = is_paused ? '▶' : '⏸';
+  });
+
+  // -------------------------------------------------------------
+  // 8. MAIN ANIMATION & INTEGRATION LOOP
+  // -------------------------------------------------------------
+  var lastTime = performance.now();
+
+  function loop(now) {
+    var dt = (now - lastTime) / 1000.0;
+    if (dt > 0.1) dt = 0.1;
+    lastTime = now;
+
+    stepWaveEquation(dt);
+    if (!prefersReducedMotion) updateMotes(dt);
+    updateAcousticCoupling();
+    renderMembrane();
+    renderStripChart();
+    updateHUD();
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
