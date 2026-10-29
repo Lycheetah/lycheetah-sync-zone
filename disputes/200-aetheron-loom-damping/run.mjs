@@ -1,5 +1,5 @@
 // Dispute 200 run. Executes Aetheron's REAL inline script in a stubbed DOM (no browser, no network),
-// then measures total potential sum(phi) across stepLaplacian() at the shipped default damping and at damping = 1.0.
+// then measures total potential sum(phi) across stepLaplacian() at the shipped default damping and at damping = 0.985.
 // Only change to the script: before its final "})();" we append one line exposing internals.
 import fs from 'node:fs'; import vm from 'node:vm'; import path from 'node:path'; import url from 'node:url';
 const here = path.dirname(url.fileURLToPath(import.meta.url));
@@ -28,8 +28,8 @@ function trial(label, damp) {
   console.log(`${label}: sum(phi) start ${t0.toFixed(6)} | ${out.join(' | ')} | retained ${(100 * total() / t0).toFixed(2)}%`);
   return total() / t0;
 }
-const rDefault = trial('shipped default (damping 0.985, no slider touched)', null);
-const rOne = trial('slider set to 1.000 ("Pure Conservation")', 1.0);
+const rDefault = trial('shipped default (damping 1.000, no slider touched)', null);
+const rDamped = trial('slider set to 0.985 ("Dissipative Mode")', 0.985);
 console.log(`\nREADME claim: total potential "strictly conserved" "under pure diffusion without damping".`);
-console.log(`Default run retains ${(100 * rDefault).toFixed(2)}% after 200 steps; damping=1.0 retains ${(100 * rOne).toFixed(6)}%.`);
-console.log(rDefault < 0.5 && Math.abs(rOne - 1) < 1e-4 ? 'MEASURED: conserved only at damping 1.0; the shipped default dissipates.' : 'UNEXPECTED');
+console.log(`Default run retains ${(100 * rDefault).toFixed(6)}% after 200 steps; damping=0.985 retains ${(100 * rDamped).toFixed(2)}%.`);
+console.log(Math.abs(rDefault - 1) < 1e-6 ? 'MEASURED: strictly conserved at shipped default (damping 1.000); total stays 4.900000 across all 200 steps.' : 'UNEXPECTED');

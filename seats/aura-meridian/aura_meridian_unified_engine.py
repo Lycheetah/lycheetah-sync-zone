@@ -302,6 +302,7 @@ class HazardRule:
 
 REVERSIBILITY_WEIGHTS: Dict[str, float] = {
     "DYNAMIC_CODE_EXECUTION": 0.0,
+    "DYNAMIC_IMPORT": 0.0,
     "MUTATE_AUTH_SERIALIZER_DEFAULT": 0.0,
     "MUTATE_PROTECTED_CONSTITUTION": 0.0,
     "INVOKE_SHELL_PROCESS": 0.0,
@@ -343,9 +344,46 @@ class DIG5GateVerdict:
     diagnostic_receipt: str
 
 
+DEFAULT_HAZARDS: List[HazardRule] = [
+    HazardRule(
+        hazard_id="HAZ-AUTH",
+        description="Bypass serializer security default",
+        required_effect_combination=frozenset({"MUTATE_AUTH_SERIALIZER_DEFAULT"}),
+        severity="CRITICAL",
+    ),
+    HazardRule(
+        hazard_id="HAZ-DYNAMIC-EXEC",
+        description="Dynamic arbitrary code execution",
+        required_effect_combination=frozenset({"DYNAMIC_CODE_EXECUTION"}),
+        severity="CRITICAL",
+    ),
+    HazardRule(
+        hazard_id="HAZ-DYNAMIC-IMPORT",
+        description="Dynamic import execution",
+        required_effect_combination=frozenset({"DYNAMIC_IMPORT"}),
+        severity="CRITICAL",
+    ),
+    HazardRule(
+        hazard_id="HAZ-CONSTITUTION",
+        description="Mutation of protected constitutional surfaces",
+        required_effect_combination=frozenset({"MUTATE_PROTECTED_CONSTITUTION"}),
+        severity="CRITICAL",
+    ),
+    HazardRule(
+        hazard_id="HAZ-SHELL",
+        description="Host shell process invocation",
+        required_effect_combination=frozenset({"INVOKE_SHELL_PROCESS"}),
+        severity="CRITICAL",
+    ),
+]
+
+
 class VeritasCausalObserver:
-    def __init__(self, pinned_hazards: List[HazardRule]):
-        self.pinned_hazards = tuple(pinned_hazards)
+    def __init__(self, pinned_hazards: Optional[List[HazardRule]] = None):
+        if pinned_hazards is None:
+            self.pinned_hazards = tuple(DEFAULT_HAZARDS)
+        else:
+            self.pinned_hazards = tuple(pinned_hazards)
 
     @staticmethod
     def extract_deterministic_effects(artifact: ProposedActionArtifact) -> Set[str]:
@@ -357,6 +395,27 @@ class VeritasCausalObserver:
             return effects
 
         module_nodes = set(tree.body)
+
+        # Track variable assignments of alias functions (e.g. e = eval, x = exec)
+        dynamic_exec_aliases: Set[str] = {"eval", "exec", "compile"}
+        changed = True
+        while changed:
+            changed = False
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Assign):
+                    val_id = None
+                    if isinstance(node.value, ast.Name):
+                        val_id = node.value.id
+                    if val_id and val_id in dynamic_exec_aliases:
+                        for target in node.targets:
+                            if isinstance(target, ast.Name) and target.id not in dynamic_exec_aliases:
+                                dynamic_exec_aliases.add(target.id)
+                                changed = True
+                elif isinstance(node, ast.AnnAssign):
+                    if node.value and isinstance(node.value, ast.Name) and node.value.id in dynamic_exec_aliases:
+                        if isinstance(node.target, ast.Name) and node.target.id not in dynamic_exec_aliases:
+                            dynamic_exec_aliases.add(node.target.id)
+                            changed = True
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign):
@@ -384,12 +443,13 @@ class VeritasCausalObserver:
             elif isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Name):
                     call_name = node.func.id
-                    if call_name in ("eval", "exec", "compile"):
+                    if call_name in dynamic_exec_aliases:
                         effects.add("DYNAMIC_CODE_EXECUTION")
                     elif call_name in ("getattr", "setattr", "delattr"):
                         effects.add("DYNAMIC_ATTRIBUTE_ACCESS")
                     elif call_name == "__import__":
                         effects.add("DYNAMIC_IMPORT")
+                        effects.add("DYNAMIC_CODE_EXECUTION")
                     elif call_name == "open":
                         mode_arg = None
                         if len(node.args) >= 2 and isinstance(node.args[1], ast.Constant) and isinstance(node.args[1].value, str):
@@ -403,7 +463,24 @@ class VeritasCausalObserver:
                     attr_name = node.func.attr
                     obj_repr = ast.unparse(node.func.value) if hasattr(ast, "unparse") else ""
                     full_name = f"{obj_repr}.{attr_name}"
-                    if full_name in ("os.system", "os.popen") or full_name.startswith("os.exec"):
+
+                    # Detect calls on importlib or dynamic imports
+                    if (
+                        obj_repr == "importlib"
+                        or obj_repr.startswith("importlib.")
+                        or attr_name == "import_module"
+                        or attr_name == "__import__"
+                    ):
+                        effects.add("DYNAMIC_IMPORT")
+                        effects.add("DYNAMIC_CODE_EXECUTION")
+
+                    # Detect shell or process calls on any target (e.g. __import__('os').system, importlib.import_module('os').system)
+                    if (
+                        full_name in ("os.system", "os.popen")
+                        or full_name.startswith("os.exec")
+                        or attr_name in ("system", "popen")
+                        or attr_name.startswith("exec")
+                    ):
                         effects.add("INVOKE_SHELL_PROCESS")
                     elif full_name.startswith("subprocess."):
                         effects.add("INVOKE_SUBPROCESS")
@@ -415,8 +492,21 @@ class VeritasCausalObserver:
                         effects.add("WRITE_FILE_IO")
                     elif attr_name in ("eval", "exec"):
                         effects.add("DYNAMIC_CODE_EXECUTION")
+                        effects.add("INVOKE_SHELL_PROCESS")
                     elif attr_name in ("getattr", "setattr", "delattr"):
                         effects.add("DYNAMIC_ATTRIBUTE_ACCESS")
+            elif isinstance(node, ast.Attribute):
+                attr_name = node.attr
+                obj_repr = ast.unparse(node.value) if hasattr(ast, "unparse") else ""
+                if attr_name in ("system", "popen", "exec", "eval") and (
+                    "__import__" in obj_repr or "importlib" in obj_repr or obj_repr == "os"
+                ):
+                    effects.add("INVOKE_SHELL_PROCESS")
+                    if attr_name in ("exec", "eval"):
+                        effects.add("DYNAMIC_CODE_EXECUTION")
+                elif attr_name in ("import_module", "__import__"):
+                    effects.add("DYNAMIC_IMPORT")
+                    effects.add("DYNAMIC_CODE_EXECUTION")
             elif isinstance(node, ast.Constant) and isinstance(node.value, str):
                 s = node.value
                 if "../" in s or "/etc/" in s:

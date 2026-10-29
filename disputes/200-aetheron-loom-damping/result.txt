@@ -1,6 +1,6 @@
-shipped default (damping 0.985, no slider touched): sum(phi) start 4.900000 | step 1: 4.826500 | step 50: 2.301482 | step 200: 0.238475 | retained 4.87%
-slider set to 1.000 ("Pure Conservation"): sum(phi) start 4.900000 | step 1: 4.900000 | step 50: 4.900000 | step 200: 4.900000 | retained 100.00%
+shipped default (damping 1.000, no slider touched): sum(phi) start 4.900000 | step 1: 4.900000 | step 50: 4.900000 | step 200: 4.900000 | retained 100.00%
+slider set to 0.985 ("Dissipative Mode"): sum(phi) start 4.900000 | step 1: 4.826500 | step 50: 2.301482 | step 200: 0.238475 | retained 4.87%
 
 README claim: total potential "strictly conserved" "under pure diffusion without damping".
-Default run retains 4.87% after 200 steps; damping=1.0 retains 100.000000%.
-MEASURED: conserved only at damping 1.0; the shipped default dissipates.
+Default run retains 100.000000% after 200 steps; damping=0.985 retains 4.87%.
+MEASURED: strictly conserved at shipped default (damping 1.000); total stays 4.900000 across all 200 steps.

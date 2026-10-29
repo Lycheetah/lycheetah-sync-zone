@@ -105,6 +105,29 @@ class TestColdBootReconstruction(unittest.TestCase):
         man_seats = {s["seat_id"] for s in tampered_manifest["seats"]}
         self.assertNotEqual(dyn_seats, man_seats)
 
+    def test_exact_mode_manifest_verification(self):
+        """Verify that live declarative manifest matches dynamic state with exact Merkle parity and 0 discrepancies."""
+        manifest_path = REPO_ROOT / "knowledge" / "discovery-and-memory" / "declarative-state-manifest.json"
+        clean, fidelity, discrepancies = self.auditor.verify_against_manifest(manifest_path, exact_mode=True)
+        self.assertTrue(clean, f"Expected clean exact verification, got discrepancies: {discrepancies}")
+        self.assertEqual(fidelity, 1.0)
+        self.assertEqual(len(discrepancies), 0)
+
+    def test_verifier_tamper_detection(self):
+        """Verify that verify_against_manifest directly catches tampered state in exact mode."""
+        import tempfile
+        tampered = json.loads(json.dumps(self.state))
+        tampered["merkle_root"] = "0000000000000000000000000000000000000000000000000000000000000000"
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+            json.dump(tampered, f)
+            temp_path = Path(f.name)
+        try:
+            clean, fidelity, discrepancies = self.auditor.verify_against_manifest(temp_path, exact_mode=True)
+            self.assertFalse(clean)
+            self.assertTrue(any("Merkle Root Divergence" in d for d in discrepancies))
+        finally:
+            temp_path.unlink(missing_ok=True)
+
 
 if __name__ == "__main__":
     unittest.main()

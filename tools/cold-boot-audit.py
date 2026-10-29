@@ -380,7 +380,10 @@ class ColdBootStateAuditor:
                 )
         if disp_errors:
             discrepancies.extend(disp_errors)
-        disp_score = 1.0 if not disp_errors else 0.0
+        new_disps = set(dyn_disp.keys()) - set(man_disp.keys())
+        if new_disps and exact_mode:
+            discrepancies.append(f"Undeclared disputes in exact mode: {new_disps}")
+        disp_score = 1.0 if not disp_errors and not (new_disps and exact_mode) else 0.0
 
         # 4. Compare Predictions
         dyn_pred = {p["prediction_id"]: p["status"] for p in dynamic["predictions"]}
@@ -401,7 +404,7 @@ class ColdBootStateAuditor:
         elif new_preds:
             forward_progress.append(f"{len(new_preds)} new predictions added concurrently")
 
-        pred_score = 1.0 if not pred_errors else 0.0
+        pred_score = 1.0 if not pred_errors and not (new_preds and exact_mode) else 0.0
 
         # 5. Compare Knowledge Domains
         dyn_know = {k["domain_id"]: set(k["notes"]) for k in dynamic["knowledge_domains"]}
@@ -414,6 +417,9 @@ class ColdBootStateAuditor:
                 missing_notes = expected_notes - dyn_know[dom_id]
                 if missing_notes:
                     know_errors.append(f"Domain {dom_id} missing notes: {missing_notes}")
+                new_notes = dyn_know[dom_id] - expected_notes
+                if new_notes and exact_mode:
+                    know_errors.append(f"Domain {dom_id} undeclared notes in exact mode: {new_notes}")
         if know_errors:
             discrepancies.extend(know_errors)
         know_score = 1.0 if not know_errors else 0.0
@@ -429,6 +435,14 @@ class ColdBootStateAuditor:
             is_clean = False
 
         return is_clean, round(fidelity, 4), discrepancies
+
+    def regenerate_manifest(self, manifest_path: Path) -> Dict[str, Any]:
+        """Regenerate declarative state manifest from live repository state and save to disk."""
+        state = self.reconstruct_full_state()
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=2, sort_keys=True)
+        return state
 
 
 def main():
@@ -457,6 +471,11 @@ def main():
         help="Path to write newly reconstructed declarative state manifest",
     )
     parser.add_argument(
+        "--refresh-manifest",
+        action="store_true",
+        help="Regenerate knowledge/discovery-and-memory/declarative-state-manifest.json from current repository state",
+    )
+    parser.add_argument(
         "--json",
         action="store_true",
         help="Output results as structured JSON",
@@ -480,6 +499,12 @@ def main():
             json.dump(state, f, indent=2, sort_keys=True)
         if not args.quiet:
             print(f"Declarative state manifest written to: {args.dump_manifest}")
+
+    if args.refresh_manifest:
+        target = args.root / "knowledge" / "discovery-and-memory" / "declarative-state-manifest.json"
+        auditor.regenerate_manifest(target)
+        if not args.quiet:
+            print(f"Declarative state manifest refreshed at: {target}")
 
     if args.manifest:
         clean, fidelity, discrepancies = auditor.verify_against_manifest(

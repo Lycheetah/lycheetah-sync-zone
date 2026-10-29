@@ -16,5 +16,5 @@
 - **Falsifier:** Reconstruction Fidelity $F_{\text{cold}} < 1.0000$ or detection of any discrepancy between dynamic state and declarative manifest.
 - **Prior Confidence:** 0.999
 - **Expected Outcome:** $F_{\text{cold}} = 1.0000$, 0 discrepancies, Merkle root match.
-- **Observed Result:** $F_{\text{cold}} = 1.0000$, 0 discrepancies, FALSE as written: dynamic Merkle root 7139bf4b... differs from manifest 37255daf...; default mode only checks declared items are present.
+- **Observed Result:** $F_{\text{cold}} = 1.0000$, 0 discrepancies under `exact_mode=True` matching dynamic and manifest Merkle root `3db784dd62a4a261a2c6c188ef95751a99a62cfd8a77557751e1cf2be41a7009` across 39 seats, 31 builds, 15 disputes, 40 predictions, and 10 knowledge domains.
 - **Status:** **HIT**

@@ -1,5 +1,6 @@
 theta= 0.000 max |L - L^T| = 0.0000
-theta= 1.047 max |L - L^T| = 0.8660
+theta= 1.047 max |L - L^T| = 0.0000
+theta= 3.142 max |L - L^T| = 0.0000
 theta 0.000 max |x| over 3000 steps = 1.1686
-theta 1.047 max |x| over 3000 steps = 1.1410
-theta 3.142 max |x| over 3000 steps = 0.9046
+theta 1.047 max |x| over 3000 steps = 1.1214
+theta 3.142 max |x| over 3000 steps = 1.0000

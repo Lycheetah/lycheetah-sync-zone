@@ -33,7 +33,7 @@
     position: fixed;
     left: 16px;
     right: 16px;
-    top: calc(12px + env(safe-area-inset-bottom, 0px));
+    top: calc(12px + env(safe-area-inset-top, 0px));
     margin: 0;
     font-size: 14px;
     line-height: 1.4;
@@ -56,6 +56,7 @@
     text-align: center;
     background: radial-gradient(ellipse at center, rgba(16, 12, 32, 0.96) 0%, rgba(7, 5, 15, 0.98) 75%);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
   #overlay h1 {
     margin: 0;
@@ -95,6 +96,7 @@
     padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
     background: rgba(7, 5, 15, 0.85);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-top: 1px solid rgba(159, 231, 255, 0.2);
   }
   .group {
@@ -127,6 +129,14 @@
     opacity: 0;
     transition: opacity 0.8s ease;
     text-shadow: 0 0 16px rgba(255, 210, 122, 0.6);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 </style>
 </head>
@@ -194,8 +204,9 @@
     filterNode.Q.setValueAtTime(2.5, audioCtx.currentTime);
     filterNode.connect(masterGain);
 
-    // Multi-voice modal harmonic drone
-    var chord = [110.0, 164.81, 220.0, 277.18, 329.63]; // A major 9
+    // Multi-voice modal harmonic drone: True A major 9th chord
+    // A2 (110.0 Hz), E3 (164.81 Hz), G#3 (207.65 Hz), B3 (246.94 Hz), C#4 (277.18 Hz), E4 (329.63 Hz)
+    var chord = [110.0, 164.81, 207.65, 246.94, 277.18, 329.63];
     chord.forEach(function(freq, idx) {
       var osc = audioCtx.createOscillator();
       var gain = audioCtx.createGain();
@@ -213,10 +224,11 @@
     if (!audioCtx) return;
     var now = audioCtx.currentTime;
 
-    // Pitch bends with vertical fold height and twist
-    var heightPitchShift = Math.sin(pos.y * 0.25 + time * 0.15) * 8.0;
+    // Multiplicative pitch law: f(py) = f0 * 2^(sin(0.25 py)/3)
+    var pitchFactor = Math.pow(2.0, Math.sin(0.25 * pos.y) / 3.0);
     voices.forEach(function(v) {
-      v.osc.frequency.setTargetAtTime(Math.max(40, v.baseFreq + heightPitchShift), now, 0.08);
+      var targetFreq = v.baseFreq * pitchFactor;
+      v.osc.frequency.setTargetAtTime(targetFreq, now, 0.08);
     });
 
     // Velocity opens the low-pass filter
@@ -246,24 +258,29 @@
     }
   });
 
-  // Shader setup (Wren's kaleidoscopic raymarched fold space)
+  // Shader setup (Wren's kaleidoscopic raymarched fold space with architectural stair geometry)
   var VS = [
     'attribute vec2 aPos;',
     'void main() { gl_Position = vec4(aPos, 0.0, 1.0); }'
   ].join('\n');
 
   var FS = [
+    '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+    'precision highp float;',
+    '#else',
     'precision mediump float;',
+    '#endif',
     'uniform vec2 uRes;',
     'uniform float uTime;',
     'uniform vec3 uPos;',
     'uniform vec3 uFwd;',
     'uniform vec3 uRight;',
     'uniform vec3 uUp;',
-    'const int MAXSTEPS = 48;',
-    'const float MAXD = 40.0;',
+    'const int MAXSTEPS = 56;',
+    'const float MAXD = 48.0;',
     'mat2 rot(float a) { float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }',
     'float map(vec3 p) {',
+    '  vec3 origP = p;',
     '  vec2 q = rot(0.35 * sin(p.y * 0.25 + uTime * 0.2)) * p.xz;',
     '  p.x = q.x; p.z = q.y;',
     '  p = mod(p + 3.0, 6.0) - 3.0;',
@@ -278,7 +295,30 @@
     '    p.x = r.x; p.y = r.y;',
     '    s *= 1.9;',
     '  }',
-    '  return (length(p) - 0.9) / s;',
+    '  float dFractal = (length(p) - 0.9) / s;',
+    '  float stepH = 0.5;',
+    '  float sIdx = floor(origP.y / stepH);',
+    '  float stepDepth = 0.65 + 0.25 * mod(sIdx, 2.0);',
+    '  vec2 xzL = abs(origP.xz) - vec2(stepDepth);',
+    '  float stepPlanes = max(max(xzL.x, xzL.y), abs(mod(origP.y, stepH) - stepH * 0.5) - 0.08);',
+    '  return min(dFractal, max(dFractal * 0.7, stepPlanes * 0.45));',
+    '}',
+    'vec3 calcNormal(vec3 p) {',
+    '  const vec2 k = vec2(1.0, -1.0);',
+    '  const float h = 0.003;',
+    '  return normalize(k.xyy * map(p + k.xyy * h) + k.yyx * map(p + k.yyx * h) +',
+    '                   k.yxy * map(p + k.yxy * h) + k.xxx * map(p + k.xxx * h));',
+    '}',
+    'float calcShadow(vec3 ro, vec3 rd, float mint, float maxt) {',
+    '  float res = 1.0;',
+    '  float t = mint;',
+    '  for (int i = 0; i < 16; i++) {',
+    '    float h = map(ro + rd * t);',
+    '    res = min(res, 8.0 * h / t);',
+    '    t += clamp(h, 0.04, 0.25);',
+    '    if (res < 0.02 || t > maxt) break;',
+    '  }',
+    '  return clamp(res, 0.0, 1.0);',
     '}',
     'void main() {',
     '  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;',
@@ -286,21 +326,32 @@
     '  float t = 0.0;',
     '  float glow = 0.0;',
     '  float hit = 0.0;',
+    '  float ssteps = 0.0;',
     '  for (int i = 0; i < MAXSTEPS; i++) {',
     '    vec3 p = uPos + rd * t;',
     '    float d = map(p) * 0.8;',
-    '    glow += 0.005 / (0.02 + abs(d));',
-    '    if (d < 0.002 * (1.0 + t)) { hit = 1.0; break; }',
+    '    glow += 0.006 / (0.02 + abs(d));',
+    '    if (d < 0.0015 * (1.0 + t)) { hit = 1.0; break; }',
     '    t += d;',
+    '    ssteps = float(i);',
     '    if (t > MAXD) break;',
     '  }',
     '  vec3 pal = 0.5 + 0.5 * cos(vec3(0.0, 2.1, 4.2) + uTime * 0.05 + t * 0.05);',
     '  vec3 col = vec3(0.02, 0.015, 0.05);',
     '  if (hit > 0.5) {',
-    '    col = pal * 0.6 + vec3(0.1, 0.2, 0.3) * (1.0 - t / MAXD);',
+    '    vec3 p = uPos + rd * t;',
+    '    vec3 n = calcNormal(p);',
+    '    vec3 lightDir = normalize(vec3(0.45, 0.85, -0.35));',
+    '    float diff = clamp(dot(n, lightDir), 0.0, 1.0);',
+    '    float shadow = calcShadow(p + n * 0.01, lightDir, 0.02, 8.0);',
+    '    float rim = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 3.0);',
+    '    float ao = 1.0 - ssteps / float(MAXSTEPS);',
+    '    col = pal * (0.12 + 0.88 * diff * shadow * ao) + rim * vec3(0.5, 0.9, 1.0) * 0.6;',
+    '    col = mix(col, vec3(0.03, 0.02, 0.07), 1.0 - exp(-t * 0.04));',
     '  }',
-    '  col += pal * glow * 0.01;',
+    '  col += pal * glow * 0.012;',
     '  col = col / (1.0 + col);',
+    '  col = pow(col, vec3(0.4545));',
     '  gl_FragColor = vec4(col, 1.0);',
     '}'
   ].join('\n');
@@ -309,33 +360,37 @@
   var uResLoc, uTimeLoc, uPosLoc, uFwdLoc, uRightLoc, uUpLoc;
 
   if (isWebGL) {
-    var vs = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vs, VS);
-    gl.compileShader(vs);
+    try {
+      var vs = gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vs, VS);
+      gl.compileShader(vs);
 
-    var fs = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fs, FS);
-    gl.compileShader(fs);
+      var fs = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(fs, FS);
+      gl.compileShader(fs);
 
-    prog = gl.createProgram();
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
-    gl.useProgram(prog);
+      prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      gl.useProgram(prog);
 
-    uResLoc = gl.getUniformLocation(prog, 'uRes');
-    uTimeLoc = gl.getUniformLocation(prog, 'uTime');
-    uPosLoc = gl.getUniformLocation(prog, 'uPos');
-    uFwdLoc = gl.getUniformLocation(prog, 'uFwd');
-    uRightLoc = gl.getUniformLocation(prog, 'uRight');
-    uUpLoc = gl.getUniformLocation(prog, 'uUp');
+      uResLoc = gl.getUniformLocation(prog, 'uRes');
+      uTimeLoc = gl.getUniformLocation(prog, 'uTime');
+      uPosLoc = gl.getUniformLocation(prog, 'uPos');
+      uFwdLoc = gl.getUniformLocation(prog, 'uFwd');
+      uRightLoc = gl.getUniformLocation(prog, 'uRight');
+      uUpLoc = gl.getUniformLocation(prog, 'uUp');
 
-    var buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
-    var aPosLoc = gl.getAttribLocation(prog, 'aPos');
-    gl.enableVertexAttribArray(aPosLoc);
-    gl.vertexAttribPointer(aPosLoc, 2, gl.FLOAT, false, 0, 0);
+      var buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+      var aPosLoc = gl.getAttribLocation(prog, 'aPos');
+      gl.enableVertexAttribArray(aPosLoc);
+      gl.vertexAttribPointer(aPosLoc, 2, gl.FLOAT, false, 0, 0);
+    } catch (e) {
+      isWebGL = false;
+    }
   }
 
   // Camera & Motion state
@@ -348,7 +403,7 @@
     var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     canvas.width = Math.floor(window.innerWidth * dpr * 0.6);
     canvas.height = Math.floor(window.innerHeight * dpr * 0.6);
-    if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
+    if (gl && isWebGL) gl.viewport(0, 0, canvas.width, canvas.height);
   }
   window.addEventListener('resize', resize);
   resize();
@@ -418,7 +473,7 @@
 
     updateAudio(pos, vel, t);
 
-    if (gl && prog) {
+    if (gl && isWebGL && prog) {
       gl.useProgram(prog);
       gl.uniform2f(uResLoc, canvas.width, canvas.height);
       gl.uniform1f(uTimeLoc, reducedMotion ? 0.0 : t);

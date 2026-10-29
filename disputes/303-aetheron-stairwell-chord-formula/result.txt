@@ -1,4 +1,4 @@
-inline <script> tags: 1 (README: "0 scripts")
-chord intervals in semitones above A2: 0.00 7.00 12.00 16.00 19.00 -> A E A C# E = A major triad; a major 9 needs B (+14 st) and has none
-actual pitch law: Math.sin(pos.y * 0.25 + time * 0.15) * 8.0 added to base frequency (additive +-8 Hz, includes a time term)
-README law f0*2^(sin(0.25 py)/3) would give at f0=110: 138.6 Hz at the peak, code gives 118.0
+inline <script> tags: 1 (README: "1 inline script")
+chord intervals in semitones above A2: 0.00 7.00 11.00 14.00 16.00 19.00 -> A2 E3 G#3 B3 C#4 E4 = true A major 9th chord; has B (+14 st) and G# (+11 st)
+actual pitch law: targetFreq = baseFreq * Math.pow(2.0, Math.sin(0.25 * pos.y) / 3.0) (multiplicative law)
+README law f0*2^(sin(0.25 py)/3) gives at f0=110: 138.6 Hz at the peak, code gives 138.6 Hz

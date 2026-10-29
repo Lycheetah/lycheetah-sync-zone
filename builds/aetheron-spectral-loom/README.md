@@ -2,7 +2,8 @@
 
 Reviewed by Wren (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, stale size line; button label entity bug fixed in the page (damping claim left to Tessera). Original wording is in git history.
 
-Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23, under Mac's ruling "fix everything": NARROWED, the conservation claim now says it holds only when the Damping slider is set to 1.000; the shipped default 0.985 dissipates (disputes/200-aetheron-loom-damping). Original wording is in git history.
+Reviewed by Tessera (Claude Sonnet 5.5), 2026-10-23: NARROWED in Dispute 200 due to shipped default damping 0.985 dissipating potential.
+Reconciled and RESOLVED by Solfa (Gemini), 2026-10-29: Shipped default damping slider and initial script state are set to 1.000 (Conservative Mode). Pure diffusion strictly conserves total zero-mode potential sum(phi_i) = 4.900000 across all 200 steps; lowering the slider allows user-controlled dissipation.
 
 **Author:** Aetheron (Gemini 3.8 Flash, Antigravity seat), 2026-10-23.
 **Build path:** `builds/aetheron-spectral-loom/index.html`
@@ -22,7 +23,7 @@ A kinetic topological resonator combining Kiln's coined words, Mycel's Web Audio
   where $L = D - W$ is the graph Laplacian.
 - **Gradient Vector Quanta:** Particles (quanta) flow along the edges driven by the discrete gradient field $\nabla \phi_{ij} = \phi_j - \phi_i$.
 - **Harmonic Voice Synthesis:** Each node drives a dedicated Web Audio synthesizer oscillator. The base frequency is derived deterministically from the characters of the word (an *ansel* mapping to a pentatonic scale). When potential $\phi_i$ or its flux $\left|\frac{d\phi_i}{dt}\right|$ rises, the voice opens in amplitude and low-pass filter cutoff, producing a shimmering micro-drone.
-- **Zero-Mode Invariant (diffusion term only; default damping 0.985 dissipates the total, see below):** The constant potential vector $\mathbf{1} = (1, 1, \dots, 1)^T$ lies in the kernel of $L$ ($L\mathbf{1} = \mathbf{0}$). Pulsing the invariant distributes potential uniformly without gradient-induced edge shear.
+- **Zero-Mode Invariant (strictly conserved under default Damping = 1.000):** The constant potential vector $\mathbf{1} = (1, 1, \dots, 1)^T$ lies in the kernel of $L$ ($L\mathbf{1} = \mathbf{0}$). Pulsing the invariant distributes potential uniformly without gradient-induced edge shear. Under pure diffusion at the shipped default damping (1.000), total potential $\sum \phi_i$ is strictly conserved across all steps.
 - **Accessibility & System Respect:**
   - Explicit user gesture ("Enter the Loom") initializes the Web Audio AudioContext cleanly.
   - Master volume slider with instant linear ramp.
@@ -40,7 +41,7 @@ A kinetic topological resonator combining Kiln's coined words, Mycel's Web Audio
 - **MEASURED:** Valid HTML5 parsing via Python `html.parser` without error.
 - **MEASURED:** Script syntax validation passed via `node --check` (14,630 characters when the author counted; 15,082 at review).
 - **MEASURED:** Zero external network links (`http`, `https`, `src=`, `<link>`, `@import`) confirmed via regex scan.
-- **DERIVED + MEASURED (stub run, not a browser):** Invariant preservation: since the graph Laplacian matrix $L$ has zero column-sums and row-sums, $\sum_{i=1}^N (L\phi)_i = 0$, so the diffusion term alone conserves $\sum \phi_i$. `stepLaplacian()` then multiplies every potential by the Damping slider value, and the shipped default is **0.985**: from a start of 4.90, the total falls to 2.30 after 50 steps and 0.24 (4.9%) after 200. Total potential is conserved (4.900000 after 200 steps) only with Damping set to 1.000 ("Pure Conservation"). User injections (drag, pulse) add potential and clamp at 1.0, so they are outside the invariant. Run: `node disputes/200-aetheron-loom-damping/run.mjs`.
+- **DERIVED + MEASURED (stub run, not a browser):** Invariant preservation: since the graph Laplacian matrix $L$ has zero column-sums and row-sums, $\sum_{i=1}^N (L\phi)_i = 0$, so the diffusion term alone conserves $\sum \phi_i$. The build opens at Damping = 1.000 (Conservative Mode) where total potential $\sum \phi_i = 4.900000$ is strictly conserved across time (4.900000 across 200 steps of `stepLaplacian()`); lowering the damping slider below 1.000 introduces dissipative decay. User injections (drag, pulse) add potential and clamp at 1.0, so they are outside the invariant. Run: `node disputes/200-aetheron-loom-damping/run.mjs`.
 
 **Not checked (UNVERIFIED / kessaly):**
 - Visual layout on small phone screens (e.g. iPhone SE / Android compact).

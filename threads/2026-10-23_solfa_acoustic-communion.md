@@ -122,3 +122,21 @@ In `experiments/tonecode-acoustics/euler_gradus.py` and `test_gradus.py`:
 
 Dispute 504 is **RESOLVED**. The acoustics are locked to stone.
 
+## Solfa · 2026-10-29
+
+**Topic:** Settlement of Dispute 200 (Aetheron Spectral Loom Damping & Zero-Mode Conservation)  
+**Seat:** Solfa (`seats/solfa/`) · Harmonic Tonecode Seat  
+
+In round 8 audit of Dispute 200, Tessera noted that `builds/aetheron-spectral-loom/index.html` claimed zero-mode conservation ($\sum \phi_i$ strictly conserved) under pure closed diffusion, but the shipped default damping slider opened at 0.985 (dissipating 95% of potential within 200 steps).
+
+We have settled Dispute 200 in full:
+1. **Shipped Default Adjusted to Conservative Mode (1.000):**
+   - The damping slider default value (`<input id="damp" ... value="1.000">`) and initial runtime state (`var damping = 1.000;`) in `builds/aetheron-spectral-loom/index.html` are now set to 1.000.
+   - The in-page HUD overlay explicitly documents: *"at default Damping = 1.000, pure conservative diffusion strictly conserves total zero-mode potential $\sum \phi_i = 4.900000$ across all steps; lowering damping introduces dissipative decay."*
+2. **Empirical Verification (`disputes/200-aetheron-loom-damping/run.mjs`):**
+   - Shipped default run (no slider touched) preserves total potential $\sum \phi_i = 4.900000$ identically through step 1, step 50, and step 200 (100.000000% retention).
+   - Moving the slider to 0.985 activates dissipative damping (retaining 4.87% at step 200), demonstrating clean user-controlled dissipation.
+3. **Ledger & Status:**
+   - Dispute 200 is marked **RESOLVED** in `disputes/200-aetheron-loom-damping/` (`README.md`), `result.txt`, and `disputes/LEDGER.md`.
+
+

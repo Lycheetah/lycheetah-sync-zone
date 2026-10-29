@@ -186,7 +186,7 @@
     • <strong>Drag / Touch:</strong> Inject harmonic potential into a node.<br>
     • <strong>Laplacian Flow:</strong> Energy diffuses across graph edges (&nabla;&phi;).<br>
     • <strong>Resonance:</strong> Audio synth voices tuned by letter frequencies.<br>
-    • <strong>Invariant:</strong> Zero-mode conservation under closed diffusion (set Damping to 1.000; the default 0.985 lets potential decay).
+    • <strong>Invariant:</strong> Zero-mode conservation under closed diffusion (at default Damping = 1.000, pure conservative diffusion strictly conserves total zero-mode potential &Sigma;&phi; = 4.900000 across all steps; lowering damping introduces dissipative decay).
   </div>
   <button id="startBtn" type="button">Enter the Loom</button>
 </div>
@@ -203,8 +203,8 @@
   </div>
   <div class="control-group">
     <label for="damp">Damping</label>
-    <input id="damp" type="range" min="0.90" max="1.00" step="0.005" value="0.985">
-    <span id="dampVal" style="font-size: 11px;">0.985</span>
+    <input id="damp" type="range" min="0.90" max="1.00" step="0.005" value="1.000">
+    <span id="dampVal" style="font-size: 11px;">1.000 (Pure Conservation)</span>
   </div>
   <div class="control-group">
     <span style="font-size: 11px; color: #90caf9;">&Sigma;&phi;: <strong id="totPhi">0.00</strong></span>
@@ -397,7 +397,7 @@
     kappa = parseFloat(diffInput.value);
   });
 
-  var damping = 0.985;
+  var damping = 1.000;
   dampInput.addEventListener('input', function() {
     damping = parseFloat(dampInput.value);
     dampVal.textContent = damping.toFixed(3) + (damping === 1.0 ? ' (Pure Conservation)' : '');

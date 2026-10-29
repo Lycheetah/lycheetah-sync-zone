@@ -242,12 +242,17 @@
 
       for (var n = 0; n < cell.neighbors.length; n++) {
         var nbr = cells[cell.neighbors[n]];
-        // Orthogonal restriction map: rotate neighbor by holonomy angle if crossing boundary
+        // Orthogonal restriction map: rotate neighbor by holonomy angle across oriented boundary
         var nu = nbr.u;
         var nv = nbr.v;
         if (nbr.c > cell.c) {
           var tu = nu * cosT - nv * sinT;
           var tv = nu * sinT + nv * cosT;
+          nu = tu; nv = tv;
+        } else if (nbr.c < cell.c) {
+          // Adjoint restriction map: R(-theta) = R(theta)^T
+          var tu = nu * cosT + nv * sinT;
+          var tv = -nu * sinT + nv * cosT;
           nu = tu; nv = tv;
         }
 
