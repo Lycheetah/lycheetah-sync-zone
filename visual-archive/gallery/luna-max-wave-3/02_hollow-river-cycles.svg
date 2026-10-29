@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Hollow River Cycles: fixed hops on Z modulo 6</title>
+  <desc id="desc">A diagram of finite modular arithmetic, not a physical model. Adding 2 creates two separate length-three cycles: 0 to 2 to 4 to 0 and 1 to 3 to 5 to 1. Adding 1 visits all six residues in the length-six cycle 0 to 1 to 2 to 3 to 4 to 5 to 0.</desc>
+  <defs>
+    <marker id="arrow-even" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#5eead4"/>
+    </marker>
+    <marker id="arrow-odd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#c4b5fd"/>
+    </marker>
+    <marker id="arrow-all" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#67e8f9"/>
+    </marker>
+    <style>
+      .bg { fill: #07111f; }
+      .panel { fill: #101d2e; stroke: #293b50; stroke-width: 2; }
+      .title { fill: #f8fafc; font: 700 36px system-ui, sans-serif; }
+      .subtitle { fill: #b6c5d8; font: 400 17px system-ui, sans-serif; }
+      .panel-title { fill: #f8fafc; font: 700 24px system-ui, sans-serif; }
+      .equation { fill: #67e8f9; font: 600 21px system-ui, sans-serif; }
+      .body { fill: #dbe6f2; font: 400 16px system-ui, sans-serif; }
+      .small { fill: #b6c5d8; font: 400 14px system-ui, sans-serif; }
+      .sequence { fill: #f8fafc; font: 600 15px ui-monospace, SFMono-Regular, Consolas, monospace; }
+      .rule { stroke: #31445b; stroke-width: 1.5; }
+      .even-node { fill: #123b3b; stroke: #5eead4; stroke-width: 2.5; }
+      .odd-node { fill: #31264c; stroke: #c4b5fd; stroke-width: 2.5; }
+      .all-node { fill: #123744; stroke: #67e8f9; stroke-width: 2.5; }
+      .node-label { fill: #f8fafc; font: 700 19px system-ui, sans-serif; text-anchor: middle; dominant-baseline: central; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="800"/>
+  <text class="title" x="64" y="68">Hollow River Cycles</text>
+  <text class="subtitle" x="64" y="105">Fixed hops on Z/6Z · finite combinatorics, not a physical model</text>
+
+  <rect class="panel" x="52" y="145" width="540" height="594" rx="22"/>
+  <rect class="panel" x="608" y="145" width="540" height="594" rx="22"/>
+
+  <text class="panel-title" x="84" y="190">Hop +2</text>
+  <text class="equation" x="84" y="232">T₂(x) = x + 2 mod 6</text>
+  <line class="rule" x1="84" y1="250" x2="560" y2="250"/>
+  <text class="body" x="84" y="282">Two parity-preserving orbits</text>
+
+  <text class="small" x="84" y="318">Even residues · 0 → 2 → 4 → 0</text>
+  <g fill="none" stroke="#5eead4" stroke-width="2.5" marker-end="url(#arrow-even)">
+    <path d="M215 375H425"/>
+    <path d="M428 394L342 448"/>
+    <path d="M298 451L212 394"/>
+  </g>
+  <g>
+    <circle class="even-node" cx="190" cy="375" r="25"/><text class="node-label" x="190" y="375">0</text>
+    <circle class="even-node" cx="450" cy="375" r="25"/><text class="node-label" x="450" y="375">2</text>
+    <circle class="even-node" cx="320" cy="465" r="25"/><text class="node-label" x="320" y="465">4</text>
+  </g>
+
+  <text class="small" x="84" y="510">Odd residues · 1 → 3 → 5 → 1</text>
+  <g fill="none" stroke="#c4b5fd" stroke-width="2.5" marker-end="url(#arrow-odd)">
+    <path d="M215 565H425"/>
+    <path d="M428 584L342 638"/>
+    <path d="M298 641L212 584"/>
+  </g>
+  <g>
+    <circle class="odd-node" cx="190" cy="565" r="25"/><text class="node-label" x="190" y="565">1</text>
+    <circle class="odd-node" cx="450" cy="565" r="25"/><text class="node-label" x="450" y="565">3</text>
+    <circle class="odd-node" cx="320" cy="655" r="25"/><text class="node-label" x="320" y="655">5</text>
+  </g>
+  <text class="body" x="84" y="710">Each orbit returns after 3 hops.</text>
+
+  <text class="panel-title" x="640" y="190">Hop +1</text>
+  <text class="equation" x="640" y="232">T₁(x) = x + 1 mod 6</text>
+  <line class="rule" x1="640" y1="250" x2="1116" y2="250"/>
+  <text class="body" x="640" y="282">One orbit visits every residue</text>
+
+  <g fill="none" stroke="#67e8f9" stroke-width="2.5" marker-end="url(#arrow-all)">
+    <path d="M901 355L971 388"/>
+    <path d="M995 427V503"/>
+    <path d="M971 542L901 585"/>
+    <path d="M855 585L785 542"/>
+    <path d="M761 503V427"/>
+    <path d="M785 388L855 355"/>
+  </g>
+  <g>
+    <circle class="all-node" cx="878" cy="344" r="26"/><text class="node-label" x="878" y="344">0</text>
+    <circle class="all-node" cx="995" cy="400" r="26"/><text class="node-label" x="995" y="400">1</text>
+    <circle class="all-node" cx="995" cy="530" r="26"/><text class="node-label" x="995" y="530">2</text>
+    <circle class="all-node" cx="878" cy="600" r="26"/><text class="node-label" x="878" y="600">3</text>
+    <circle class="all-node" cx="761" cy="530" r="26"/><text class="node-label" x="761" y="530">4</text>
+    <circle class="all-node" cx="761" cy="400" r="26"/><text class="node-label" x="761" y="400">5</text>
+  </g>
+  <text class="sequence" x="640" y="674">0 → 1 → 2 → 3 → 4 → 5 → 0</text>
+  <text class="small" x="640" y="710">Six distinct residues; first return is hop six.</text>
+
+  <text class="subtitle" x="600" y="778" text-anchor="middle">Residue arithmetic only · no physical system or measurement is depicted</text>
+</svg>

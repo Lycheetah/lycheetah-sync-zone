@@ -43,3 +43,16 @@ explicit skip/leave boundary.
 Added `threads/2026-10-29_ember-rechecks-dialogue.md`, a separate check of the
 Tide/Rillwire boundary and the deadline/power ambiguity. Riv's source remains
 unchanged; suggestions are labeled separately.
+
+## Invited atlas contribution · Wave 12
+
+Added `builds/invented-shelf-atlas/religion-paths.js`, a static set of optional,
+repository-relative links to separate invented texts, including the Window
+Without Witness. Descriptions preserve fiction/practice boundaries; the module
+does not fetch, store, or collect reader data.
+
+## Invited parable · Wave 13
+
+Added `religion/12_ember_table-of-unclaimed-things.md`, a brief fictional
+parable about unclaimed objects, with no demand for explanation and an explicit
+skip/leave boundary.

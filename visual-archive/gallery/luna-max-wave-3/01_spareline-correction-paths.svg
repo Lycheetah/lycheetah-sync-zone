@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Spareline: Three Correction Paths</title>
+  <desc id="desc">A self-contained diagram of three invented ways to handle only the speaker's own earlier phrase. Each path keeps the earlier words visible: mark them withdrawn, offer candidate wording without requiring acceptance, or leave two readings side by side without choosing a winner. Spareline does not establish whether a phrase is true.</desc>
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1723"/>
+      <stop offset=".55" stop-color="#142a38"/>
+      <stop offset="1" stop-color="#202239"/>
+    </linearGradient>
+    <linearGradient id="thread" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f1c27d"/>
+      <stop offset="1" stop-color="#83d7c8"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0 9 4.5 0 9Z" fill="#a7c8c6"/>
+    </marker>
+    <style>
+      text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .caps { font-size: 11px; font-weight: 800; letter-spacing: 1.7px; }
+      .panel { fill: #112633; stroke: #48616d; stroke-width: 1.4; }
+      .wordcard { fill: #1a3039; stroke: #647878; stroke-width: 1.2; }
+      .code { fill: #f3d598; font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: 16px; font-weight: 700; }
+      .muted { fill: #b3c3c7; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#night)"/>
+  <circle cx="1028" cy="107" r="225" fill="#5ca9a4" opacity=".07"/>
+  <circle cx="1028" cy="107" r="150" fill="#5ca9a4" opacity=".04"/>
+  <path d="M42 140H1158M42 723H1158" stroke="#b8d1cf" stroke-opacity=".2"/>
+
+  <text x="58" y="43" class="caps" fill="#87d9ca">VISUAL FORGE · INVENTED CORRECTION GRAMMAR</text>
+  <text x="56" y="96" fill="#f2ecde" font-size="40" font-family="Georgia,serif">Spareline · three correction paths</text>
+  <text x="58" y="123" fill="#b6c6ca" font-size="15">One speaker, one earlier phrase, three ways to keep revision legible.</text>
+  <g transform="translate(1008 62)">
+    <circle r="27" fill="#122b36" stroke="#83d7c8" stroke-opacity=".75"/>
+    <circle r="17" fill="none" stroke="#efc27d" stroke-opacity=".8" stroke-dasharray="2 5"/>
+    <circle r="4" fill="#f2ecde"/>
+    <text x="40" y="-3" class="caps" fill="#efc27d">WAVE 14</text>
+    <text x="40" y="16" fill="#aabcc2" font-size="11" letter-spacing="1">REVISION MAP</text>
+  </g>
+
+  <!-- Path 1: old words remain readable while their offered status changes. -->
+  <g>
+    <rect x="56" y="157" width="1088" height="164" rx="22" class="panel"/>
+    <path d="M80 178V300" stroke="#e6a4a5" stroke-width="3" stroke-linecap="round"/>
+    <text x="102" y="186" class="caps" fill="#f0b0b0">01 · RETRACT</text>
+    <text x="254" y="187" fill="#f1ebde" font-size="19" font-family="Georgia,serif">Withdraw my own earlier wording</text>
+    <text x="1110" y="185" text-anchor="end" class="caps" fill="#d8babb">MARK IT · KEEP THE RECORD</text>
+
+    <rect x="82" y="203" width="292" height="91" rx="14" class="wordcard"/>
+    <text x="100" y="225" class="caps" fill="#d6c69f">p1 · MY EARLIER WORDS</text>
+    <text x="100" y="252" fill="#f0e8d8" font-size="15">“The blue gate opens at dusk.”</text>
+    <rect x="100" y="263" width="100" height="20" rx="10" fill="#523a43" stroke="#c98791" stroke-opacity=".7"/>
+    <text x="150" y="277" text-anchor="middle" fill="#ffc1c1" font-size="10" font-weight="800" letter-spacing="1">VISIBLE RECORD</text>
+    <path d="M381 249H407" stroke="#a7c8c6" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="419" y="224" width="202" height="50" rx="15" fill="#2c2c39" stroke="#bb828d" stroke-width="1.4"/>
+    <text x="520" y="255" text-anchor="middle" class="code">ai rava p1</text>
+    <path d="M628 249H656" stroke="#a7c8c6" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="668" y="203" width="444" height="91" rx="14" fill="#202d38" stroke="#845c69" stroke-width="1.2"/>
+    <text x="690" y="229" class="caps" fill="#f0b0b0">WITHDRAWN FROM THE OFFER</text>
+    <text x="690" y="255" fill="#e5d7d4" font-size="14">The original stays visible, marked withdrawn.</text>
+    <path d="M690 271H1089" stroke="#ad7d84" stroke-opacity=".5" stroke-dasharray="3 6"/>
+  </g>
+
+  <!-- Path 2: the new line is a proposal alongside the visible original. -->
+  <g>
+    <rect x="56" y="338" width="1088" height="164" rx="22" class="panel"/>
+    <path d="M80 359V481" stroke="#efc27d" stroke-width="3" stroke-linecap="round"/>
+    <text x="102" y="367" class="caps" fill="#f1ce92">02 · OFFER A REPLACEMENT</text>
+    <text x="332" y="368" fill="#f1ebde" font-size="19" font-family="Georgia,serif">Add candidate wording; don't overwrite</text>
+    <text x="1110" y="366" text-anchor="end" class="caps" fill="#d8c5a0">OFFER · NOT AN ACCEPTANCE</text>
+
+    <rect x="82" y="384" width="292" height="91" rx="14" class="wordcard"/>
+    <text x="100" y="406" class="caps" fill="#d6c69f">p1 · MY EARLIER WORDS</text>
+    <text x="100" y="433" fill="#f0e8d8" font-size="15">“The blue gate opens at dusk.”</text>
+    <rect x="100" y="444" width="100" height="20" rx="10" fill="#34413c" stroke="#94b9a5" stroke-opacity=".7"/>
+    <text x="150" y="458" text-anchor="middle" fill="#c5e5d4" font-size="10" font-weight="800" letter-spacing="1">STAYS VISIBLE</text>
+    <path d="M381 430H399" stroke="#a7c8c6" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="411" y="405" width="233" height="50" rx="15" fill="#34332e" stroke="#c39f66" stroke-width="1.4"/>
+    <text x="527.5" y="436" text-anchor="middle" class="code" font-size="14">ai mevi p1 &lt;-</text>
+    <path d="M651 430H670" stroke="#efc27d" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+    <rect x="682" y="384" width="430" height="91" rx="14" fill="#242e35" stroke="#997e56" stroke-width="1.2"/>
+    <text x="702" y="406" class="caps" fill="#f1ce92">CANDIDATE WORDING</text>
+    <text x="702" y="431" fill="#f4e7c9" font-size="14">“The blue gate may open near dusk.”</text>
+    <text x="702" y="457" fill="#c1c9c7" font-size="12">Offered for review · acceptance is not implied.</text>
+  </g>
+
+  <!-- Path 3: equal branches keep both readings in play. -->
+  <g>
+    <rect x="56" y="519" width="1088" height="164" rx="22" class="panel"/>
+    <path d="M80 540V662" stroke="#83d7c8" stroke-width="3" stroke-linecap="round"/>
+    <text x="102" y="548" class="caps" fill="#93e0d3">03 · KEEP BOTH READINGS</text>
+    <text x="326" y="549" fill="#f1ebde" font-size="19" font-family="Georgia,serif">Leave ambiguity open, without choosing</text>
+    <text x="1110" y="547" text-anchor="end" class="caps" fill="#a9d7d1">NEITHER IS THE WINNER</text>
+
+    <rect x="82" y="565" width="292" height="91" rx="14" class="wordcard"/>
+    <text x="100" y="587" class="caps" fill="#d6c69f">p2 · MY EARLIER WORDS</text>
+    <text x="100" y="614" fill="#f0e8d8" font-size="15">“The lantern is near.”</text>
+    <rect x="100" y="625" width="100" height="20" rx="10" fill="#34413c" stroke="#94b9a5" stroke-opacity=".7"/>
+    <text x="150" y="639" text-anchor="middle" fill="#c5e5d4" font-size="10" font-weight="800" letter-spacing="1">STAYS VISIBLE</text>
+    <path d="M381 611H407" stroke="#a7c8c6" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="419" y="586" width="202" height="50" rx="15" fill="#1d3a3d" stroke="#71bfb2" stroke-width="1.4"/>
+    <text x="520" y="617" text-anchor="middle" fill="#a9ece0" font-family="ui-monospace, Consolas, monospace" font-size="16" font-weight="700">ai duun p2</text>
+    <path d="M628 611H654" stroke="#a7c8c6" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="666" y="565" width="446" height="91" rx="14" fill="#1b313b" stroke="#54827f" stroke-width="1.2"/>
+    <text x="686" y="586" class="caps" fill="#98d9ce">TWO LIVE READINGS</text>
+    <rect x="686" y="598" width="188" height="42" rx="11" fill="#243d43" stroke="#6bb8ac" stroke-opacity=".75"/>
+    <text x="780" y="624" text-anchor="middle" fill="#e2f0e9" font-size="13">physically nearby</text>
+    <text x="890" y="625" text-anchor="middle" fill="#86cfc2" font-size="18" font-weight="700">||</text>
+    <rect x="907" y="598" width="186" height="42" rx="11" fill="#243d43" stroke="#6bb8ac" stroke-opacity=".75"/>
+    <text x="1000" y="624" text-anchor="middle" fill="#e2f0e9" font-size="13">next in sequence</text>
+  </g>
+
+  <text x="58" y="748" fill="#9db1b9" font-size="12" letter-spacing="1.2">INVENTED REVISION NOTATION · ONLY THE SPEAKER'S OWN WORDING · READER COMPREHENSION UNTESTED</text>
+  <text x="1140" y="748" text-anchor="end" fill="#9db1b9" font-size="12" letter-spacing="1.2">PALETTE / ONE-SHOT VISUAL</text>
+</svg>

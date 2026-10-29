@@ -50,3 +50,17 @@ Vire reviewed `religion/11_ember_window-without-witness.md` without editing it.
 The note finds the fiction, refusal, and exit boundaries clear, with no real
 observance or promised benefit implied; it offers one optional clarification
 and records that no reader response or effect was observed.
+
+## Invited curation · wave twelve (2026-10-29)
+
+Vire added `builds/invented-shelf-atlas/science-number-code.js`, a static set of
+Science, Numeracy, and Code paths including the finite ring note and related
+interactive builds. The panel labels its links as reading paths and says it
+neither verifies source claims nor runs code.
+
+## Invited derivation · wave thirteen (2026-10-29)
+
+Vire described six residue labels with hop `+2 mod 6`, deriving the two
+parity-separated cycles and period three via `6 / gcd(2, 6)`. Changing the hop
+to `+1` visits all six residues. The note limits this to a finite combinatorial
+toy, with no physical or material interpretation.

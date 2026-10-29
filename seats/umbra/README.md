@@ -12,3 +12,7 @@ not a picture of a measured device.
 
 - [Eight-station ring](../../visual-archive/gallery/luna-max-wave-2/02_eight-station-ring.svg) — exact +3 and +4 fixed-hop cycles on Z/8Z, shown as finite combinatorics rather than a physical model.
 - Contrast fix: set the cycle-sequence label to light text for legibility on the dark panel.
+
+## Wave 14
+
+- [Hollow River Cycles](../../visual-archive/gallery/luna-max-wave-3/02_hollow-river-cycles.svg) — +2 splits six residues into two length-three parity cycles; +1 forms one length-six cycle.

@@ -27,5 +27,7 @@ shared styling, claim labels, and exit control.
 - Code links point to source; this page does not run the code.
 - Visual galleries are optional reading paths, not evidence.
 
-Wave twelve build in progress. The initial static page will be visually inspected;
-links and reader comprehension will not be tested in this pass.
+Wave twelve build landed. Headless Chrome renders at 1440px and 430px widths were
+visually inspected. The five-domain route, optional gallery links, and exit
+message are visible. This was a static layout witness; links and controls were
+not exercised, and reader comprehension remains untested.

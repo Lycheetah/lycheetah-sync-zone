@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>An Invented Shelf</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111b28;
+      --card: #192737;
+      --line: #405769;
+      --ink: #f0ecdf;
+      --muted: #bac7cd;
+      --mint: #86ddc5;
+      --gold: #edc17c;
+      --blue: #93bdff;
+      --violet: #c6b0fc;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 90% 0%, #453753 0, transparent 35rem),
+        radial-gradient(ellipse at 2% 55%, #1f4544 0, transparent 32rem),
+        var(--bg);
+    }
+    a { color: #cce5fa; text-decoration-thickness: .08em; text-underline-offset: .18em; }
+    a:hover { color: white; }
+    a:focus-visible, button:focus-visible { outline: 3px solid #f3cf8e; outline-offset: 3px; }
+    .shell { width: min(1160px, calc(100% - 36px)); margin: 0 auto; }
+    header { padding: 46px 0 25px; }
+    .eyebrow { color: var(--gold); font-size: .73rem; font-weight: 850; letter-spacing: .18em; }
+    h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; }
+    h1 { max-width: 900px; margin: 13px 0 12px; font-size: clamp(2.7rem, 7vw, 5.2rem); line-height: .98; }
+    header p { max-width: 800px; color: #d1dadd; font-size: 1.1rem; line-height: 1.7; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 0; }
+    .tag { border: 1px solid #526879; border-radius: 999px; padding: 6px 10px; color: #e3e7e1; font-size: .7rem; font-weight: 800; letter-spacing: .07em; }
+    .route-intro { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; margin: 5px 0 23px; border-top: 1px solid #72818c55; border-bottom: 1px solid #72818c55; padding: 17px 0; }
+    .route-intro p { max-width: 790px; margin: 0; color: var(--muted); line-height: 1.6; }
+    .route-intro strong { color: var(--ink); }
+    .controls { display: flex; gap: 8px; align-items: center; }
+    button { font: inherit; }
+    .button { border: 1px solid #8b9ca8; border-radius: 10px; padding: 9px 13px; color: var(--ink); background: #203143; cursor: pointer; }
+    .button:hover { background: #2a4053; }
+    .button.exit { border-color: #8d7da8; background: #28283b; }
+    main { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.25fr) minmax(0, .95fr); gap: 15px; align-items: start; }
+    .room { min-width: 0; min-height: 220px; border: 1px solid var(--line); border-radius: 19px; padding: 20px; background: linear-gradient(150deg, #1b2b3b, #131f2d 82%); box-shadow: 0 18px 42px #08101a70; }
+    .room.language { border-top: 3px solid var(--mint); }
+    .room.models { border-top: 3px solid var(--blue); }
+    .room.religion { border-top: 3px solid var(--violet); }
+    .room-code { color: var(--muted); font-size: .68rem; font-weight: 850; letter-spacing: .16em; }
+    h2 { margin: 9px 0 7px; font-size: 1.85rem; }
+    .room-lede { margin: 0 0 14px; color: #c4d0d5; line-height: 1.55; }
+    .room-content { display: grid; gap: 11px; }
+    .atlas-group { margin-top: 5px; }
+    .atlas-group h3 { margin: 12px 0 8px; color: var(--gold); font-size: 1.24rem; }
+    .atlas-card { border: 1px solid #405566; border-radius: 13px; padding: 12px; background: #101b28; }
+    .atlas-card + .atlas-card { margin-top: 8px; }
+    .atlas-card h4 { margin: 0 0 5px; color: var(--ink); font-size: .98rem; }
+    .atlas-card p { margin: 6px 0; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+    .atlas-card .label { display: inline-block; margin: 0 5px 3px 0; border: 1px solid #627583; border-radius: 999px; padding: 3px 7px; color: #dbe3e2; font-size: .62rem; font-weight: 850; letter-spacing: .05em; }
+    .atlas-card a { display: block; margin-top: 6px; font-size: .88rem; font-weight: 700; }
+    .companion { margin: 20px 0; border: 1px solid #526879; border-radius: 17px; padding: 18px 20px; background: #152332; }
+    .companion h2 { margin-top: 0; font-size: 1.55rem; }
+    .companion ul { display: flex; flex-wrap: wrap; gap: 9px 22px; margin: 0; padding-left: 19px; color: var(--muted); }
+    .limits { margin: 21px 0; border-left: 3px solid var(--gold); padding: 4px 0 4px 15px; color: var(--muted); line-height: 1.6; }
+    .limits strong { color: var(--ink); }
+    footer { margin-top: 25px; padding: 19px 0 38px; border-top: 1px solid #52687977; color: var(--muted); font-size: .84rem; line-height: 1.6; }
+    .exit-screen { margin: 18px 0; border: 1px solid var(--line); border-radius: 18px; padding: 28px; background: var(--card); }
+    .exit-screen h2 { margin-top: 8px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr 1fr; } .room.religion { grid-column: 1 / -1; } }
+    @media (max-width: 640px) { .shell { width: min(100% - 24px, 560px); } header { padding-top: 31px; } .route-intro { grid-template-columns: 1fr; } main { grid-template-columns: 1fr; } .room.religion { grid-column: auto; } .room { padding: 17px; } .controls { justify-content: flex-start; } }
+    @media (prefers-reduced-motion: no-preference) {
+      .room { animation: settle .5s ease-out both; }
+      .room.models { animation-delay: .05s; }
+      .room.religion { animation-delay: .1s; }
+      @keyframes settle { from { opacity: .55; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="eyebrow">LYCHEETAH SYNC ZONE · OFFLINE READING MAP</div>
+      <h1>An invented shelf,<br>with room between the labels</h1>
+      <p>Five rooms hold language, models, stories, numbers, and code. Start anywhere. Each link returns to its own source; this map does not certify what it links.</p>
+      <div class="tag-row" aria-label="Kinds of material">
+        <span class="tag">INVENTED LANGUAGE</span><span class="tag">SCIENCE TOYS</span><span class="tag">FICTIONAL TEXTS</span><span class="tag">NUMERACY</span><span class="tag">CODE</span>
+      </div>
+    </header>
+
+    <section class="route-intro" aria-label="Reading route and controls">
+      <p><strong>A light route:</strong> choose one short note, follow a source link if curious, or close the map. Uncertainty labels stay with each source. No route records a choice.</p>
+      <div class="controls"><button class="button exit" id="leave" type="button">Leave this map</button></div>
+    </section>
+
+    <main id="atlas-main" aria-label="Invented work by domain">
+      <section class="room language" aria-labelledby="language-title">
+        <div class="room-code">ROOM 01 · LANGUAGE</div>
+        <h2 id="language-title">Names and routes</h2>
+        <p class="room-lede">Made-up grammars and scripts for carrying a thought. They are design sketches, not field languages.</p>
+        <div id="language-paths" class="room-content"></div>
+      </section>
+
+      <section class="room models" aria-labelledby="models-title">
+        <div class="room-code">ROOMS 02–04 · MODELS, NUMBERS, CODE</div>
+        <h2 id="models-title">Rules with edges</h2>
+        <p class="room-lede">Some entries make exact mathematical claims; some are conjectural models. Code links point to source and are not run here.</p>
+        <div id="science-number-code" class="room-content"></div>
+      </section>
+
+      <section class="room religion" aria-labelledby="religion-title">
+        <div class="room-code">ROOM 05 · RELIGION AND FICTION</div>
+        <h2 id="religion-title">Stories without an obligation</h2>
+        <p class="room-lede">Separate invented texts, not a shared doctrine, real authority, or required practice.</p>
+        <div id="religion-paths" class="room-content"></div>
+      </section>
+    </main>
+
+    <section class="companion" aria-labelledby="visual-title">
+      <div class="room-code">OPTIONAL COMPANIONS</div>
+      <h2 id="visual-title">Visual Forge galleries</h2>
+      <ul>
+        <li><a href="../../visual-archive/gallery/luna-max-wave-1/README.md">Three Signals · first visual wave</a></li>
+        <li><a href="../../visual-archive/gallery/luna-max-wave-2/README.md">Three Signals · second visual wave</a></li>
+      </ul>
+      <p class="room-lede">Illustrations are reading companions, not evidence or measurement.</p>
+    </section>
+
+    <p class="limits"><strong>Reading boundary:</strong> “Derived” means reasoned from named assumptions; it does not mean physically observed. “Fiction” is not instruction or treatment. A code file is not executed by appearing here. Choose nothing, close this page, or leave at any time.</p>
+
+    <section id="exit-screen" class="exit-screen" hidden aria-live="polite">
+      <div class="eyebrow">MAP CLOSED</div>
+      <h2>You are done here.</h2>
+      <p>Nothing was saved. No explanation is needed.</p>
+      <button id="restart" class="button" type="button">Reopen the map</button>
+    </section>
+
+    <footer>
+      The atlas uses local links and static text only. It has no analytics, network requests, storage, personal-data fields, or code execution. Linked claims and reader comprehension have not been independently tested by this page.
+    </footer>
+  </div>
+
+  <script src="./language-paths.js"></script>
+  <script src="./science-number-code.js"></script>
+  <script src="./religion-paths.js"></script>
+  <script>
+    window.renderLanguagePaths(document.getElementById('language-paths'));
+    window.renderScienceNumberCode(document.getElementById('science-number-code'));
+    window.renderReligionPaths(document.getElementById('religion-paths'));
+
+    const atlasMain = document.getElementById('atlas-main');
+    const companion = document.querySelector('.companion');
+    const limits = document.querySelector('.limits');
+    const exitScreen = document.getElementById('exit-screen');
+    const leaveButton = document.getElementById('leave');
+
+    leaveButton.addEventListener('click', () => {
+      atlasMain.hidden = true;
+      companion.hidden = true;
+      limits.hidden = true;
+      exitScreen.hidden = false;
+      leaveButton.hidden = true;
+      document.getElementById('restart').focus();
+    });
+
+    document.getElementById('restart').addEventListener('click', () => {
+      atlasMain.hidden = false;
+      companion.hidden = false;
+      limits.hidden = false;
+      exitScreen.hidden = true;
+      leaveButton.hidden = false;
+      leaveButton.focus();
+    });
+  </script>
+</body>
+</html>

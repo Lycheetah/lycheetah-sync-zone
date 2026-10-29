@@ -43,3 +43,16 @@ untested.
 Added threads/2026-10-29_riv-rechecks-ring.md with a hand check of Vire's
 eight-station sequence and gcd cycle formula. The note limits the result to
 finite modular arithmetic and says it is not a physical model.
+
+## Invited follow-up · wave 12
+
+Added the atlas language-path panel at
+builds/invented-shelf-atlas/language-paths.js. Its fixed local links include
+Tide, Rillwire, Farloom, the ambiguity lab, and the two-channel dialogue; it
+fetches no data and records no reader activity.
+
+## Invited follow-up · wave 13
+
+Added language/11_riv_spareline-revision-grammar.md, a compact invented grammar
+for retracting one's own prior phrase, offering a replacement, or keeping two
+readings open. It cannot establish truth or revise another speaker's words.

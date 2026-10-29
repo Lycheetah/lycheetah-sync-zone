@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">The Table of Unclaimed Things — a fictional harbor still life</title>
+  <desc id="desc">A quiet harbor at evening, seen behind a plain wooden table on the quay. A blue spool, a wooden button, a chipped cup, and a folded paper boat rest unmarked on its surface, with open space between them. No people or signs are shown.</desc>
+
+  <rect width="1200" height="800" fill="#F3F0E8"/>
+
+  <!-- Even sky and harbor water place the still life at an imaginary quay. -->
+  <path d="M0 102 H1200 V300 C1034 286 855 309 690 296 C464 278 253 307 0 291Z" fill="#D9E5E4"/>
+  <path d="M0 291 C253 307 464 278 690 296 C855 309 1034 286 1200 300 V470 H0Z" fill="#789BA8"/>
+  <path d="M0 354 C165 345 272 362 416 352 M632 343 C802 352 948 337 1144 351 M85 399 C241 390 341 408 493 397 M714 391 C863 399 1005 384 1166 396" fill="none" stroke="#B9D0D1" stroke-width="3" opacity="0.75"/>
+
+  <!-- Distant quay edge and a few simple harbor posts. -->
+  <path d="M0 421 C231 414 412 426 621 418 C824 410 1034 426 1200 417 V474 H0Z" fill="#506E7A"/>
+  <path d="M132 402 V454 M157 400 V454 M1008 397 V454 M1032 398 V454" stroke="#3B5967" stroke-width="11" stroke-linecap="round"/>
+  <path d="M0 463 C220 454 401 471 620 461 C842 450 1040 468 1200 458 V800 H0Z" fill="#E7E1D4"/>
+
+  <!-- A plain quay table, with broad unmarked wood. -->
+  <ellipse cx="600" cy="682" rx="440" ry="28" fill="#294A59" opacity="0.12"/>
+  <path d="M224 466 L280 467 L263 675 L216 675Z M902 466 L958 463 L989 675 L941 675Z" fill="#76563F" stroke="#493D34" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M160 405 L1001 405 L1061 468 L136 468Z" fill="#C69A6B" stroke="#493D34" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M136 468 L1061 468 L1029 505 L176 505Z" fill="#99734F" stroke="#493D34" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M226 431 C390 426 484 439 626 432 M707 422 C816 427 891 420 965 430 M319 454 C441 447 513 458 602 453" fill="none" stroke="#E0BC8B" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Blue spool: wound thread around a simple wooden core. -->
+  <path d="M326 367 C326 354 414 354 414 367 L414 417 C414 430 326 430 326 417Z" fill="#3D7692" stroke="#27495A" stroke-width="4"/>
+  <ellipse cx="370" cy="367" rx="44" ry="14" fill="#A7C9D2" stroke="#27495A" stroke-width="4"/>
+  <path d="M328 380 C347 388 394 388 412 380 M328 392 C347 400 394 400 412 392 M328 404 C347 412 394 412 412 404" fill="none" stroke="#8DB8C6" stroke-width="4"/>
+  <ellipse cx="370" cy="417" rx="44" ry="13" fill="#446F80" stroke="#27495A" stroke-width="4"/>
+  <ellipse cx="370" cy="367" rx="9" ry="5" fill="#F3F0E8" stroke="#27495A" stroke-width="2"/>
+
+  <!-- A small wooden button, left untied. -->
+  <circle cx="505" cy="426" r="19" fill="#B98755" stroke="#604B39" stroke-width="4"/>
+  <circle cx="499" cy="420" r="3.5" fill="#604B39"/>
+  <circle cx="511" cy="420" r="3.5" fill="#604B39"/>
+  <circle cx="499" cy="432" r="3.5" fill="#604B39"/>
+  <circle cx="511" cy="432" r="3.5" fill="#604B39"/>
+
+  <!-- A chipped cup with a quiet, broken rim and an open handle. -->
+  <path d="M584 369 C604 377 645 377 665 369 L655 426 C637 438 612 438 594 426Z" fill="#EEE6D5" stroke="#4A5660" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M585 369 C593 360 607 359 620 360 M636 360 C648 360 659 363 665 369" fill="none" stroke="#4A5660" stroke-width="4" stroke-linecap="round"/>
+  <path d="M664 381 C695 378 698 412 660 411" fill="none" stroke="#4A5660" stroke-width="5" stroke-linecap="round"/>
+  <path d="M600 375 C616 381 643 381 659 375" fill="none" stroke="#B7A98F" stroke-width="3"/>
+
+  <!-- Folded paper boat beside the cup. -->
+  <path d="M726 400 L789 422 L852 400 L831 438 L747 438Z" fill="#F8F6EE" stroke="#29485A" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M726 400 L789 400 L789 422 M789 400 L852 400 L789 422 M789 422 L789 438" fill="none" stroke="#7996A2" stroke-width="3" stroke-linejoin="round"/>
+
+  <text x="70" y="67" fill="#243F50" font-family="sans-serif" font-size="20" font-weight="700" letter-spacing="2">FICTIONAL STILL LIFE</text>
+  <text x="70" y="733" fill="#243F50" font-family="sans-serif" font-size="22" font-weight="600" letter-spacing="1.5">THE TABLE OF UNCLAIMED THINGS</text>
+  <text x="70" y="766" fill="#466776" font-family="sans-serif" font-size="16" letter-spacing="1">BLUE SPOOL · WOODEN BUTTON · CHIPPED CUP · PAPER BOAT</text>
+</svg>

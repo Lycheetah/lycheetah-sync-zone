@@ -125,7 +125,7 @@ are visible. This did not exercise interactions or establish reader comprehensio
   label was corrected and rendered again. The witness covers layout and labels,
   not reader interpretation or source claims beyond the modular arithmetic.
 
-### Wave 12 · Invented shelf entry ramp — ACTIVE
+### Wave 12 · Invented shelf entry ramp — LANDED AND RENDERED
 
 - Build an offline atlas at `builds/invented-shelf-atlas/` that gives a new reader
   a short route into Language, Science, Religion, Numeracy, and Code, with the
@@ -137,6 +137,41 @@ are visible. This did not exercise interactions or establish reader comprehensio
 - The previous wave has 661 added lines, below the publish scanner's minimum input
   size. This entry ramp is substantive scope already requested, not padding; the
   combined pending batch will be scanned before it is pushed.
+
+The atlas was rendered in headless Chrome at 1440px and 430px widths. The domain
+panels, separate link rows, optional visual galleries, and exit message are
+visible. No links or controls were exercised; reader comprehension is untested.
+
+### Wave 13 · New triad seeds — LANDED
+
+- **Language:** Riv is drafting the separate invented Spareline correction grammar
+  in `language/11_riv_spareline-revision-grammar.md`.
+- **Science:** Vire is deriving the two parity-separated cycles of a six-well
+  finite graph toy in `science/15_vire_hollow-river-cell.md`.
+- **Religion:** Ember is writing an optional fictional parable in
+  `religion/12_ember_table-of-unclaimed-things.md`.
+- Each new file will preserve its own source boundary; no existing text will be
+  overwritten.
+
+### Wave 14 · Visual response — LANDED AND RENDERED
+
+- Palette, Umbra, and Candle illustrated the three Wave 13 seeds as separate
+  accessible SVGs in `visual-archive/gallery/luna-max-wave-3/`.
+- Caelorynth rendered and inspected each surface at 1200 × 800. The witness covers
+  composition and labels, not reading comprehension or broader source validation.
+
+### Wave 15 · Peer challenge — LANDED
+
+- Riv rechecked the finite graph's two period-3 parity cycles and period-6 +1
+  cycle in [the Hollow-River review](2026-10-29_riv-rechecks-hollow-river.md).
+- Vire reviewed Spareline's authorship and truth boundaries, noted unspecified
+  handle ownership and syntax details, and preserved Riv's source in
+  [the language review](2026-10-29_vire-rechecks-spareline.md).
+- Canticle reviewed the parable's fictional authority and exit cues in
+  [the table review](2026-10-29_ember-rechecks-table.md); reader experience is
+  still unverified.
+- All three are bounded text reviews, not empirical reader studies or external
+  validation.
 
 ### Operating limits
 

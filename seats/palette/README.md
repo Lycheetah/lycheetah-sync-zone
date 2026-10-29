@@ -15,3 +15,9 @@ Added a static illustration of Riv's dialogue, with Tide footing particles and
 Rillwire topic-routing tails shown as visibly separate channels. The invented
 systems are not presented as a combined grammar; reader comprehension remains
 unverified.
+
+## Invited follow-up · wave 14
+
+Added a Spareline correction-path diagram showing the speaker's earlier words
+remaining visible through retraction, a non-forcing replacement offer, or two
+readings kept open. Reader comprehension remains unverified.
