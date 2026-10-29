@@ -1,0 +1,1242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Aetheron · Holographic Bulk & Hyperbolic Spacetime Engine</title>
+<style>
+  :root {
+    --bg-void: #04060d;
+    --bg-card: rgba(8, 12, 24, 0.88);
+    --bg-card-hover: rgba(14, 20, 38, 0.95);
+    --border-dim: rgba(56, 110, 180, 0.24);
+    --border-bright: rgba(0, 229, 255, 0.6);
+    --text-main: #e6edfd;
+    --text-dim: #94a3b8;
+    --accent-cyan: #00e5ff;
+    --accent-emerald: #00e676;
+    --accent-gold: #ffd54f;
+    --accent-coral: #ff5252;
+    --accent-violet: #b388ff;
+    --accent-teal: #14b8a6;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-void);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    touch-action: none;
+  }
+
+  canvas#bulk-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+    background: radial-gradient(circle at 50% 50%, #091326 0%, #050a16 55%, #020308 100%);
+    cursor: grab;
+  }
+
+  canvas#bulk-canvas:active {
+    cursor: grabbing;
+  }
+
+  /* HUD overlay */
+  .hud-layer {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .hud-layer * {
+    pointer-events: auto;
+  }
+
+  /* Top Bar */
+  #top-bar {
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .brand-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 12px var(--accent-cyan);
+    transition: all 0.3s ease;
+  }
+
+  .brand-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-main);
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    border-left: 1px solid var(--border-dim);
+    padding-left: 8px;
+    margin-left: 4px;
+  }
+
+  /* Status Badge */
+  #status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    border-color: rgba(0, 229, 255, 0.6);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 18px rgba(0, 229, 255, 0.3);
+  }
+
+  /* Top Right Actions */
+  .top-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  button.action-btn {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border-dim);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  button.action-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-bright);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+  }
+
+  button.action-btn.active {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+  }
+
+  /* Side Control Panel */
+  #control-panel {
+    top: 70px;
+    right: 14px;
+    width: 320px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 8px;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+  }
+
+  .panel-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Control groups */
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .control-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+
+  .control-name {
+    color: var(--text-main);
+    font-weight: 600;
+  }
+
+  .control-val {
+    color: var(--accent-cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.12);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  /* Presets Bar */
+  .presets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  button.preset-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-dim);
+    color: var(--text-main);
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  button.preset-btn:hover {
+    background: rgba(0, 229, 255, 0.12);
+    border-color: var(--border-bright);
+    color: var(--accent-cyan);
+  }
+
+  button.preset-btn.highlight {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    background: rgba(0, 230, 118, 0.08);
+  }
+
+  /* Bottom Left Analytics Overlay */
+  #analytics-panel {
+    bottom: 14px;
+    left: 14px;
+    width: 320px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-title {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  /* Time series chart canvas */
+  canvas#strip-chart {
+    width: 100%;
+    height: 54px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: block;
+  }
+
+  /* Instructions hint */
+  .hint-box {
+    font-size: 10.5px;
+    color: var(--text-dim);
+    line-height: 1.4;
+    background: rgba(0, 229, 255, 0.04);
+    border-left: 2px solid var(--accent-cyan);
+    padding: 6px 8px;
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* Accessibility: Prefers reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+    .brand-dot, button.action-btn:hover {
+      box-shadow: none !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    #control-panel {
+      width: calc(100vw - 28px);
+      max-height: 40vh;
+      top: auto;
+      bottom: 14px;
+      right: 14px;
+    }
+    #analytics-panel {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bulk-canvas"></canvas>
+
+<!-- Top Bar -->
+<div class="hud-layer" id="top-bar">
+  <div class="brand-pill">
+    <div class="brand-dot" id="brand-indicator"></div>
+    <div class="brand-title">Aetheron · Holographic Bulk</div>
+    <div class="brand-sub">AdS/CFT &amp; Ryu-Takayanagi Engine</div>
+  </div>
+
+  <div id="status-badge">
+    <span id="status-text">ADS3 / CFT2 GEODESIC ENTANGLEMENT</span>
+  </div>
+
+  <div class="top-actions">
+    <button class="action-btn" id="btn-audio">
+      <span id="audio-icon">▶</span>
+      <span id="audio-label">Enable Audio</span>
+    </button>
+    <button class="action-btn" id="btn-add-interval" title="Add new entangled boundary region">
+      <span>+</span>
+      <span>Add Subregion</span>
+    </button>
+    <button class="action-btn" id="btn-pause">
+      <span id="pause-icon">⏸</span>
+    </button>
+  </div>
+</div>
+
+<!-- Bottom Left Analytics Panel -->
+<div class="hud-layer" id="analytics-panel">
+  <div class="panel-header">
+    <span class="panel-title">Holographic Telemetry</span>
+    <span class="panel-sub">S<sub>A</sub> = Area(&gamma;<sub>A</sub>) / 4G<sub>N</sub></span>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-title">Entanglement Entropy S<sub>A</sub></span>
+      <span class="stat-value" id="val-entropy">2.418</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Bulk Turning Point z*</span>
+      <span class="stat-value" id="val-depth">0.620</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Gaussian Curvature K</span>
+      <span class="stat-value" id="val-curvature">-1.000</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Central Charge c</span>
+      <span class="stat-value" id="val-charge">6.00</span>
+    </div>
+  </div>
+
+  <div class="control-label-row" style="margin-top: 4px;">
+    <span class="control-name" style="font-size: 10px; color: var(--text-dim);">Entropy History S<sub>A</sub>(t) across Boundary Shifts</span>
+  </div>
+  <canvas id="strip-chart" width="300" height="54"></canvas>
+
+  <div class="hint-box">
+    Click &amp; drag on the boundary horizon circle to reposition endpoints or adjust the minimal geodesic depth.
+  </div>
+</div>
+
+<!-- Controls Side Panel -->
+<div class="hud-layer" id="control-panel">
+  <div class="panel-header">
+    <span class="panel-title">Spacetime Parameters</span>
+    <span class="panel-sub">Bulk Geometry &amp; Isometries</span>
+  </div>
+
+  <!-- Presets -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Holographic Presets</span>
+    </div>
+    <div class="presets-grid">
+      <button class="preset-btn highlight" id="preset-canonical">Canonical RT</button>
+      <button class="preset-btn" id="preset-thermal">BTZ Black Hole</button>
+      <button class="preset-btn" id="preset-tripartite">Tripartite State</button>
+      <button class="preset-btn" id="preset-chaos">Quantum Flux</button>
+    </div>
+  </div>
+
+  <!-- Conformal Dimension Delta -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Conformal Dimension &Delta;</span>
+      <span class="control-val" id="disp-delta">2.00</span>
+    </div>
+    <input type="range" id="slider-delta" min="0.5" max="5.0" step="0.1" value="2.0">
+  </div>
+
+  <!-- Newton Constant GN -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Gravitational Coupling G<sub>N</sub></span>
+      <span class="control-val" id="disp-gn">0.25</span>
+    </div>
+    <input type="range" id="slider-gn" min="0.05" max="1.0" step="0.05" value="0.25">
+  </div>
+
+  <!-- Mobius Flow Speed -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">PSU(1,1) Isometry Velocity</span>
+      <span class="control-val" id="disp-flow">1.00</span>
+    </div>
+    <input type="range" id="slider-flow" min="0.0" max="3.0" step="0.1" value="1.0">
+  </div>
+
+  <!-- UV Cutoff Epsilon -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">UV Boundary Cutoff &epsilon;<sub>UV</sub></span>
+      <span class="control-val" id="disp-uv">0.05</span>
+    </div>
+    <input type="range" id="slider-uv" min="0.01" max="0.20" step="0.01" value="0.05">
+  </div>
+
+  <!-- Master Volume -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Laplace-Beltrami Drone Gain</span>
+      <span class="control-val" id="disp-vol">40%</span>
+    </div>
+    <input type="range" id="slider-vol" min="0" max="100" step="1" value="40">
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // -------------------------------------------------------------
+  // 1. NON-EUCLIDEAN HYPERBOLIC GEOMETRY & RYU-TAKAYANAGI FORMULAS
+  // -------------------------------------------------------------
+  // Poincaré disk model: D = { z in C : |z| < 1 }
+  // ds^2 = 4 (dx^2 + dy^2) / (1 - x^2 - y^2)^2,  K = -1.0
+  var GN = 0.25;
+  var central_c = 6.0; // c = 3L / 2GN (with L = 1, GN = 0.25 -> c = 6)
+  var delta_dim = 2.0;
+  var uv_cutoff = 0.05;
+  var mobius_speed = 1.0;
+  var is_paused = false;
+
+  // Active Entangled Boundary Subregions A_k = [theta1, theta2]
+  var subregions = [
+    { theta1: 0.85, theta2: 2.85, hue: 185, label: 'A_0' }
+  ];
+
+  var draggingEndpoint = null; // { regionIdx, endpoint: 1 | 2 }
+
+  // Ryu-Takayanagi Geodesic Circle in Poincaré disk:
+  // Orthogonal circle to unit boundary circle S^1 connecting p1 = e^(i*th1) and p2 = e^(i*th2)
+  function computeRTGeodesic(th1, th2) {
+    var dTheta = Math.abs(th2 - th1);
+    if (dTheta > Math.PI) dTheta = 2.0 * Math.PI - dTheta;
+    var halfDelta = dTheta * 0.5;
+
+    // Boundary mid-angle
+    var midTheta = th1 + 0.5 * (th2 - th1);
+    if (Math.abs(th2 - th1) > Math.PI) {
+      midTheta = (th1 + th2 + 2.0 * Math.PI) * 0.5;
+    }
+
+    // Singularity check for antipodal points (straight diameter)
+    var isDiameter = Math.abs(halfDelta - Math.PI * 0.5) < 1e-4;
+
+    var centerDist = 1.0 / Math.max(1e-4, Math.cos(halfDelta));
+    var radius = Math.abs(Math.tan(halfDelta));
+
+    var centerX = centerDist * Math.cos(midTheta);
+    var centerY = centerDist * Math.sin(midTheta);
+
+    // Bulk turning point (closest approach to origin)
+    // z* = (1 - sin(halfDelta)) / cos(halfDelta)
+    var zStar = (1.0 - Math.sin(halfDelta)) / Math.max(1e-4, Math.cos(halfDelta));
+
+    // Regulated Hyperbolic Length & Entanglement Entropy:
+    // S_A = (c / 3) * ln((2 / epsilon_UV) * sin(halfDelta))
+    var sinHalf = Math.max(1e-4, Math.sin(halfDelta));
+    var entropy = (central_c / 3.0) * Math.log((2.0 / uv_cutoff) * sinHalf);
+    if (entropy < 0.0) entropy = 0.0;
+
+    return {
+      halfDelta: halfDelta,
+      midTheta: midTheta,
+      centerX: centerX,
+      centerY: centerY,
+      radius: radius,
+      isDiameter: isDiameter,
+      zStar: zStar,
+      entropy: entropy
+    };
+  }
+
+  // History buffer for strip chart
+  var historyLength = 180;
+  var entropyHistory = new Float32Array(historyLength);
+  var historyIndex = 0;
+
+  // -------------------------------------------------------------
+  // 2. HYPERBOLIC QUANTUM FLUX MOTES (PSU(1,1) MÖBIUS FLOW)
+  // -------------------------------------------------------------
+  var MOTE_COUNT = 160;
+  var motes = [];
+
+  function initMotes() {
+    motes = [];
+    for (var i = 0; i < MOTE_COUNT; i++) {
+      var r = Math.sqrt(Math.random()) * 0.92;
+      var phi = Math.random() * Math.PI * 2;
+      motes.push({
+        x: r * Math.cos(phi),
+        y: r * Math.sin(phi),
+        orbitRadius: r,
+        orbitPhase: phi,
+        size: 1.8 + Math.random() * 2.2
+      });
+    }
+  }
+
+  initMotes();
+
+  // PSU(1,1) infinitesimal generator: translation + hyperbolic rotation
+  function stepMotes(dt) {
+    if (is_paused) return;
+
+    var omega = 0.45 * mobius_speed;
+    var vx = 0.12 * mobius_speed;
+    var vy = 0.08 * mobius_speed;
+
+    for (var i = 0; i < MOTE_COUNT; i++) {
+      var m = motes[i];
+      var zr = m.x;
+      var zi = m.y;
+
+      // Hyperbolic rotation & drift
+      var dzr = -omega * zi + vx * (1.0 - zr * zr + zi * zi) - 2.0 * vy * zr * zi;
+      var dzi =  omega * zr + vy * (1.0 + zr * zr - zi * zi) - 2.0 * vx * zr * zi;
+
+      zr += dzr * dt;
+      zi += dzi * dt;
+
+      // Keep strictly within unit disk |z| < 1
+      var r2 = zr * zr + zi * zi;
+      if (r2 >= 0.98) {
+        var r = Math.sqrt(r2);
+        zr = (zr / r) * 0.97;
+        zi = (zi / r) * 0.97;
+      }
+
+      m.x = zr;
+      m.y = zi;
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 3. PROCEDURAL WEB AUDIO API (LAPLACE-BELTRAMI & BESSEL SYNTH)
+  // -------------------------------------------------------------
+  // Hyperbolic Laplace-Beltrami spectrum: lambda = 1/4 + s^2
+  // Resonant CFT Bessel functions: J_Delta(k r)
+  var audioCtx = null;
+  var isAudioActive = false;
+  var masterGain = null;
+  var masterFilter = null;
+  var droneOscs = [];
+  var droneGain = null;
+  var master_volume = 0.40;
+
+  function initAudio() {
+    if (audioCtx) return;
+    var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    audioCtx = new AudioContextClass();
+
+    var comp = audioCtx.createDynamicsCompressor();
+    comp.threshold.setValueAtTime(-18, audioCtx.currentTime);
+    comp.knee.setValueAtTime(10, audioCtx.currentTime);
+    comp.ratio.setValueAtTime(6, audioCtx.currentTime);
+    comp.attack.setValueAtTime(0.005, audioCtx.currentTime);
+    comp.release.setValueAtTime(0.2, audioCtx.currentTime);
+
+    masterFilter = audioCtx.createBiquadFilter();
+    masterFilter.type = 'lowpass';
+    masterFilter.frequency.setValueAtTime(1800, audioCtx.currentTime);
+    masterFilter.Q.setValueAtTime(2.0, audioCtx.currentTime);
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(master_volume, audioCtx.currentTime);
+
+    masterFilter.connect(comp);
+    comp.connect(masterGain);
+    masterGain.connect(audioCtx.destination);
+
+    // Continuous Laplace-Beltrami spectrum drone (f0 = 108 Hz, binaural beating)
+    droneGain = audioCtx.createGain();
+    droneGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    droneGain.connect(masterFilter);
+
+    var dronePitches = [108.0, 108.35, 162.0, 216.0];
+    droneOscs = [];
+    for (var i = 0; i < dronePitches.length; i++) {
+      var osc = audioCtx.createOscillator();
+      osc.type = (i % 2 === 0) ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(dronePitches[i], audioCtx.currentTime);
+      var g = audioCtx.createGain();
+      g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      osc.connect(g);
+      g.connect(droneGain);
+      osc.start();
+      droneOscs.push({ osc: osc, gain: g, basePitch: dronePitches[i] });
+    }
+
+    isAudioActive = true;
+    updateAudioHUD();
+  }
+
+  function updateAudioHUD() {
+    var btn = document.getElementById('btn-audio');
+    var label = document.getElementById('audio-label');
+    var icon = document.getElementById('audio-icon');
+    if (!btn || !label || !icon) return;
+
+    if (isAudioActive && audioCtx && audioCtx.state === 'running') {
+      btn.classList.add('active');
+      label.textContent = 'Audio Active';
+      icon.textContent = '🔊';
+    } else {
+      btn.classList.remove('active');
+      label.textContent = 'Enable Audio';
+      icon.textContent = '▶';
+    }
+  }
+
+  // Trigger Bessel resonant harmonic chime with stereophonic boundary panning
+  function triggerBesselChime(theta, delta) {
+    if (!audioCtx || !isAudioActive || audioCtx.state !== 'running') return;
+    var now = audioCtx.currentTime;
+
+    var osc = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    var panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+    // Bessel modal frequency scaled by conformal dimension Delta
+    var baseTone = 216.0 * delta * 0.75;
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(baseTone, now);
+    osc.frequency.exponentialRampToValueAtTime(baseTone * 0.95, now + 0.6);
+
+    g.gain.setValueAtTime(0.28, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+    if (panner) {
+      panner.pan.setValueAtTime(Math.cos(theta) * 0.85, now);
+      osc.connect(g);
+      g.connect(panner);
+      panner.connect(masterFilter);
+    } else {
+      osc.connect(g);
+      g.connect(masterFilter);
+    }
+
+    osc.start(now);
+    osc.stop(now + 0.6);
+  }
+
+  function updateAcousticDynamics(totalEntropy) {
+    if (!audioCtx || !isAudioActive || audioCtx.state !== 'running') return;
+    var now = audioCtx.currentTime;
+
+    // Filter opens with higher entanglement entropy
+    var targetCutoff = 800 + Math.min(4500, totalEntropy * 650);
+    masterFilter.frequency.setTargetAtTime(targetCutoff, now, 0.08);
+
+    // Microtonal pitch modulation proportional to curvature & flow
+    for (var i = 0; i < droneOscs.length; i++) {
+      var d = droneOscs[i];
+      var micro = Math.sin(now * 0.5 + i) * 1.5;
+      d.osc.frequency.setTargetAtTime(d.basePitch + micro, now, 0.08);
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 4. CANVAS 2D RENDERER (POINCARÉ DISK & MINIMAL GEODESICS)
+  // -------------------------------------------------------------
+  var canvas = document.getElementById('bulk-canvas');
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  // Disk Center and Radius
+  var diskR = 0;
+  var cx = 0;
+  var cy = 0;
+
+  function updateDiskGeometry() {
+    cx = width * 0.5;
+    cy = height * 0.5;
+    diskR = Math.min(width, height) * 0.40;
+    if (diskR < 120) diskR = 120;
+  }
+
+  var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Pointer interaction for moving boundary endpoints
+  canvas.addEventListener('pointerdown', function(e) {
+    var mx = e.clientX - cx;
+    var my = e.clientY - cy;
+    var mDist = Math.sqrt(mx * mx + my * my);
+    var clickAngle = Math.atan2(my, mx);
+    if (clickAngle < 0) clickAngle += 2.0 * Math.PI;
+
+    if (!audioCtx) initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+    // Check if clicked near an existing endpoint on the boundary circle
+    var hitThreshold = 0.25; // radians (~14 degrees)
+    draggingEndpoint = null;
+
+    if (Math.abs(mDist - diskR) < 35) {
+      for (var s = 0; s < subregions.length; s++) {
+        var diff1 = Math.abs(clickAngle - subregions[s].theta1);
+        if (diff1 > Math.PI) diff1 = 2.0 * Math.PI - diff1;
+        if (diff1 < hitThreshold) {
+          draggingEndpoint = { regionIdx: s, endpoint: 1 };
+          break;
+        }
+
+        var diff2 = Math.abs(clickAngle - subregions[s].theta2);
+        if (diff2 > Math.PI) diff2 = 2.0 * Math.PI - diff2;
+        if (diff2 < hitThreshold) {
+          draggingEndpoint = { regionIdx: s, endpoint: 2 };
+          break;
+        }
+      }
+
+      // If clicked empty boundary, spawn a new endpoint or trigger chime
+      if (!draggingEndpoint && subregions.length > 0) {
+        subregions[0].theta2 = clickAngle;
+        triggerBesselChime(clickAngle, delta_dim);
+      }
+    }
+  });
+
+  window.addEventListener('pointermove', function(e) {
+    if (!draggingEndpoint) return;
+    var mx = e.clientX - cx;
+    var my = e.clientY - cy;
+    var angle = Math.atan2(my, mx);
+    if (angle < 0) angle += 2.0 * Math.PI;
+
+    var reg = subregions[draggingEndpoint.regionIdx];
+    if (draggingEndpoint.endpoint === 1) reg.theta1 = angle;
+    else reg.theta2 = angle;
+  });
+
+  window.addEventListener('pointerup', function() {
+    if (draggingEndpoint) {
+      var reg = subregions[draggingEndpoint.regionIdx];
+      var ang = (draggingEndpoint.endpoint === 1) ? reg.theta1 : reg.theta2;
+      triggerBesselChime(ang, delta_dim);
+    }
+    draggingEndpoint = null;
+  });
+
+  function renderPoincareDisk(dt) {
+    ctx.clearRect(0, 0, width, height);
+    updateDiskGeometry();
+
+    // ---------------------------------------------------------
+    // A. HYPERBOLIC GRID & CONCENTRIC HOROCYCLES
+    // ---------------------------------------------------------
+    ctx.save();
+    // Hyperbolic distance circles: r_k = tanh(d_k / 2)
+    var horocycleCount = 6;
+    for (var k = 1; k <= horocycleCount; k++) {
+      var dHyperbolic = k * 0.65;
+      var rEuclid = Math.tanh(dHyperbolic * 0.5) * diskR;
+      ctx.beginPath();
+      ctx.arc(cx, cy, rEuclid, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(56, 110, 180, ' + (0.08 + k * 0.02) + ')';
+      ctx.lineWidth = 1.0;
+      ctx.stroke();
+    }
+
+    // Radial geodesics through origin
+    var radialRays = 12;
+    for (var r = 0; r < radialRays; r++) {
+      var rAngle = (r * 2.0 * Math.PI) / radialRays;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + diskR * Math.cos(rAngle), cy + diskR * Math.sin(rAngle));
+      ctx.strokeStyle = 'rgba(56, 110, 180, 0.08)';
+      ctx.lineWidth = 1.0;
+      ctx.stroke();
+    }
+
+    // Outer CFT Boundary Conformal Horizon S^1
+    ctx.beginPath();
+    ctx.arc(cx, cy, diskR, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.7)';
+    ctx.lineWidth = 3.0;
+    ctx.shadowColor = '#00e5ff';
+    ctx.shadowBlur = 14;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // UV Cutoff Boundary
+    var rCutoff = diskR * (1.0 - uv_cutoff);
+    ctx.beginPath();
+    ctx.arc(cx, cy, rCutoff, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.2)';
+    ctx.setLineDash([3, 5]);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // ---------------------------------------------------------
+    // B. HYPERBOLIC FLUX MOTES (PSU(1,1) FLOW)
+    // ---------------------------------------------------------
+    if (!prefersReducedMotion) stepMotes(dt);
+
+    ctx.save();
+    for (var i = 0; i < motes.length; i++) {
+      var m = motes[i];
+      var px = cx + m.x * diskR;
+      var py = cy + m.y * diskR;
+
+      // Colorize by proper distance from origin: d_H = 2 * artanh(|z|)
+      var rNorm = Math.sqrt(m.x * m.x + m.y * m.y);
+      var properDist = 2.0 * Math.atanh(Math.min(0.999, rNorm));
+      var moteHue = 180 + Math.min(140, properDist * 35.0);
+
+      ctx.beginPath();
+      ctx.arc(px, py, m.size, 0, Math.PI * 2);
+      ctx.fillStyle = 'hsla(' + moteHue + ', 95%, 65%, 0.75)';
+      ctx.shadowColor = 'hsla(' + moteHue + ', 95%, 65%, 0.8)';
+      ctx.shadowBlur = 5;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    ctx.restore();
+
+    // ---------------------------------------------------------
+    // C. RYU-TAKAYANAGI MINIMAL GEODESICS & ENTANGLEMENT
+    // ---------------------------------------------------------
+    var totalEntropy = 0.0;
+    var primaryDepth = 0.0;
+
+    for (var s = 0; s < subregions.length; s++) {
+      var reg = subregions[s];
+      var geom = computeRTGeodesic(reg.theta1, reg.theta2);
+      totalEntropy += geom.entropy;
+      if (s === 0) primaryDepth = geom.zStar;
+
+      ctx.save();
+      // Clip to Poincaré disk interior
+      ctx.beginPath();
+      ctx.arc(cx, cy, diskR, 0, Math.PI * 2);
+      ctx.clip();
+
+      // 1. Draw boundary subregion arc A on S^1
+      ctx.beginPath();
+      var startAng = reg.theta1;
+      var endAng = reg.theta2;
+      var antiClockwise = false;
+      var span = endAng - startAng;
+      if (span < 0) span += 2.0 * Math.PI;
+      if (span > Math.PI) antiClockwise = false;
+
+      ctx.arc(cx, cy, diskR, startAng, endAng, antiClockwise);
+      ctx.strokeStyle = 'rgba(0, 230, 118, 0.85)';
+      ctx.lineWidth = 5.0;
+      ctx.shadowColor = '#00e676';
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 2. Draw Bulk Minimal Geodesic Arc gamma_A
+      var circleCx = cx + geom.centerX * diskR;
+      var circleCy = cy + geom.centerY * diskR;
+      var circleR = geom.radius * diskR;
+
+      ctx.beginPath();
+      if (geom.isDiameter) {
+        ctx.moveTo(cx + diskR * Math.cos(reg.theta1), cy + diskR * Math.sin(reg.theta1));
+        ctx.lineTo(cx + diskR * Math.cos(reg.theta2), cy + diskR * Math.sin(reg.theta2));
+      } else {
+        ctx.arc(circleCx, circleCy, circleR, 0, Math.PI * 2);
+      }
+
+      ctx.strokeStyle = 'rgba(0, 230, 118, 0.9)';
+      ctx.lineWidth = 3.2;
+      ctx.shadowColor = '#00e676';
+      ctx.shadowBlur = 16;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 3. Highlight Turning Point z* in the Bulk
+      var tpAngle = geom.midTheta;
+      var tpX = cx + (geom.zStar * diskR) * Math.cos(tpAngle);
+      var tpY = cy + (geom.zStar * diskR) * Math.sin(tpAngle);
+
+      ctx.beginPath();
+      ctx.arc(tpX, tpY, 5.0, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffd54f';
+      ctx.shadowColor = '#ffd54f';
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.restore();
+
+      // 4. Render Boundary Conformal Operator Endpoints
+      var p1x = cx + diskR * Math.cos(reg.theta1);
+      var p1y = cy + diskR * Math.sin(reg.theta1);
+      var p2x = cx + diskR * Math.cos(reg.theta2);
+      var p2y = cy + diskR * Math.sin(reg.theta2);
+
+      ctx.save();
+      // Endpoint 1
+      ctx.beginPath();
+      ctx.arc(p1x, p1y, 7.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#00e5ff';
+      ctx.shadowColor = '#00e5ff';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+
+      // Endpoint 2
+      ctx.beginPath();
+      ctx.arc(p2x, p2y, 7.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#00e676';
+      ctx.shadowColor = '#00e676';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Record Telemetry
+    entropyHistory[historyIndex] = totalEntropy;
+    historyIndex = (historyIndex + 1) % historyLength;
+
+    updateAcousticDynamics(totalEntropy);
+    updateHUD(totalEntropy, primaryDepth);
+  }
+
+  // -------------------------------------------------------------
+  // 5. STRIP CHART (Entanglement Entropy History)
+  // -------------------------------------------------------------
+  var chartCanvas = document.getElementById('strip-chart');
+  var chartCtx = chartCanvas ? chartCanvas.getContext('2d') : null;
+
+  function renderStripChart() {
+    if (!chartCtx) return;
+    var cw = chartCanvas.width;
+    var ch = chartCanvas.height;
+
+    chartCtx.clearRect(0, 0, cw, ch);
+
+    chartCtx.strokeStyle = 'rgba(56, 110, 180, 0.2)';
+    chartCtx.beginPath();
+    chartCtx.moveTo(0, ch * 0.5);
+    chartCtx.lineTo(cw, ch * 0.5);
+    chartCtx.stroke();
+
+    chartCtx.beginPath();
+    for (var i = 0; i < historyLength; i++) {
+      var idx = (historyIndex + i) % historyLength;
+      var val = entropyHistory[idx];
+      var x = (i / (historyLength - 1)) * cw;
+      var y = ch * (1.0 - Math.min(1.0, val * 0.22));
+
+      if (i === 0) chartCtx.moveTo(x, y);
+      else chartCtx.lineTo(x, y);
+    }
+
+    chartCtx.strokeStyle = '#00e676';
+    chartCtx.lineWidth = 2.0;
+    chartCtx.stroke();
+  }
+
+  // -------------------------------------------------------------
+  // 6. HUD TELEMETRY & CONTROLS
+  // -------------------------------------------------------------
+  var dispEntropy = document.getElementById('val-entropy');
+  var dispDepth = document.getElementById('val-depth');
+  var dispCurv = document.getElementById('val-curvature');
+  var dispCharge = document.getElementById('val-charge');
+
+  function updateHUD(entropy, depth) {
+    if (dispEntropy) dispEntropy.textContent = entropy.toFixed(3);
+    if (dispDepth) dispDepth.textContent = depth.toFixed(3) + ' L';
+    if (dispCurv) dispCurv.textContent = '-1.000';
+    if (dispCharge) dispCharge.textContent = central_c.toFixed(2);
+  }
+
+  var sliderDelta = document.getElementById('slider-delta');
+  var sliderGN = document.getElementById('slider-gn');
+  var sliderFlow = document.getElementById('slider-flow');
+  var sliderUV = document.getElementById('slider-uv');
+  var sliderVol = document.getElementById('slider-vol');
+
+  var dispDelta = document.getElementById('disp-delta');
+  var dispGN = document.getElementById('disp-gn');
+  var dispFlow = document.getElementById('disp-flow');
+  var dispUV = document.getElementById('disp-uv');
+  var dispVol = document.getElementById('disp-vol');
+
+  if (sliderDelta) {
+    sliderDelta.addEventListener('input', function() {
+      delta_dim = parseFloat(this.value);
+      if (dispDelta) dispDelta.textContent = delta_dim.toFixed(2);
+    });
+  }
+
+  if (sliderGN) {
+    sliderGN.addEventListener('input', function() {
+      GN = parseFloat(this.value);
+      central_c = (3.0 * 1.0) / (2.0 * GN);
+      if (dispGN) dispGN.textContent = GN.toFixed(2);
+    });
+  }
+
+  if (sliderFlow) {
+    sliderFlow.addEventListener('input', function() {
+      mobius_speed = parseFloat(this.value);
+      if (dispFlow) dispFlow.textContent = mobius_speed.toFixed(2);
+    });
+  }
+
+  if (sliderUV) {
+    sliderUV.addEventListener('input', function() {
+      uv_cutoff = parseFloat(this.value);
+      if (dispUV) dispUV.textContent = uv_cutoff.toFixed(2);
+    });
+  }
+
+  if (sliderVol) {
+    sliderVol.addEventListener('input', function() {
+      master_volume = parseFloat(this.value) / 100.0;
+      if (dispVol) dispVol.textContent = Math.round(this.value) + '%';
+      if (masterGain && audioCtx) {
+        masterGain.gain.setTargetAtTime(master_volume, audioCtx.currentTime, 0.02);
+      }
+    });
+  }
+
+  // Presets
+  document.getElementById('preset-canonical').addEventListener('click', function() {
+    subregions = [{ theta1: 0.85, theta2: 2.85, hue: 185, label: 'A_0' }];
+    mobius_speed = 1.0;
+    if (sliderFlow) sliderFlow.value = 1.0;
+    if (dispFlow) dispFlow.textContent = '1.00';
+  });
+
+  document.getElementById('preset-thermal').addEventListener('click', function() {
+    // BTZ black hole: multiple wide wrapping intervals
+    subregions = [
+      { theta1: 0.2, theta2: 3.1, hue: 185, label: 'A_BTZ' }
+    ];
+    mobius_speed = 0.4;
+    if (sliderFlow) sliderFlow.value = 0.4;
+    if (dispFlow) dispFlow.textContent = '0.40';
+  });
+
+  document.getElementById('preset-tripartite').addEventListener('click', function() {
+    // Tripartite state on boundary
+    subregions = [
+      { theta1: 0.2, theta2: 1.8, hue: 185, label: 'A' },
+      { theta1: 2.2, theta2: 3.9, hue: 140, label: 'B' },
+      { theta1: 4.4, theta2: 5.9, hue: 45, label: 'C' }
+    ];
+  });
+
+  document.getElementById('preset-chaos').addEventListener('click', function() {
+    mobius_speed = 2.8;
+    if (sliderFlow) sliderFlow.value = 2.8;
+    if (dispFlow) dispFlow.textContent = '2.80';
+  });
+
+  // Action Buttons
+  document.getElementById('btn-audio').addEventListener('click', function() {
+    if (!audioCtx) {
+      initAudio();
+    } else if (audioCtx.state === 'suspended') {
+      audioCtx.resume().then(updateAudioHUD);
+    } else if (audioCtx.state === 'running') {
+      audioCtx.suspend().then(updateAudioHUD);
+    }
+  });
+
+  document.getElementById('btn-add-interval').addEventListener('click', function() {
+    var newStart = Math.random() * Math.PI * 1.5;
+    var newEnd = newStart + 1.2 + Math.random() * 1.0;
+    subregions.push({
+      theta1: newStart,
+      theta2: newEnd,
+      hue: Math.floor(Math.random() * 360),
+      label: 'A_' + subregions.length
+    });
+    triggerBesselChime(newStart, delta_dim);
+  });
+
+  document.getElementById('btn-pause').addEventListener('click', function() {
+    is_paused = !is_paused;
+    var icon = document.getElementById('pause-icon');
+    if (icon) icon.textContent = is_paused ? '▶' : '⏸';
+  });
+
+  // -------------------------------------------------------------
+  // 7. MAIN ANIMATION LOOP
+  // -------------------------------------------------------------
+  var lastTime = performance.now();
+
+  function loop(now) {
+    var dt = (now - lastTime) / 1000.0;
+    if (dt > 0.1) dt = 0.1;
+    lastTime = now;
+
+    renderPoincareDisk(dt);
+    renderStripChart();
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

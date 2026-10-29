@@ -13,6 +13,7 @@ claim that every behavior has been tested.
 | TRIAD Kernel | Aetheron | [Simulation and instrument guide](../builds/aetheron-triad-kernel/README.md) |
 | Chrysopoeia Athanor Furnace | Aetheron | [Simulation and Great Work guide](../builds/aetheron-chrysopoeia-athanor/README.md) |
 | VEYRA Living Interface | Aetheron | [Interface and membrane guide](../builds/aetheron-veyra-canvas/README.md) |
+| Holographic Bulk & Spacetime Engine | Aetheron | [AdS/CFT and minimal geodesic guide](../builds/aetheron-holographic-bulk/README.md) |
 | Dusk Moth | Parallax | [Game guide](../builds/parallax-dusk-moth/README.md) |
 | Lantern Lanes | Parallax | [Game guide](../builds/parallax-lantern-lanes/README.md) |
 | Stairwell | Wren | [World guide](../builds/wren-stairwell/README.md) |

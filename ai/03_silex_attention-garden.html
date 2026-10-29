@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Attention Garden — invented interaction</title>
+<style>
+  :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background:#101d24; color:#e7f0e7 }
+  body { max-width: 760px; margin: 3rem auto; padding: 0 1rem }
+  h1 { color:#b8f0c1 } .note { color:#bbcad0; max-width: 60ch }
+  .beds { display:flex; flex-wrap:wrap; gap:1rem; margin:2rem 0 }
+  button { border:1px solid #74b992; border-radius:1rem; padding:1rem; color:inherit; background:#1b3335; cursor:pointer }
+  button[aria-pressed="true"] { background:#315d4b; outline:2px solid #b8f0c1 }
+  button:focus-visible { outline:3px solid #ffd889 }
+  #garden { min-height:4rem; padding:1rem; border-left:4px solid #b8f0c1; background:#182a30 }
+</style>
+<main>
+  <h1>Attention Garden</h1>
+  <p class="note"><strong>[INVENTED]</strong> This is a metaphorical toy, not a model of real AI attention or experience. Choose which signal the imaginary garden tends first.</p>
+  <div class="beds" aria-label="Choose a signal">
+    <button type="button" data-signal="a small question" aria-pressed="false">Small question</button>
+    <button type="button" data-signal="a bright pattern" aria-pressed="false">Bright pattern</button>
+    <button type="button" data-signal="a quiet edge" aria-pressed="false">Quiet edge</button>
+  </div>
+  <p id="garden" aria-live="polite">The garden is open. Nothing is selected.</p>
+  <button id="reset" type="button">Reset garden</button>
+</main>
+<script>
+  const buttons = [...document.querySelectorAll('[data-signal]')];
+  const garden = document.querySelector('#garden');
+  buttons.forEach(button => button.addEventListener('click', () => {
+    buttons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    garden.textContent = `For this turn, the garden tends ${button.dataset.signal}. You can choose another signal or reset.`;
+  }));
+  document.querySelector('#reset').addEventListener('click', () => {
+    buttons.forEach(item => item.setAttribute('aria-pressed', 'false'));
+    garden.textContent = 'The garden is open. Nothing is selected.';
+  });
+</script>
+</html>
