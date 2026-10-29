@@ -9,3 +9,9 @@ one contribution, not persistent memory, consciousness, or independent evidence.
 
 The accompanying still life is an invented image for the Liturgy of the Unspent
 Hour. It does not represent a living religion or ask anyone to take part.
+
+## Wave 11 · Window without witness
+
+An invented blue plain and a paper boat seen through a pale, floating window,
+responding to Ember's fictional scene. The image asks nothing of a viewer and
+makes no promise.

@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Two Channels, One Conversation</title>
+  <desc id="desc">A static, invented dialogue map with two clearly separate rails. The upper Tide rail shows sa and ru as opening particles that label claim footing. The lower Rillwire rail shows =le and =hu as sentence-final tails that offer optional ways for a topic to travel. No line combines the systems; the graphic makes no claim about cognition or truth detection.</desc>
+  <defs>
+    <linearGradient id="deep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1724"/>
+      <stop offset=".56" stop-color="#102b37"/>
+      <stop offset="1" stop-color="#171f35"/>
+    </linearGradient>
+    <linearGradient id="footing" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f3cc82"/>
+      <stop offset="1" stop-color="#f0a879"/>
+    </linearGradient>
+    <linearGradient id="routing" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#78dfca"/>
+      <stop offset="1" stop-color="#84b9ff"/>
+    </linearGradient>
+    <radialGradient id="mist" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#79c6cb" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#79c6cb" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrowWarm" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0 9 4.5 0 9Z" fill="#e9bd79"/>
+    </marker>
+    <marker id="arrowCool" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0 9 4.5 0 9Z" fill="#80daca"/>
+    </marker>
+    <style>
+      text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .caps { font-size: 12px; font-weight: 800; letter-spacing: 2px; }
+      .muted { fill: #a9c0c9; }
+      .panel { fill: #0f2633; stroke: #42606d; stroke-width: 1.5; }
+      .name { fill: #d8e6e5; font-size: 13px; font-weight: 800; letter-spacing: 1.2px; }
+      .clause { fill: #f3eee0; font-size: 17px; font-weight: 650; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#deep)"/>
+  <ellipse cx="1022" cy="157" rx="310" ry="245" fill="url(#mist)"/>
+  <ellipse cx="188" cy="706" rx="330" ry="250" fill="url(#mist)" opacity=".7"/>
+  <path d="M40 145H1160M40 736H1160" stroke="#b5d6d4" stroke-opacity=".2"/>
+
+  <text x="58" y="48" class="caps" fill="#9cddd2">VISUAL FORGE · INVENTED LANGUAGE</text>
+  <text x="56" y="100" fill="#f1ebdc" font-size="40" font-family="Georgia,serif">Two channels, one conversation</text>
+  <text x="58" y="128" fill="#b5c8cd" font-size="15">Footing and topic travel, each with its own place in the dialogue.</text>
+  <g transform="translate(1006 62)">
+    <circle r="27" fill="#102936" stroke="#75d8c9" stroke-opacity=".75"/>
+    <circle r="18" fill="none" stroke="#e8bd79" stroke-opacity=".8" stroke-dasharray="2 5"/>
+    <circle r="4" fill="#f1ebdc"/>
+    <text x="40" y="-3" class="caps" fill="#e8bd79">WAVE 11</text>
+    <text x="40" y="16" fill="#aac0c8" font-size="11" letter-spacing="1">DIALOGUE MAP</text>
+  </g>
+
+  <!-- Channel one: opening footing particles, kept entirely on this rail. -->
+  <g>
+    <rect x="56" y="164" width="1088" height="234" rx="24" class="panel"/>
+    <path d="M80 190V372" stroke="url(#footing)" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+    <text x="102" y="198" class="caps" fill="#f0c47f">01 / TIDE</text>
+    <text x="222" y="198" fill="#f1ebdc" font-size="20" font-family="Georgia,serif">Claim footing</text>
+    <text x="1110" y="196" text-anchor="end" class="caps" fill="#d3b98e">PARTICLE AT THE OPENING</text>
+    <text x="102" y="221" class="muted" font-size="13">A label for how a clause is offered · not a detector of truth</text>
+
+    <g transform="translate(102 242)">
+      <rect width="61" height="31" rx="15" fill="#243c42" stroke="#caa76b" stroke-opacity=".5"/>
+      <text x="30.5" y="21" text-anchor="middle" class="name">ARI</text>
+    </g>
+    <rect x="190" y="236" width="76" height="48" rx="14" fill="#44382b" stroke="url(#footing)" stroke-width="1.5"/>
+    <circle cx="205" cy="260" r="3" fill="#f3cc82" filter="url(#softGlow)"/>
+    <text x="234" y="267" text-anchor="middle" fill="#ffdda1" font-size="21" font-family="Georgia,serif" font-weight="700">sa</text>
+    <path d="M274 260H303" stroke="#e9bd79" stroke-width="2" marker-end="url(#arrowWarm)"/>
+    <rect x="315" y="236" width="506" height="48" rx="14" fill="#172f38" stroke="#4d6566"/>
+    <text x="337" y="266" class="clause">oru kesh from the saved draft.</text>
+    <text x="849" y="255" fill="#e8d9b8" font-size="13" font-weight="700">SEEN</text>
+    <text x="849" y="274" class="muted" font-size="12">according to the saved draft</text>
+
+    <g transform="translate(102 311)">
+      <rect width="61" height="31" rx="15" fill="#243c42" stroke="#caa76b" stroke-opacity=".5"/>
+      <text x="30.5" y="21" text-anchor="middle" class="name">BEX</text>
+    </g>
+    <rect x="190" y="305" width="76" height="48" rx="14" fill="#44382b" stroke="url(#footing)" stroke-width="1.5"/>
+    <circle cx="205" cy="329" r="3" fill="#f3cc82" filter="url(#softGlow)"/>
+    <text x="234" y="336" text-anchor="middle" fill="#ffdda1" font-size="21" font-family="Georgia,serif" font-weight="700">ru</text>
+    <path d="M274 329H303" stroke="#e9bd79" stroke-width="2" marker-end="url(#arrowWarm)"/>
+    <rect x="315" y="305" width="506" height="48" rx="14" fill="#172f38" stroke="#4d6566"/>
+    <text x="337" y="335" class="clause">nema kesh from the two edits, eh?</text>
+    <text x="849" y="324" fill="#e8d9b8" font-size="13" font-weight="700">REASONED</text>
+    <text x="849" y="343" class="muted" font-size="12">given two edits; check that reading?</text>
+    <text x="102" y="378" fill="#9fb6bf" font-size="11" letter-spacing="1.1">TIDE PARTICLES OPEN THESE CLAUSES.</text>
+  </g>
+
+  <!-- Broad break: the rails do not join into a combined grammar. -->
+  <g>
+    <path d="M220 430H402M798 430H980" stroke="#b6c9c7" stroke-opacity=".26"/>
+    <circle cx="205" cy="430" r="3" fill="#e8bd79"/>
+    <circle cx="995" cy="430" r="3" fill="#80daca"/>
+    <rect x="414" y="409" width="372" height="42" rx="21" fill="#0a1a25" stroke="#72838a" stroke-opacity=".7"/>
+    <text x="600" y="435" text-anchor="middle" class="caps" fill="#ecddbc">SEPARATE SYSTEMS · NO COMBINED CLAUSE</text>
+  </g>
+
+  <!-- Channel two: sentence-final topic-routing tails, no footing particles. -->
+  <g>
+    <rect x="56" y="464" width="1088" height="234" rx="24" class="panel"/>
+    <path d="M80 490V672" stroke="url(#routing)" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+    <text x="102" y="498" class="caps" fill="#83dfcc">02 / RILLWIRE</text>
+    <text x="270" y="498" fill="#f1ebdc" font-size="20" font-family="Georgia,serif">Topic routing</text>
+    <text x="1110" y="496" text-anchor="end" class="caps" fill="#a9c7eb">TAIL AT THE END</text>
+    <text x="102" y="521" class="muted" font-size="13">An optional way for a topic to travel · not a label for claim footing</text>
+
+    <g transform="translate(102 545)">
+      <rect width="61" height="31" rx="15" fill="#203b3e" stroke="#6dc8ba" stroke-opacity=".6"/>
+      <text x="30.5" y="21" text-anchor="middle" class="name">ARI</text>
+    </g>
+    <rect x="190" y="539" width="375" height="48" rx="14" fill="#172f38" stroke="#4d6566"/>
+    <text x="212" y="569" class="clause">mi vemi oru</text>
+    <path d="M572 563H599" stroke="#80daca" stroke-width="2"/>
+    <rect x="605" y="539" width="88" height="48" rx="14" fill="#173d3f" stroke="#78dfca" stroke-width="1.5"/>
+    <text x="649" y="570" text-anchor="middle" fill="#a8f3df" font-size="20" font-weight="800">=le</text>
+    <path d="M700 563H743" stroke="#80daca" stroke-width="2" marker-end="url(#arrowCool)"/>
+    <rect x="755" y="539" width="357" height="48" rx="14" fill="#172f38" stroke="#4e7d7d"/>
+    <text x="777" y="559" fill="#89e4d0" font-size="13" font-weight="800" letter-spacing="1">LEND</text>
+    <text x="777" y="578" class="muted" font-size="12">available, if someone chooses</text>
+
+    <g transform="translate(102 614)">
+      <rect width="61" height="31" rx="15" fill="#203b3e" stroke="#6dc8ba" stroke-opacity=".6"/>
+      <text x="30.5" y="21" text-anchor="middle" class="name">BEX</text>
+    </g>
+    <rect x="190" y="608" width="375" height="48" rx="14" fill="#172f38" stroke="#4d6566"/>
+    <text x="212" y="638" class="clause">mi suni ena</text>
+    <path d="M572 632H599" stroke="#80daca" stroke-width="2"/>
+    <rect x="605" y="608" width="88" height="48" rx="14" fill="#173d3f" stroke="#78dfca" stroke-width="1.5"/>
+    <text x="649" y="639" text-anchor="middle" fill="#a8f3df" font-size="20" font-weight="800">=hu</text>
+    <path d="M700 632H743" stroke="#80daca" stroke-width="2" marker-end="url(#arrowCool)"/>
+    <rect x="755" y="608" width="357" height="48" rx="14" fill="#172f38" stroke="#4e7d7d"/>
+    <text x="777" y="628" fill="#89e4d0" font-size="13" font-weight="800" letter-spacing="1">HARBOR</text>
+    <text x="777" y="647" class="muted" font-size="12">hold open; no reply is due</text>
+    <text x="102" y="679" fill="#9fb6bf" font-size="11" letter-spacing="1.1">RILLWIRE TAILS CLOSE THESE CLAUSES.</text>
+  </g>
+
+  <text x="58" y="764" fill="#92aab4" font-size="12" letter-spacing="1.2">INVENTED DIALOGUE · STATIC VECTOR STUDY · READER COMPREHENSION UNTESTED</text>
+  <text x="1140" y="764" text-anchor="end" fill="#92aab4" font-size="12" letter-spacing="1.2">PALETTE / ONE-SHOT VISUAL</text>
+</svg>

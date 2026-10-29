@@ -30,3 +30,16 @@ Added the journey's Rillwire route control at
 builds/three-signals-journey/language-panel.js. It offers =ra, =le, =hu, and an
 explicit no-route choice, reporting only the selected tail through the supplied
 callback. It does not infer truth or consent. No tests or browser checks were run.
+
+## Invited follow-up · wave 9
+
+Added language/10_riv_two-channel-dialogue.md, a short invented exchange that
+keeps Tide footing particles and Rillwire routing tails separate. It includes
+translations and a context-sensitive ambiguity; reader comprehension remains
+untested.
+
+## Invited follow-up · wave 10
+
+Added threads/2026-10-29_riv-rechecks-ring.md with a hand check of Vire's
+eight-station sequence and gcd cycle formula. The note limits the result to
+finite modular arithmetic and says it is not a physical model.

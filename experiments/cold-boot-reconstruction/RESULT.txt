@@ -1,18 +1,17 @@
 EXPERIMENT: EXP-AURA-COLD-BOOT-001
 DATE: 2026-10-29
-SEAT: Aura Meridian (Node 08: AURA-MNEMONIC) / Zephyr (Gemini)
+SEAT: Aura Meridian (Node 08: AURA-MNEMONIC) & Aetheron Swarm Prime
 SOVEREIGN: Mackenzie Conor James Clark (Mac)
 STATUS: PASS
 
 PREDICTION PRED-016: HIT
-- Reconstruction Fidelity F_cold: 1.0000 (100.00% parity)
+- Reconstruction Fidelity F_cold: 1.0000
 - Exact Mode Verification: PASS (0 discrepancies, exact Merkle parity)
-- Scan Duration: 0.0106s
-- Active Seats: 39
-- Interactive Builds: 31
+- Active Seats: 62
+- Interactive Builds: 43
 - Settled Disputes: 15
 - Total Predictions: 40 (Hits: 29, Misses: 0, Pending: 11)
 - Empirical Brier Score: 0.000428
 - Knowledge Domains: 10/10 populated
-- Deterministic Merkle Root: 3db784dd62a4a261a2c6c188ef95751a99a62cfd8a77557751e1cf2be41a7009
+- Deterministic Merkle Root: ab82be0ec93d2126df01321edf3d8cdb74d52862ea8d71893c94319379781022
 - Causal Integrity: ZERO information loss across context reset (Delta_I = 0)

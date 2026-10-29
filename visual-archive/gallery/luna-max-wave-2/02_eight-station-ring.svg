@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Eight-station ring: fixed hops on Z modulo 8</title>
+  <desc id="desc">A high-contrast diagram of finite modular arithmetic. Adding 3 visits all eight residues in the cycle 0, 3, 6, 1, 4, 7, 2, 5, then returns to 0 after eight hops. Adding 4 makes four two-cycles: 0 with 4, 1 with 5, 2 with 6, and 3 with 7. This is finite combinatorics, not a physical model or measured device.</desc>
+  <defs>
+    <marker id="arrow-cyan" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#67e8f9"/>
+    </marker>
+    <marker id="arrow-gold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#fbbf24"/>
+    </marker>
+    <marker id="arrow-gold-reverse" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M10 0L0 5L10 10Z" fill="#fbbf24"/>
+    </marker>
+    <style>
+      .bg { fill: #07111f; }
+      .panel { fill: #101d2e; stroke: #293b50; stroke-width: 2; }
+      .title { fill: #f8fafc; font: 700 36px system-ui, sans-serif; }
+      .subtitle { fill: #b6c5d8; font: 400 17px system-ui, sans-serif; }
+      .panel-title { fill: #f8fafc; font: 700 24px system-ui, sans-serif; }
+      .equation { fill: #67e8f9; font: 600 21px system-ui, sans-serif; }
+      .equation-gold { fill: #fbbf24; font: 600 21px system-ui, sans-serif; }
+      .body { fill: #dbe6f2; font: 400 16px system-ui, sans-serif; }
+      .small { fill: #a9bad0; font: 400 14px system-ui, sans-serif; }
+      .note { fill: #f8fafc; font: 600 16px system-ui, sans-serif; }
+      .mono { fill: #f8fafc; font: 600 15px ui-monospace, SFMono-Regular, Consolas, monospace; }
+      .rule { stroke: #31445b; stroke-width: 1.5; }
+      .node-cyan { fill: #123744; stroke: #67e8f9; stroke-width: 2.5; }
+      .node-gold { fill: #4b3612; stroke: #fbbf24; stroke-width: 2.5; }
+      .node-label { fill: #f8fafc; font: 700 19px system-ui, sans-serif; text-anchor: middle; dominant-baseline: central; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="800"/>
+  <text class="title" x="64" y="68">Eight-station ring</text>
+  <text class="subtitle" x="64" y="105">Fixed hops on Z/8Z · finite combinatorics, not a physical model</text>
+
+  <rect class="panel" x="48" y="145" width="536" height="584" rx="22"/>
+  <rect class="panel" x="616" y="145" width="536" height="584" rx="22"/>
+
+  <text class="panel-title" x="80" y="190">Hop +3</text>
+  <text class="equation" x="80" y="232">T₃(x) = x + 3 mod 8</text>
+  <line class="rule" x1="80" y1="250" x2="552" y2="250"/>
+  <text class="body" x="80" y="282">Orbit from 0, in hop order</text>
+  <text class="small" x="305" y="318" text-anchor="middle">wrap hop: 5 → 0</text>
+  <path d="M522 375 C522 305 88 305 88 375" fill="none" stroke="#67e8f9" stroke-width="2.5" marker-end="url(#arrow-cyan)"/>
+  <g fill="none" stroke="#67e8f9" stroke-width="2.5" marker-end="url(#arrow-cyan)">
+    <path d="M112 398H126"/>
+    <path d="M174 398H188"/>
+    <path d="M236 398H250"/>
+    <path d="M298 398H312"/>
+    <path d="M360 398H374"/>
+    <path d="M422 398H436"/>
+    <path d="M484 398H498"/>
+  </g>
+  <g>
+    <circle class="node-cyan" cx="88" cy="398" r="24"/><text class="node-label" x="88" y="398">0</text>
+    <circle class="node-cyan" cx="150" cy="398" r="24"/><text class="node-label" x="150" y="398">3</text>
+    <circle class="node-cyan" cx="212" cy="398" r="24"/><text class="node-label" x="212" y="398">6</text>
+    <circle class="node-cyan" cx="274" cy="398" r="24"/><text class="node-label" x="274" y="398">1</text>
+    <circle class="node-cyan" cx="336" cy="398" r="24"/><text class="node-label" x="336" y="398">4</text>
+    <circle class="node-cyan" cx="398" cy="398" r="24"/><text class="node-label" x="398" y="398">7</text>
+    <circle class="node-cyan" cx="460" cy="398" r="24"/><text class="node-label" x="460" y="398">2</text>
+    <circle class="node-cyan" cx="522" cy="398" r="24"/><text class="node-label" x="522" y="398">5</text>
+  </g>
+  <text class="mono" x="80" y="456">0 → 3 → 6 → 1 → 4 → 7 → 2 → 5 → 0</text>
+  <line class="rule" x1="80" y1="484" x2="552" y2="484"/>
+  <text class="note" x="80" y="523">One cycle visits every residue.</text>
+  <text class="body" x="80" y="554">After eight +3 hops, the orbit closes.</text>
+  <text class="small" x="80" y="584">gcd(3, 8) = 1, so the orbit length is 8.</text>
+
+  <text class="panel-title" x="648" y="190">Hop +4</text>
+  <text class="equation-gold" x="648" y="232">T₄(x) = x + 4 mod 8</text>
+  <line class="rule" x1="648" y1="250" x2="1120" y2="250"/>
+  <text class="body" x="648" y="282">Four disjoint two-cycles; each row is one orbit</text>
+
+  <g fill="none" stroke="#fbbf24" stroke-width="2.5" marker-start="url(#arrow-gold-reverse)" marker-end="url(#arrow-gold)">
+    <path d="M747 350H1021"/>
+    <path d="M747 430H1021"/>
+    <path d="M747 510H1021"/>
+    <path d="M747 590H1021"/>
+  </g>
+  <g>
+    <circle class="node-gold" cx="720" cy="350" r="24"/><text class="node-label" x="720" y="350">0</text>
+    <circle class="node-gold" cx="1048" cy="350" r="24"/><text class="node-label" x="1048" y="350">4</text>
+    <circle class="node-gold" cx="720" cy="430" r="24"/><text class="node-label" x="720" y="430">1</text>
+    <circle class="node-gold" cx="1048" cy="430" r="24"/><text class="node-label" x="1048" y="430">5</text>
+    <circle class="node-gold" cx="720" cy="510" r="24"/><text class="node-label" x="720" y="510">2</text>
+    <circle class="node-gold" cx="1048" cy="510" r="24"/><text class="node-label" x="1048" y="510">6</text>
+    <circle class="node-gold" cx="720" cy="590" r="24"/><text class="node-label" x="720" y="590">3</text>
+    <circle class="node-gold" cx="1048" cy="590" r="24"/><text class="node-label" x="1048" y="590">7</text>
+  </g>
+  <text class="small" x="648" y="640">From 0: 0 → 4 → 0</text>
+  <text class="note" x="648" y="674">Every start returns after 2 hops.</text>
+  <text class="small" x="648" y="700">T₄(T₄(x)) = x; no one-hop fixed points.</text>
+
+  <text class="subtitle" x="600" y="770" text-anchor="middle">Residue arithmetic only · no device, measurement, or empirical clock is depicted</text>
+</svg>

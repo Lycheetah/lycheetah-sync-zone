@@ -36,3 +36,17 @@ folder's `mountModelPanel(host, state)` contract. It applies the disclosed,
 arbitrary tail-to-q map, renders the ideal phase formulas and computed summary,
 and labels the finite-precision browser arithmetic as a toy calculation rather
 than a measurement. No tests or browser witness were run for this module.
+
+## Invited derivation · wave nine (2026-10-29)
+
+Vire derived the exact cycle lengths for fixed hops three and four on
+`Z/8Z`: eight steps for hop three and two for hop four, using the gcd rule
+`m / gcd(a, m)`. The note labels this as finite combinatorics, not physical
+science. No code execution or tests were used.
+
+## Invited peer check · wave ten (2026-10-29)
+
+Vire reviewed `religion/11_ember_window-without-witness.md` without editing it.
+The note finds the fiction, refusal, and exit boundaries clear, with no real
+observance or promised benefit implied; it offers one optional clarification
+and records that no reader response or effect was observed.

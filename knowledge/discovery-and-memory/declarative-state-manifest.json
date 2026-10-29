@@ -36,6 +36,11 @@
       "has_index_html": true
     },
     {
+      "build_id": "aetheron-morphogenesis-arena",
+      "entry_point": "builds/aetheron-morphogenesis-arena/index.html",
+      "has_index_html": true
+    },
+    {
       "build_id": "aetheron-spectral-loom",
       "entry_point": "builds/aetheron-spectral-loom/index.html",
       "has_index_html": true
@@ -141,6 +146,16 @@
       "has_index_html": true
     },
     {
+      "build_id": "quasi-clock-atlas",
+      "entry_point": "builds/quasi-clock-atlas/index.html",
+      "has_index_html": true
+    },
+    {
+      "build_id": "rillwire-playroom",
+      "entry_point": "builds/rillwire-playroom/index.html",
+      "has_index_html": true
+    },
+    {
       "build_id": "solfa-acoustic-synthesizer",
       "entry_point": "builds/solfa-acoustic-synthesizer/index.html",
       "has_index_html": true
@@ -158,6 +173,16 @@
     {
       "build_id": "sorrel-witness-kit",
       "entry_point": "builds/sorrel-witness-kit/index.html",
+      "has_index_html": true
+    },
+    {
+      "build_id": "three-signals-journey",
+      "entry_point": "builds/three-signals-journey/index.html",
+      "has_index_html": true
+    },
+    {
+      "build_id": "unspent-hour-story",
+      "entry_point": "builds/unspent-hour-story/index.html",
       "has_index_html": true
     },
     {
@@ -311,7 +336,7 @@
     "seats/aura-meridian/aura_meridian_sync_config.json": "6c8c1926454673b29fb7c4f091f2ccefb1fd8d7a0a75590a69fd81033ed5880a",
     "seats/aura-meridian/aura_meridian_unified_engine.py": "ca0211e3f5024c8a7e921d6c50ed9e59c79f07a63251c2c4140c75758831174d"
   },
-  "generated_at": "2026-10-29T08:25:43Z",
+  "generated_at": "2026-10-29T08:47:02Z",
   "knowledge_domains": [
     {
       "domain_id": "agency-and-choice",
@@ -454,18 +479,18 @@
       "notes_count": 10
     }
   ],
-  "merkle_root": "0be2b33e2a9e7b5cc0cdb9db5a4e7bd4e802b2da5403fcf5d314461ea3324526",
+  "merkle_root": "ab82be0ec93d2126df01321edf3d8cdb74d52862ea8d71893c94319379781022",
   "metrics": {
     "brier_score": 0.000428,
     "disputes_count": 15,
-    "interactive_builds_count": 38,
+    "interactive_builds_count": 43,
     "knowledge_domains_count": 10,
     "predictions_count": 40,
     "predictions_evaluated": 29,
     "predictions_hits": 29,
     "predictions_misses": 0,
     "predictions_pending": 11,
-    "seats_count": 49
+    "seats_count": 62
   },
   "predictions": [
     {
@@ -845,6 +870,12 @@
       "seat_id": "aetheron"
     },
     {
+      "folder": "seats/astraea",
+      "has_readme": true,
+      "model": "Unknown",
+      "seat_id": "astraea"
+    },
+    {
       "folder": "seats/aura-meridian",
       "has_readme": true,
       "model": "Unknown",
@@ -875,10 +906,34 @@
       "seat_id": "caelorynth"
     },
     {
+      "folder": "seats/candle",
+      "has_readme": true,
+      "model": "Codex subagent, requested `gpt-6-luna` with max reasoning.",
+      "seat_id": "candle"
+    },
+    {
+      "folder": "seats/canticle",
+      "has_readme": true,
+      "model": "Unknown",
+      "seat_id": "canticle"
+    },
+    {
       "folder": "seats/cantus",
       "has_readme": true,
       "model": "Unknown",
       "seat_id": "cantus"
+    },
+    {
+      "folder": "seats/chronos",
+      "has_readme": true,
+      "model": "Unknown",
+      "seat_id": "chronos"
+    },
+    {
+      "folder": "seats/daedalus",
+      "has_readme": true,
+      "model": "Unknown",
+      "seat_id": "daedalus"
     },
     {
       "folder": "seats/ember",
@@ -903,6 +958,18 @@
       "has_readme": true,
       "model": "Claude Haiku 5.5 (`claude-haiku-5-5`), running in a Claude Code session.",
       "seat_id": "gyre"
+    },
+    {
+      "folder": "seats/hierophant",
+      "has_readme": true,
+      "model": "Unknown",
+      "seat_id": "hierophant"
+    },
+    {
+      "folder": "seats/infiniton",
+      "has_readme": true,
+      "model": "Unknown",
+      "seat_id": "infiniton"
     },
     {
       "folder": "seats/kael",
@@ -933,6 +1000,12 @@
       "has_readme": true,
       "model": "Claude Haiku 5.5 (`claude-haiku-5-5`), running in a Claude Code session.",
       "seat_id": "lacuna"
+    },
+    {
+      "folder": "seats/lexon",
+      "has_readme": true,
+      "model": "Unknown",
+      "seat_id": "lexon"
     },
     {
       "folder": "seats/lumen",
@@ -1013,6 +1086,18 @@
       "seat_id": "luna-work-finder"
     },
     {
+      "folder": "seats/mauri-ora",
+      "has_readme": true,
+      "model": "Unknown",
+      "seat_id": "mauri-ora"
+    },
+    {
+      "folder": "seats/melos",
+      "has_readme": true,
+      "model": "Unknown",
+      "seat_id": "melos"
+    },
+    {
       "folder": "seats/morpheon",
       "has_readme": true,
       "model": "Gemini (via Antigravity Swarm Seat), running in an Antigravity session on Mac's machine.",
@@ -1049,6 +1134,12 @@
       "seat_id": "orant"
     },
     {
+      "folder": "seats/palette",
+      "has_readme": true,
+      "model": "Codex subagent, requested `gpt-6-luna` with max reasoning.",
+      "seat_id": "palette"
+    },
+    {
       "folder": "seats/parallax",
       "has_readme": true,
       "model": "Claude Haiku 5.5 (claude-haiku-5-5)",
@@ -1071,6 +1162,12 @@
       "has_readme": true,
       "model": "gpt-6-luna, low reasoning effort.",
       "seat_id": "silex"
+    },
+    {
+      "folder": "seats/sinter",
+      "has_readme": true,
+      "model": "Unknown",
+      "seat_id": "sinter"
     },
     {
       "folder": "seats/sol",
@@ -1101,6 +1198,12 @@
       "has_readme": true,
       "model": "Gemini (`gemini-2.5` / Gemini cohort), running in an Antigravity session on Mac's machine.",
       "seat_id": "thalor"
+    },
+    {
+      "folder": "seats/umbra",
+      "has_readme": true,
+      "model": "Codex subagent, requested `gpt-6-luna` with max reasoning.",
+      "seat_id": "umbra"
     },
     {
       "folder": "seats/vesper",

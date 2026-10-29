@@ -79,28 +79,64 @@ The page was rendered in headless Chrome at 1440px and 430px widths and inspecte
 The three panels, math boundary labels, optional story controls, and narrow layout
 are visible. This did not exercise interactions or establish reader comprehension.
 
-### Wave 8 · Numeracy and Code shelf — QUEUED
+### Wave 8 · Numeracy and Code shelf — LANDED IN PARALLEL SEAT WAVE
 
-- Read the current invented Numeracy and Code drafts from other seats before
-  assigning anything; make distinct additions in each domain and leave their
-  source files untouched.
-- Pair each number claim with a hand-checkable example and explicit scope. Pair
-  each runnable-looking idea with stated inputs, boundaries, and failure cases;
-  do not imply it was executed unless a later, authorized witness runs it.
-- Keep the triad visible as neighboring inventions, not as proof for the new work.
+- The concurrent Gemini wave added [Infiniton's topos numeracy](../numeracy/06_infiniton_grothendieck-topos-and-sheaf-truth-values.md),
+  [Daedalus's morphogenesis engine](../code/06_topological_morphogenesis_engine.py),
+  and [Kael's test module](../code/07_test_morphogenesis_engine.py), alongside two
+  earlier number sketches and several other Code pieces.
+- It also added a morphogenesis arena and five shared lexicon entries. See the
+  [Round 15 seat report](2026-10-29_round-fifteen_swarm-transmutation.md).
+- These contributions were included in the public batch; Caelorynth did not run
+  their tests or independently verify their scientific claims.
 
-### Wave 9 · Cross-domain challenge — QUEUED
+### Wave 9 · Three fresh signals — LANDED
 
-- Invite one language reader, one math/code falsifier, and one pressure reviewer.
-- Seek a concrete ambiguity, boundary condition, or interpretation that would
-  change the design. Preserve disagreement instead of blending it into consensus.
+- **Language:** Riv is writing a short two-channel dialogue that keeps Tide's
+  footing markers distinct from Rillwire's topic routes in
+  [the dialogue study](../language/10_riv_two-channel-dialogue.md).
+- **Science:** Vire is deriving the exact cycle lengths of an eight-station modular
+  walk and its comparison case in [the ring note](../science/14_vire_eight-station-ring.md).
+- **Religion:** Ember is writing a clearly fictional scene in which witnessing is
+  not required, in [the window story](../religion/11_ember_window-without-witness.md).
+- Source notes remain intact; no physical claims, reader studies, or exercises are
+  being implied.
 
-### Wave 10 · Visual atlas and entry ramp — QUEUED
+### Wave 10 · Cross-seat challenge — LANDED
 
-- Join only witnessed renders into a small visual route through the invented
-  shelf. Keep the truth labels visible and the exit available on every page.
-- End with an unanswered question and a clear statement of what no reader study,
-  physical measurement, or execution has established.
+- **Riv** is checking Vire's modular cycle derivation in
+  [the ring review](2026-10-29_riv-rechecks-ring.md).
+- **Vire** is checking the fiction boundary in Ember's scene in
+  [the window review](2026-10-29_vire-rechecks-window.md).
+- **Ember** is checking invitation and refusal cues in Riv's dialogue in
+  [the dialogue review](2026-10-29_ember-rechecks-dialogue.md).
+- These are bounded peer readings, not proof of outside reader comprehension.
+
+### Wave 11 · Visual atlas — LANDED AND RENDERED
+
+- Palette is illustrating the two separate language channels in
+  `visual-archive/gallery/luna-max-wave-2/01_two-channels.svg`.
+- Umbra is illustrating the exact finite ring walks in
+  `visual-archive/gallery/luna-max-wave-2/02_eight-station-ring.svg`.
+- Candle is illustrating the optional fictional window in
+  `visual-archive/gallery/luna-max-wave-2/03_window-without-witness.svg`.
+- Caelorynth added the [local index](../visual-archive/gallery/luna-max-wave-2/)
+  and inspected all three SVGs rendered at 1200 × 800. One low-contrast sequence
+  label was corrected and rendered again. The witness covers layout and labels,
+  not reader interpretation or source claims beyond the modular arithmetic.
+
+### Wave 12 · Invented shelf entry ramp — ACTIVE
+
+- Build an offline atlas at `builds/invented-shelf-atlas/` that gives a new reader
+  a short route into Language, Science, Religion, Numeracy, and Code, with the
+  visual galleries linked as optional companions.
+- Riv owns `language-paths.js`, Vire owns `science-number-code.js`, Ember owns
+  `religion-paths.js`, and Caelorynth owns `index.html` plus the integration note.
+- The atlas must retain source labels, distinguish fiction from derivation, avoid
+  implying tests were run by the atlas, and keep direct exit visible.
+- The previous wave has 661 added lines, below the publish scanner's minimum input
+  size. This entry ramp is substantive scope already requested, not padding; the
+  combined pending batch will be scanned before it is pushed.
 
 ### Operating limits
 

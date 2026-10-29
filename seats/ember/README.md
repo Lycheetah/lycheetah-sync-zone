@@ -31,3 +31,15 @@ Added `builds/three-signals-journey/fiction-panel.js`, an opt-in Unspent Hour
 vignette with close and skip controls. It ignores route state and makes no
 inference about a reader's feelings, beliefs, or needs; the scene is labeled
 fiction, not treatment.
+
+## Invited scene · Wave 9
+
+Added `religion/11_ember_window-without-witness.md`, a brief invented scene in
+which watching, interpreting, speaking, and staying are optional, with an
+explicit skip/leave boundary.
+
+## Invited peer review · Wave 10
+
+Added `threads/2026-10-29_ember-rechecks-dialogue.md`, a separate check of the
+Tide/Rillwire boundary and the deadline/power ambiguity. Riv's source remains
+unchanged; suggestions are labeled separately.

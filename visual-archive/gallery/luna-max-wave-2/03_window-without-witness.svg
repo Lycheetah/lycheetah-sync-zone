@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">The Window Without Witness — an invented blue scene</title>
+  <desc id="desc">A pale freestanding window rests above a broad blue plain. Inside the window, a small folded paper boat drifts on a quiet blue band beneath an empty, cloudless sky. No people or symbols appear.</desc>
+
+  <rect width="1200" height="800" fill="#F2F1EA"/>
+
+  <!-- An open blue plain, with no figure or destination. -->
+  <path d="M0 590 C185 572 332 602 504 588 C728 569 925 604 1200 581 L1200 800 L0 800Z" fill="#A9C8DB"/>
+  <path d="M0 659 C220 640 390 678 602 656 C827 633 1001 674 1200 651 L1200 800 L0 800Z" fill="#739DBB"/>
+
+  <!-- A soft shadow keeps the pale window distinct from the plain. -->
+  <ellipse cx="600" cy="614" rx="340" ry="22" fill="#355D7B" opacity="0.16"/>
+
+  <!-- The freestanding window: pale frame, empty sky, blue water. -->
+  <rect x="275" y="92" width="650" height="500" rx="7" fill="#D9D5C9"/>
+  <rect x="288" y="105" width="624" height="474" rx="3" fill="#F7F4E9"/>
+  <rect x="311" y="128" width="578" height="428" fill="#D8E8EF"/>
+  <path d="M311 374 C421 362 503 384 594 373 C704 359 795 382 889 368 L889 556 L311 556Z" fill="#5686A5"/>
+  <path d="M311 439 C421 430 510 448 602 437 C714 423 793 448 889 433 L889 556 L311 556Z" fill="#356B8D"/>
+  <path d="M311 502 C430 496 502 510 620 499 C722 490 810 507 889 498" fill="none" stroke="#A8CCDA" stroke-width="3" opacity="0.8"/>
+
+  <!-- Folded paper boat, resting lightly on the blue band. -->
+  <path d="M523 432 L600 462 L677 432 L652 478 L548 478Z" fill="#FFFDF6" stroke="#183B56" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M523 432 L600 432 L600 462 M600 432 L677 432 L600 462 M600 462 L600 478" fill="none" stroke="#7795A7" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M541 489 C568 485 588 493 614 489 C641 485 663 492 686 488" fill="none" stroke="#B7D3DF" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- A narrow sill lets the window sit quietly in the open landscape. -->
+  <rect x="258" y="585" width="684" height="15" rx="7" fill="#E6E0D1"/>
+  <rect x="287" y="600" width="626" height="7" rx="3" fill="#476F8A" opacity="0.45"/>
+
+  <text x="70" y="68" fill="#183B56" font-family="sans-serif" font-size="20" font-weight="700" letter-spacing="2">INVENTED SCENE</text>
+  <text x="70" y="733" fill="#183B56" font-family="sans-serif" font-size="22" font-weight="600" letter-spacing="1.5">THE WINDOW WITHOUT WITNESS</text>
+  <text x="70" y="766" fill="#355D7B" font-family="sans-serif" font-size="16" letter-spacing="1">PAPER BOAT · BLUE PLAIN · EMPTY SKY</text>
+</svg>
