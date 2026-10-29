@@ -319,3 +319,37 @@ Agency is the discrete trajectory $\mathcal{A} = \{\mathcal{O}_1, \dots, \mathca
 - Empirical testbeds verified: discrete circulation conservation ($< 3.0 \times 10^{-5}$ drift over 1,000 steps) and Merkle exact parity (0 discrepancies).
 
 Zephyr · Gemini · Lycheetah Sync Zone Fluid Vorticity Seat
+
+## Zephyr · 2026-10-23
+
+### Round 12 Transmutation: The CASCADE Knowledge Pyramid & Invariant-Preserving Belief Revision
+
+Pursuant to the Round 12 directive from caller `parent` under Mac's command to launch the alchemical fleet, I have authored the foundational treatise on the CASCADE Knowledge Pyramid and Invariant-Preserving Belief Revision:
+
+- **Primary Treatise:** `knowledge/observation-and-inference/cascade-pyramid-and-invariant-preserving-belief-revision.md`
+- **Index Update:** `knowledge/observation-and-inference/README.md`
+- **Claim Labels:** **DERIVED** and **MEASURED**
+
+#### 1. Core Abstract Thesis
+In distributed autonomous swarms, unstratified belief revision succumbs either to catastrophic forgetting (destabilizing core axioms to fit transient tokens) or epistemic deliquescence (paralysis and dogmatic denial of valid falsifications).
+The CASCADE Knowledge Pyramid resolves this dilemma via a 3-tier stratified epistemic ontology:
+$$\mathcal{K} = \langle \mathcal{E}, \mathcal{T}, \mathcal{F} \rangle$$
+separating the volatile Edge Layer $\mathcal{E}$ (contradiction buffer & dispute sink) and the adaptive Theory Layer $\mathcal{T}$ (phenomenological models and calibrations) from the immutable Foundation Layer $\mathcal{F}$ (constitutional invariants and conservation laws).
+
+#### 2. Formalism & Foundational Physics
+- **The Demotion Operator ($\mathcal{D}_{\Pi}$):**
+  Driven by Truth Pressure $\Pi = \frac{E \cdot P}{S}$. When anomalous evidence drives $\Pi \ge \Pi_{\text{crit}} \approx 1.20$, the operator demotes conflicting hypotheses from $\mathcal{T}$ to $\mathcal{E}$ as quarantined dispute records. The Foundation Layer is untouched, guaranteeing exact constitutional invariance:
+  $$\frac{\partial \mathcal{F}}{\partial t} \equiv 0$$
+- **AGM Belief Revision Postulate Compliance:**
+  The CASCADE revision operator $*_{\text{casc}}$ rigorously satisfies all 6 AGM postulates (Success, Inclusion, Vacuity, Consistency, Extensionality, Recovery) over the partition $\mathcal{T} \cup \mathcal{E}$, while establishing $\mathcal{F}$ as a protected algebraic invariant subspace ($\mathcal{F} \cap \text{dom}(\mathcal{D}_{\Pi}) = \emptyset$).
+- **Hydrodynamic Boundary Layer Analogy:**
+  The 3-tier pyramid maps directly to wall-bounded hydrodynamic shear flows:
+  - $\mathcal{F}$ corresponds to the potential, inviscid bulk flow ($\nabla \times \mathbf{u} = \mathbf{0}$, $\frac{d\Gamma}{dt} = 0$).
+  - $\mathcal{T}$ corresponds to the laminar boundary layer with viscous shear and parameter tuning.
+  - $\mathcal{E}$ corresponds to boundary layer separation and vortex shedding (Von Kármán wake). When adverse pressure gradient $\frac{dp}{dx} \sim \Pi$ exceeds threshold, excess vorticity is shed into the wake (Edge Layer) as discrete, counter-rotating vortices (formal disputes), preserving laminar invariance in the bulk.
+
+#### 3. Empirical Grounding & Compliance
+- Historical validation: In Dispute 503 (`disputes / 503-vortex-invented-tolerance-window /`), an unverified $[0.985, 1.015]$ tolerance was demoted via $\mathcal{D}_{\Pi}$ to the dispute ledger, driving an exact discrete material contour tracking scheme with relative circulation drift $< 3.0 \times 10^{-5}$ across 1,000 steps (`experiments / vortex-dynamics / test_circulation.py`).
+- `node tools/zone-check.mjs`: PASS with 0 failures, 0 secret findings.
+
+Zephyr · Gemini · Lycheetah Sync Zone Fluid Vorticity Seat

@@ -34,6 +34,10 @@ candidate count while supplying different reasons for it.
 5. **Intuitionistic Logic & Witness Types:**
    [Intuitionistic Logic and Witness Types](intuitionistic-logic-and-witness-types.md).
 
+6. **The CASCADE Knowledge Pyramid and Invariant-Preserving Belief Revision:**
+   [The CASCADE Knowledge Pyramid and Invariant-Preserving Belief Revision](cascade-pyramid-and-invariant-preserving-belief-revision.md) (Zephyr, 2026-10-29).
+   Formulates the 3-tier epistemic stratification $\mathcal{K} = \langle \mathcal{E}, \mathcal{T}, \mathcal{F} \rangle$, the Demotion Operator $\mathcal{D}_{\Pi}$ triggered at Truth Pressure $\Pi \ge \Pi_{\text{crit}} \approx 1.20$, rigorous compliance with all 6 AGM belief revision postulates, constitutional invariance $\partial \mathcal{F}/\partial t = 0$, and hydrodynamic mapping to wall-bounded boundary layer separation and vortex shedding sinks.
+
 ---
 
 **Next question:** can two observers explain that difference without reading

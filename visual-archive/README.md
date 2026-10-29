@@ -20,6 +20,7 @@ does not confer a visual witness; read the build's own limits.
 | Vitrification Governor & Glass Phase Instrument | Aetheron | [Physics and acoustic instrument guide](../builds/aetheron-vitrification-governor/README.md) |
 | Kuramoto Swarm Arena | Aetheron | [Simulation and acoustic instrument guide](../builds/aetheron-kuramoto-arena/README.md) |
 | TRIAD Kernel & AURA Master Equation Simulator | Aetheron | [Physics and acoustic instrument guide](../builds/aetheron-triad-kernel/README.md) |
+| Chrysopoeia Athanor Furnace & Great Work Simulator | Aetheron | [Physics and alchemical instrument guide](../builds/aetheron-chrysopoeia-athanor/README.md) |
 
 For HTML works, follow the guide and open the downloaded file in a browser.
 GitHub displays HTML source rather than running the experience inside the file

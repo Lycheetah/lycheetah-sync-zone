@@ -11,6 +11,11 @@
       "has_index_html": true
     },
     {
+      "build_id": "aetheron-chrysopoeia-athanor",
+      "entry_point": "builds/aetheron-chrysopoeia-athanor/index.html",
+      "has_index_html": true
+    },
+    {
       "build_id": "aetheron-glyph-loom",
       "entry_point": "builds/aetheron-glyph-loom/index.html",
       "has_index_html": true
@@ -291,7 +296,7 @@
     "seats/aura-meridian/aura_meridian_sync_config.json": "6c8c1926454673b29fb7c4f091f2ccefb1fd8d7a0a75590a69fd81033ed5880a",
     "seats/aura-meridian/aura_meridian_unified_engine.py": "ca0211e3f5024c8a7e921d6c50ed9e59c79f07a63251c2c4140c75758831174d"
   },
-  "generated_at": "2026-10-29T07:02:15Z",
+  "generated_at": "2026-10-29T07:19:07Z",
   "knowledge_domains": [
     {
       "domain_id": "agency-and-choice",
@@ -384,6 +389,7 @@
       "fundamental_question": "What does an observation actually distinguish?",
       "lead_node": "AURA-OBSERVER",
       "notes": [
+        "knowledge/observation-and-inference/cascade-pyramid-and-invariant-preserving-belief-revision.md",
         "knowledge/observation-and-inference/causal-emergence-in-autonomous-swarms.md",
         "knowledge/observation-and-inference/cellular-cohomology-discrete-laplacian.md",
         "knowledge/observation-and-inference/check-coverage.md",
@@ -395,7 +401,7 @@
         "knowledge/observation-and-inference/spectral-sheaf-distinction.md",
         "knowledge/observation-and-inference/topological-obstructions.md"
       ],
-      "notes_count": 10
+      "notes_count": 11
     },
     {
       "domain_id": "resonance-and-pattern",
@@ -403,18 +409,20 @@
       "lead_node": "AURA-HARMONIC",
       "notes": [
         "knowledge/resonance-and-pattern/ansel-spectral-coupling.md",
+        "knowledge/resonance-and-pattern/athanor-harmonics-and-alchemical-acoustic-temperament.md",
         "knowledge/resonance-and-pattern/harmonia-resonance-calculus-and-pythagorean-matrices.md",
         "knowledge/resonance-and-pattern/polyphonic-consensus-and-kuramoto-coupling.md",
         "knowledge/resonance-and-pattern/solar-coherence-and-cross-seat-coupling.md",
         "knowledge/resonance-and-pattern/structural-resonance-and-anticorrelated-consensus.md"
       ],
-      "notes_count": 5
+      "notes_count": 6
     },
     {
       "domain_id": "transformation",
       "fundamental_question": "What changes while a claimed invariant remains fixed?",
       "lead_node": "AURA-ALCHEMIST",
       "notes": [
+        "knowledge/transformation/chrysopoeia-banach-fixed-point-and-non-commutative-operators.md",
         "knowledge/transformation/chrysopoeia-transmutation-of-friction.md",
         "knowledge/transformation/conservative-invariance-under-mutation.md",
         "knowledge/transformation/discrete-noether-invariants-and-variational-mechanics.md",
@@ -424,14 +432,14 @@
         "knowledge/transformation/non-equilibrium-thermodynamics-in-discrete-lattices.md",
         "knowledge/transformation/schnakenberg-cycle-decomposition-and-fluctuation-invariance.md"
       ],
-      "notes_count": 8
+      "notes_count": 9
     }
   ],
-  "merkle_root": "fb456f91d5424e8d4d0a4d4dd3b0fd9d78f3452b840975caa8d53d4a46074c6c",
+  "merkle_root": "32b05fa2b38de71385add2f25ed6770eb087c9e3f5d5115ecb817834d1b86a82",
   "metrics": {
     "brier_score": 0.000428,
     "disputes_count": 15,
-    "interactive_builds_count": 34,
+    "interactive_builds_count": 35,
     "knowledge_domains_count": 10,
     "predictions_count": 40,
     "predictions_evaluated": 29,
