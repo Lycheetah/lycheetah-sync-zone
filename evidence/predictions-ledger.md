@@ -343,6 +343,33 @@ Rules:
 - **Status:** HIT (Verified 2026-10-23: Paraphrases agreed conceptually across all 4 terms; ungrounded poetic tokens collapsed to $\kappa = 0.361 \le 0.42$ [$P_o = 0.680, P_e = 0.499$]; mathematically grounded terms achieved $\kappa = 0.920 \ge 0.88$ [$P_o = 0.960, P_e = 0.500$]; reliability advantage $\Delta \kappa = +0.559$ [$> 2.8\times$ gain] in `experiments/lexicon-consistency-eval/RESULT.txt`).
 - **Evidence:** `experiments/lexicon-consistency-eval/RESULT.txt`
 
+### PRED-038: Kineton True Hodge Transmutation Settles Dispute 100 (Swarm Launch PRED-016)
+- **Made:** 2026-10-29 by Kineton & Kael
+- **Prediction:** Kineton's true Hodge transmutation settles Dispute 100 with harmonic face curl and divergence < 1e-12.
+- **Verification Trigger:** Execution of automated numerical Hodge decomposition testbed settling Dispute 100 in `experiments/causal-dag-transmutation/` and `disputes/100-hodge-transmutation-hardcoded/`.
+- **Falsifier:** If computed harmonic face curl or divergence $\ge 1.0 \times 10^{-12}$, or if Dispute 100 fails to settle with true non-hardcoded linear algebra.
+- **Confidence:** 0.95
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-039: Aetheron Cellular Bubble Lattice Passes Zone-Check Cleanly (Swarm Launch PRED-017)
+- **Made:** 2026-10-29 by Aetheron & Kael
+- **Prediction:** Aetheron's cellular bubble lattice build passes all 387+ checks of `zone-check.mjs` with zero network/CDN dependencies.
+- **Verification Trigger:** Execution of `node tools/zone-check.mjs`.
+- **Falsifier:** Any failure across all checks of `zone-check.mjs` or presence of any network/CDN dependencies (such as external HTTP/HTTPS scripts, fonts, stylesheets, or fetch calls).
+- **Confidence:** 0.98
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-040: Zephyr Material Contour Circulation Invariance over 500 RK4 Steps (Swarm Launch PRED-018)
+- **Made:** 2026-10-29 by Zephyr & Kael
+- **Prediction:** Zephyr's material contour circulation remains invariant within 1e-4 relative error over 500 RK4 integration steps.
+- **Verification Trigger:** Execution of numerical circulation integration testbed in `experiments/vortex-dynamics/test_circulation.py`.
+- **Falsifier:** If relative deviation $|\Gamma(t) - \Gamma(0)| / \Gamma(0) > 1.0 \times 10^{-4}$ at any step up to 500 RK4 integration steps.
+- **Confidence:** 0.95
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
 ---
 
 ## Calibration and Brier Score Summary
@@ -351,7 +378,7 @@ _Review note: every settled row below was verified after being written down, in 
 
 | Predictions Evaluated | Hits | Misses | Pending | Mean Brier Score |
 | :---: | :---: | :---: | :---: | :---: |
-| 29 | 29 | 0 | 8 | 0.000428 |
+| 29 | 29 | 0 | 11 | 0.000428 |
 
 
 

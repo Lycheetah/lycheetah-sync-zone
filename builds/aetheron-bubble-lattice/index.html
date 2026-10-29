@@ -1,0 +1,1679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aetheron · Bubble Lattice (Soft-Body Physics Instrument)</title>
+<style>
+  :root {
+    --bg-deep: #06070d;
+    --bg-card: rgba(14, 20, 36, 0.85);
+    --border-dim: rgba(100, 181, 246, 0.2);
+    --border-bright: rgba(0, 229, 255, 0.6);
+    --text-main: #e6edfd;
+    --text-dim: #90a4ae;
+    --accent-cyan: #00e5ff;
+    --accent-blue: #2979ff;
+    --accent-gold: #ffd54f;
+    --accent-coral: #ff5252;
+    --accent-violet: #b388ff;
+    --accent-emerald: #00e676;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-deep);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    touch-action: none;
+  }
+
+  canvas#viewport {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+    background: radial-gradient(circle at 50% 45%, #0d1527 0%, #06070d 80%, #030407 100%);
+  }
+
+  /* Header and Toolbar */
+  .hud-panel {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .hud-panel * {
+    pointer-events: auto;
+  }
+
+  #top-bar {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 10px var(--accent-cyan);
+    transition: transform 0.2s ease;
+  }
+
+  .brand-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-main);
+  }
+
+  .brand-tag {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--accent-cyan);
+    background: rgba(0, 229, 255, 0.12);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .tool-group {
+    display: flex;
+    background: var(--bg-card);
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    gap: 2px;
+  }
+
+  .tool-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+
+  .tool-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .tool-btn.active {
+    color: #06070d;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
+  }
+
+  .tool-btn .key-hint {
+    font-size: 9px;
+    opacity: 0.6;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  .tool-btn.active .key-hint {
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+  }
+
+  .btn-group-right {
+    display: flex;
+    gap: 8px;
+  }
+
+  .icon-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    color: var(--text-main);
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.15s ease;
+  }
+
+  .icon-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+
+  .icon-btn.active {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+  }
+
+  /* Bottom Telemetry HUD */
+  #bottom-hud {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .telemetry-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 12px;
+    padding: 8px 14px;
+    display: flex;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .stat-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+
+  .stat-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .preset-bar {
+    display: flex;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 999px;
+    padding: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .preset-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .preset-btn:hover {
+    color: var(--text-main);
+  }
+
+  .preset-btn.active {
+    color: var(--accent-cyan);
+    border-color: rgba(0, 229, 255, 0.4);
+    background: rgba(0, 229, 255, 0.08);
+  }
+
+  /* Help & Legend Modal */
+  #help-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 7, 13, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 20px;
+  }
+
+  #help-modal.visible {
+    display: flex;
+  }
+
+  .modal-card {
+    background: #0d1527;
+    border: 1px solid var(--border-dim);
+    border-radius: 16px;
+    max-width: 580px;
+    width: 100%;
+    padding: 24px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.15);
+    color: var(--text-main);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 12px;
+  }
+
+  .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  .close-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .modal-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #c4d1e8;
+  }
+
+  .modal-body h4 {
+    margin: 14px 0 6px 0;
+    color: var(--accent-gold);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .key-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 12px;
+    margin: 8px 0;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .key-kbd {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--accent-cyan);
+    font-weight: 700;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    text-align: center;
+    display: inline-block;
+  }
+
+  /* Audio unlock banner */
+  #audio-banner {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    background: rgba(0, 229, 255, 0.15);
+    border: 1px solid var(--accent-cyan);
+    color: #e6edfd;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+  }
+
+  /* Accessibility: Prefers reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .brand-dot {
+      box-shadow: none !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    #top-bar {
+      gap: 6px;
+    }
+    .brand-tag {
+      display: none;
+    }
+    .tool-btn span.label {
+      display: none;
+    }
+    .tool-btn {
+      padding: 6px 10px;
+    }
+    .preset-bar {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="viewport"></canvas>
+
+<div id="audio-banner">Click anywhere to awaken the Web Audio hydrodynamic synth</div>
+
+<!-- Top Bar -->
+<div id="top-bar" class="hud-panel">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <div class="brand-title">Aetheron Bubble Lattice</div>
+    <div class="brand-tag">Soft-Body Cellular Acoustic Instrument</div>
+  </div>
+
+  <div class="tool-group">
+    <button class="tool-btn active" data-tool="perturb" title="Drag / Perturb (Shortcut: 1)">
+      <span>✋</span><span class="label">Perturb</span><span class="key-hint">1</span>
+    </button>
+    <button class="tool-btn" data-tool="rupture" title="Cleave / Rupture into Daughter Vesicles (Shortcut: 2)">
+      <span>✂️</span><span class="label">Cleave</span><span class="key-hint">2</span>
+    </button>
+    <button class="tool-btn" data-tool="inject" title="Inject Fluid Pressure (Shortcut: 3)">
+      <span>💧</span><span class="label">Pump</span><span class="key-hint">3</span>
+    </button>
+    <button class="tool-btn" data-tool="deflate" title="Deflate Fluid (Shortcut: 4)">
+      <span>🧲</span><span class="label">Drain</span><span class="key-hint">4</span>
+    </button>
+    <button class="tool-btn" data-tool="spawn" title="Spawn New Bubble (Shortcut: 5)">
+      <span>✨</span><span class="label">Spawn</span><span class="key-hint">5</span>
+    </button>
+  </div>
+
+  <div class="btn-group-right">
+    <button id="sound-btn" class="icon-btn active" title="Toggle Procedural Audio (Shortcut: M)">
+      <span id="sound-icon">🔊</span><span class="label">Audio</span>
+    </button>
+    <button id="reset-btn" class="icon-btn" title="Reset Current Lattice (Shortcut: R)">
+      <span>🔄</span><span class="label">Reset</span>
+    </button>
+    <button id="help-btn" class="icon-btn" title="Field Guide & Legend (Shortcut: ?)">
+      <span>📖</span><span class="label">Guide</span>
+    </button>
+  </div>
+</div>
+
+<!-- Bottom Telemetry HUD -->
+<div id="bottom-hud" class="hud-panel">
+  <div class="telemetry-card">
+    <div class="stat-col">
+      <span class="stat-label">Vesicles</span>
+      <span id="stat-count" class="stat-val">0</span>
+    </div>
+    <div class="stat-col">
+      <span class="stat-label">Lattice Pressure</span>
+      <span id="stat-pressure" class="stat-val">0.00 kPa</span>
+    </div>
+    <div class="stat-col">
+      <span class="stat-label">Kinetic Energy</span>
+      <span id="stat-energy" class="stat-val">0.00 J</span>
+    </div>
+    <div class="stat-col">
+      <span class="stat-label">Harmonic Mode</span>
+      <span id="stat-harmonic" class="stat-val">Pentatonic C3-A5</span>
+    </div>
+  </div>
+
+  <div class="preset-bar">
+    <button class="preset-btn active" data-preset="foam">Hexagonal Foam</button>
+    <button class="preset-btn" data-preset="vesicle">Organelle Cell</button>
+    <button class="preset-btn" data-preset="ring">Chime Ring</button>
+    <button class="preset-btn" data-preset="mitosis">Cleavage Basin</button>
+  </div>
+</div>
+
+<!-- Help Modal -->
+<div id="help-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>🫧</span>
+        <span>Aetheron Bubble Lattice Field Guide</span>
+      </div>
+      <button id="close-modal-btn" class="close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>
+        A continuous 2D soft-body cellular physics engine and procedural acoustic instrument.
+        Bubbles are simulated as closed elastic membrane rings governed by Hooke's law spring-dampers,
+        Laplacian bending resistance, and thermodynamic internal fluid expansion pressure computed via
+        the Gauss shoelace formula.
+      </p>
+
+      <h4>Interactive Modes</h4>
+      <div class="key-list">
+        <div><span class="key-kbd">1</span> / <span class="key-kbd">✋ Perturb</span></div>
+        <div>Click and drag nodes or fluid to deform membrane and generate cavitation wakes.</div>
+
+        <div><span class="key-kbd">2</span> / <span class="key-kbd">✂️ Cleave</span></div>
+        <div>Slice a laser cut across any bubble to cleave it into two daughter vesicles via volume-conserving geometric mitosis. Click to bisect.</div>
+
+        <div><span class="key-kbd">3</span> / <span class="key-kbd">💧 Pump</span></div>
+        <div>Click and hold inside a bubble to inject fluid pressure ($A_0 \uparrow$). Over-pressurizing ($>3.2\times$) triggers acoustic lysis!</div>
+
+        <div><span class="key-kbd">4</span> / <span class="key-kbd">🧲 Drain</span></div>
+        <div>Extract internal fluid, reducing radius and elevating acoustic pitch.</div>
+
+        <div><span class="key-kbd">5</span> / <span class="key-kbd">✨ Spawn</span></div>
+        <div>Click anywhere in the basin to birth a new resonant bubble.</div>
+      </div>
+
+      <h4>Procedural Web Audio</h4>
+      <p>
+        Zero recorded samples. Everything is synthesized live:
+        <strong>Minnaert acoustic bubble pops</strong> on rupture and lysis,
+        <strong>hydrodynamic cavitation whooshes</strong> during high-speed fluid shear,
+        and <strong>pure glass-marimba harmonic chimes</strong> when elastic membranes collide.
+      </p>
+
+      <h4>Shortcuts</h4>
+      <div class="key-list">
+        <div><span class="key-kbd">Space</span></div><div>Hydrodynamic acoustic pressure pulse across all vesicles</div>
+        <div><span class="key-kbd">M</span></div><div>Toggle procedural Web Audio mute</div>
+        <div><span class="key-kbd">R</span></div><div>Reset current preset configuration</div>
+        <div><span class="key-kbd">?</span></div><div>Toggle this guide</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ---------------------------------------------------------------------------
+  // 1. Accessibility & Motion Preferences
+  // ---------------------------------------------------------------------------
+  var prefersReducedMotion = false;
+  try {
+    var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    prefersReducedMotion = motionQuery.matches;
+    motionQuery.addEventListener('change', function(e) {
+      prefersReducedMotion = e.matches;
+    });
+  } catch (e) {
+    prefersReducedMotion = false;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. Procedural Web Audio Engine (Zero Assets)
+  // ---------------------------------------------------------------------------
+  var AudioEngine = (function() {
+    var ctx = null;
+    var masterGain = null;
+    var isMuted = false;
+    var unlocked = false;
+
+    // Resonant Pentatonic Scale Frequencies (Just Intonation & Equal Temp blends)
+    var SCALE_FREQS = [
+      130.81, 146.83, 164.81, 196.00, 220.00, // C3, D3, E3, G3, A3
+      261.63, 293.66, 329.63, 392.00, 440.00, // C4, D4, E4, G4, A4
+      523.25, 587.33, 659.25, 783.99, 880.00, // C5, D5, E5, G5, A5
+      1046.50, 1174.66, 1318.51                // C6, D6, E6
+    ];
+
+    function init() {
+      if (ctx) return;
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      try {
+        ctx = new AudioCtx();
+        masterGain = ctx.createGain();
+        masterGain.gain.setValueAtTime(0.28, ctx.currentTime);
+
+        // Gentle soft-limiter / compressor to prevent clipping
+        var compressor = ctx.createDynamicsCompressor();
+        compressor.threshold.setValueAtTime(-14, ctx.currentTime);
+        compressor.knee.setValueAtTime(8, ctx.currentTime);
+        compressor.ratio.setValueAtTime(4, ctx.currentTime);
+        compressor.attack.setValueAtTime(0.003, ctx.currentTime);
+        compressor.release.setValueAtTime(0.15, ctx.currentTime);
+
+        masterGain.connect(compressor);
+        compressor.connect(ctx.destination);
+      } catch (err) {
+        ctx = null;
+      }
+    }
+
+    function unlock() {
+      if (!ctx) init();
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      unlocked = true;
+      var banner = document.getElementById('audio-banner');
+      if (banner) {
+        banner.style.opacity = '0';
+        setTimeout(function() {
+          if (banner.parentNode) banner.parentNode.removeChild(banner);
+        }, 600);
+      }
+    }
+
+    // Minnaert Underwater Bubble Pop Synthesis
+    // Simulates decaying sinusoidal volume oscillation of an air bubble in liquid
+    function playBubblePop(radius, pitchFactor) {
+      if (!ctx || isMuted || !unlocked) return;
+      var now = ctx.currentTime;
+      var r = Math.max(8, Math.min(120, radius || 30));
+      var pf = pitchFactor || 1.0;
+
+      // Minnaert frequency: inverse proportional to radius
+      var baseFreq = (2400 / Math.pow(r, 0.72)) * pf;
+      baseFreq = Math.max(90, Math.min(3200, baseFreq));
+
+      var osc = ctx.createOscillator();
+      var osc2 = ctx.createOscillator();
+      var gain = ctx.createGain();
+      var bpf = ctx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc2.type = 'triangle';
+
+      // Pitch chirp envelope: rises slightly then decays exponentially
+      osc.frequency.setValueAtTime(baseFreq * 0.9, now);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.35, now + 0.008);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.7, now + 0.08);
+
+      osc2.frequency.setValueAtTime(baseFreq * 1.8, now);
+      osc2.frequency.exponentialRampToValueAtTime(baseFreq * 0.9, now + 0.06);
+
+      bpf.type = 'bandpass';
+      bpf.frequency.setValueAtTime(baseFreq * 1.2, now);
+      bpf.Q.setValueAtTime(3.5, now);
+
+      var dur = Math.max(0.04, Math.min(0.18, 0.02 + r * 0.0012));
+      gain.gain.setValueAtTime(0.0, now);
+      gain.gain.linearRampToValueAtTime(0.42, now + 0.002);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+      osc.connect(bpf);
+      osc2.connect(bpf);
+      bpf.connect(gain);
+      gain.connect(masterGain);
+
+      osc.start(now);
+      osc2.start(now);
+      osc.stop(now + dur + 0.02);
+      osc2.stop(now + dur + 0.02);
+    }
+
+    // Acoustic Glass-Harmonic Chime for Soft-Body Membrane Impacts
+    function playMembraneImpact(intensity, freqHz) {
+      if (!ctx || isMuted || !unlocked) return;
+      var now = ctx.currentTime;
+      var f = freqHz || 440;
+      var vol = Math.max(0.04, Math.min(0.35, (intensity || 0.5) * 0.3));
+
+      var osc = ctx.createOscillator();
+      var oscHarmonic = ctx.createOscillator();
+      var gain = ctx.createGain();
+
+      osc.type = 'sine';
+      oscHarmonic.type = 'sine';
+
+      osc.frequency.setValueAtTime(f, now);
+      // Non-integer harmonic characteristic of circular drumhead / spherical shell modes
+      oscHarmonic.frequency.setValueAtTime(f * 2.295, now);
+
+      var ringTime = Math.max(0.15, Math.min(0.65, 0.45));
+      gain.gain.setValueAtTime(0.0, now);
+      gain.gain.linearRampToValueAtTime(vol, now + 0.003);
+      gain.gain.exponentialRampToValueAtTime(0.0008, now + ringTime);
+
+      osc.connect(gain);
+      oscHarmonic.connect(gain);
+      gain.connect(masterGain);
+
+      osc.start(now);
+      oscHarmonic.start(now);
+      osc.stop(now + ringTime + 0.05);
+      oscHarmonic.stop(now + ringTime + 0.05);
+    }
+
+    // Hydrodynamic Cavitation Whoosh (Swept Bandpass Noise)
+    function playCavitationWhoosh(speed) {
+      if (!ctx || isMuted || !unlocked) return;
+      var spd = Math.max(0, Math.min(1.0, speed || 0.5));
+      if (spd < 0.15) return;
+      var now = ctx.currentTime;
+
+      // 0.25 second procedural noise buffer
+      var bufferSize = Math.floor(ctx.sampleRate * 0.2);
+      var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      var data = buffer.getChannelData(0);
+      for (var i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.8;
+      }
+
+      var noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      var filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      var centerFreq = 300 + spd * 1400;
+      filter.frequency.setValueAtTime(centerFreq, now);
+      filter.frequency.exponentialRampToValueAtTime(centerFreq * 0.6, now + 0.18);
+      filter.Q.setValueAtTime(4.0, now);
+
+      var gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0, now);
+      gain.gain.linearRampToValueAtTime(spd * 0.18, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      noise.start(now);
+      noise.stop(now + 0.22);
+    }
+
+    // Fluid Injection Bubbling Pulse
+    function playPumpPulse(pitchMult) {
+      if (!ctx || isMuted || !unlocked) return;
+      var now = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+
+      osc.type = 'sine';
+      var base = 480 * (pitchMult || 1.0);
+      osc.frequency.setValueAtTime(base * 0.8, now);
+      osc.frequency.exponentialRampToValueAtTime(base * 1.5, now + 0.035);
+
+      gain.gain.setValueAtTime(0.0, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+      osc.connect(gain);
+      gain.connect(masterGain);
+
+      osc.start(now);
+      osc.stop(now + 0.055);
+    }
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      if (masterGain && ctx) {
+        masterGain.gain.setValueAtTime(isMuted ? 0 : 0.28, ctx.currentTime);
+      }
+      return !isMuted;
+    }
+
+    return {
+      init: init,
+      unlock: unlock,
+      playBubblePop: playBubblePop,
+      playMembraneImpact: playMembraneImpact,
+      playCavitationWhoosh: playCavitationWhoosh,
+      playPumpPulse: playPumpPulse,
+      toggleMute: toggleMute,
+      getScaleFreq: function(idx) {
+        var i = Math.abs(idx) % SCALE_FREQS.length;
+        return SCALE_FREQS[i];
+      }
+    };
+  })();
+
+  // ---------------------------------------------------------------------------
+  // 3. Mathematical Geometry & Soft-Body Mechanics
+  // ---------------------------------------------------------------------------
+  function shoelaceArea(nodes) {
+    var a = 0;
+    var n = nodes.length;
+    for (var i = 0; i < n; i++) {
+      var j = (i + 1) % n;
+      a += nodes[i].x * nodes[j].y - nodes[j].x * nodes[i].y;
+    }
+    return Math.abs(a) * 0.5;
+  }
+
+  function getCentroid(nodes) {
+    var cx = 0, cy = 0;
+    var n = nodes.length;
+    for (var i = 0; i < n; i++) {
+      cx += nodes[i].x;
+      cy += nodes[i].y;
+    }
+    return { x: cx / n, y: cy / n };
+  }
+
+  function lineIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+    var denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+    if (Math.abs(denom) < 1e-9) return null;
+    var ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+    var ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+    if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1) {
+      return {
+        x: x1 + ua * (x2 - x1),
+        y: y1 + ua * (y2 - y1),
+        u: ua
+      };
+    }
+    return null;
+  }
+
+  function resamplePolygon(pts, targetCount) {
+    var n = pts.length;
+    if (n < 3) return null;
+    var dists = [0];
+    var totalLen = 0;
+    for (var i = 0; i < n; i++) {
+      var next = pts[(i + 1) % n];
+      var d = Math.hypot(next.x - pts[i].x, next.y - pts[i].y);
+      totalLen += d;
+      dists.push(totalLen);
+    }
+    if (totalLen <= 0.001) return null;
+
+    var result = [];
+    var step = totalLen / targetCount;
+    var currIdx = 0;
+    for (var k = 0; k < targetCount; k++) {
+      var targetDist = k * step;
+      while (currIdx < n && dists[currIdx + 1] < targetDist) {
+        currIdx++;
+      }
+      var segStart = dists[currIdx];
+      var segEnd = dists[currIdx + 1];
+      var t = (segEnd > segStart) ? (targetDist - segStart) / (segEnd - segStart) : 0;
+      var p1 = pts[currIdx % n];
+      var p2 = pts[(currIdx + 1) % n];
+      result.push({
+        x: p1.x + t * (p2.x - p1.x),
+        y: p1.y + t * (p2.y - p1.y),
+        vx: 0,
+        vy: 0,
+        stress: 0
+      });
+    }
+    return result;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 4. Bubble Class (Closed Elastic Membrane)
+  // ---------------------------------------------------------------------------
+  var PALETTES = [
+    { name: 'Cyan Aether', stroke: '#00e5ff', fill: 'rgba(0, 229, 255, 0.16)', glow: '#00e5ff' },
+    { name: 'Azure Deep', stroke: '#2979ff', fill: 'rgba(41, 121, 255, 0.16)', glow: '#2979ff' },
+    { name: 'Violet Morpheon', stroke: '#b388ff', fill: 'rgba(179, 136, 255, 0.16)', glow: '#b388ff' },
+    { name: 'Amber Athanor', stroke: '#ffd54f', fill: 'rgba(255, 213, 79, 0.18)', glow: '#ffd54f' },
+    { name: 'Emerald Oikos', stroke: '#00e676', fill: 'rgba(0, 230, 118, 0.16)', glow: '#00e676' },
+    { name: 'Coral Resonant', stroke: '#ff5252', fill: 'rgba(255, 82, 82, 0.18)', glow: '#ff5252' }
+  ];
+
+  var bubbleIdSeq = 1;
+
+  function Bubble(cx, cy, radius, nodeCount, paletteIdx) {
+    this.id = bubbleIdSeq++;
+    this.nodeCount = nodeCount || 22;
+    this.palette = PALETTES[(paletteIdx !== undefined ? paletteIdx : (this.id % PALETTES.length))];
+    this.harmonicFreq = AudioEngine.getScaleFreq(this.id * 2);
+
+    this.restArea = Math.PI * radius * radius;
+    this.initialArea = this.restArea;
+    this.area = this.restArea;
+    this.pressure = 0;
+    this.centroid = { x: cx, y: cy };
+    this.nodes = [];
+    this.popped = false;
+    this.burstTimer = 0;
+
+    // Generate circular ring of nodes
+    for (var i = 0; i < this.nodeCount; i++) {
+      var angle = (i / this.nodeCount) * Math.PI * 2;
+      this.nodes.push({
+        x: cx + radius * Math.cos(angle),
+        y: cy + radius * Math.sin(angle),
+        vx: 0,
+        vy: 0,
+        stress: 0
+      });
+    }
+  }
+
+  Bubble.prototype.updatePhysics = function(dt, width, height) {
+    if (this.popped) return;
+
+    var n = this.nodes.length;
+    this.area = shoelaceArea(this.nodes);
+    this.centroid = getCentroid(this.nodes);
+
+    var effectiveRadius = Math.sqrt(Math.max(1, this.restArea / Math.PI));
+    var restEdgeLen = (2 * Math.PI * effectiveRadius) / n;
+
+    // Thermodynamic fluid pressure: P ~ (A_0 - A) / A_0
+    var areaDeficit = (this.restArea - this.area) / Math.max(1, this.restArea);
+    this.pressure = areaDeficit * 1200; // Pressure coefficient
+
+    // Physical stiffness parameters
+    var kSpring = 240;      // Hooke's membrane tension
+    var cDamp = 6.5;        // Membrane spring damping
+    var kBend = 85;         // Laplacian bending stiffness
+    var fluidDrag = 0.982;  // Hydrodynamic ambient fluid drag
+
+    // 1. Compute forces on each node
+    for (var i = 0; i < n; i++) {
+      var curr = this.nodes[i];
+      var next = this.nodes[(i + 1) % n];
+      var prev = this.nodes[(i - 1 + n) % n];
+
+      // Edge spring: curr -> next
+      var dx = next.x - curr.x;
+      var dy = next.y - curr.y;
+      var edgeLen = Math.hypot(dx, dy);
+      if (edgeLen > 1e-4) {
+        var ux = dx / edgeLen;
+        var uy = dy / edgeLen;
+        var springExt = edgeLen - restEdgeLen;
+        var fSpring = kSpring * springExt;
+
+        // Relative velocity damping
+        var rvx = next.vx - curr.vx;
+        var rvy = next.vy - curr.vy;
+        var fDamp = (rvx * ux + rvy * uy) * cDamp;
+        var totalEdgeF = fSpring + fDamp;
+
+        curr.vx += (totalEdgeF * ux) * dt;
+        curr.vy += (totalEdgeF * uy) * dt;
+        next.vx -= (totalEdgeF * ux) * dt;
+        next.vy -= (totalEdgeF * uy) * dt;
+
+        curr.stress = Math.abs(springExt) / restEdgeLen;
+
+        // Pressure Force on edge: perpendicular to edge (outward normal)
+        // For counterclockwise winding: nx = dy/L, ny = -dx/L
+        var nx = uy;
+        var ny = -ux;
+        var fPres = this.pressure * edgeLen * 0.5;
+
+        curr.vx += (fPres * nx) * dt;
+        curr.vy += (fPres * ny) * dt;
+        next.vx += (fPres * nx) * dt;
+        next.vy += (fPres * ny) * dt;
+      }
+
+      // Laplacian Bending Resistance (Curvature smoothing)
+      var midX = (prev.x + next.x) * 0.5;
+      var midY = (prev.y + next.y) * 0.5;
+      curr.vx += (midX - curr.x) * kBend * dt;
+      curr.vy += (midY - curr.y) * kBend * dt;
+
+      // Subtle upward buoyancy & ambient thermal drift
+      curr.vy -= 4.0 * dt;
+    }
+
+    // 2. Integrate positions and boundary containment
+    var margin = 20;
+    for (var j = 0; j < n; j++) {
+      var p = this.nodes[j];
+      p.vx *= fluidDrag;
+      p.vy *= fluidDrag;
+
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      // Soft container bounce
+      if (p.x < margin) {
+        p.x = margin;
+        p.vx = Math.abs(p.vx) * 0.5;
+      } else if (p.x > width - margin) {
+        p.x = width - margin;
+        p.vx = -Math.abs(p.vx) * 0.5;
+      }
+      if (p.y < margin) {
+        p.y = margin;
+        p.vy = Math.abs(p.vy) * 0.5;
+      } else if (p.y > height - margin) {
+        p.y = height - margin;
+        p.vy = -Math.abs(p.vy) * 0.5;
+      }
+    }
+
+    // Overpressure check (Lysis threshold)
+    if (this.area > this.initialArea * 3.3) {
+      this.burstTimer += dt;
+      if (this.burstTimer > 0.4) {
+        this.popped = true;
+      }
+    } else {
+      this.burstTimer = 0;
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // 5. Simulation Universe & Lattice Manager
+  // ---------------------------------------------------------------------------
+  var canvas = document.getElementById('viewport');
+  var ctx = canvas.getContext('2d');
+
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+  var dpr = window.devicePixelRatio || 1;
+
+  var bubbles = [];
+  var particles = [];
+  var currentTool = 'perturb';
+  var isPointerDown = false;
+  var pointerPos = { x: 0, y: 0 };
+  var lastPointerPos = { x: 0, y: 0 };
+  var sliceStart = null;
+  var selectedBubble = null;
+  var grabbedNode = null;
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Particle Splash on Rupture / Cavitation
+  function spawnCavitationDroplets(cx, cy, count, color) {
+    if (prefersReducedMotion) count = Math.min(count, 6);
+    for (var i = 0; i < count; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var spd = 40 + Math.random() * 160;
+      particles.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        life: 0.3 + Math.random() * 0.6,
+        maxLife: 0.9,
+        size: 1.5 + Math.random() * 3.0,
+        color: color || '#00e5ff'
+      });
+    }
+  }
+
+  // Preset Configurations
+  function loadPreset(name) {
+    bubbles = [];
+    particles = [];
+    var cx = width * 0.5;
+    var cy = height * 0.5;
+
+    if (name === 'foam') {
+      // 7-Bubble Hexagonal Foam Cluster
+      var r = Math.min(width, height) * 0.085;
+      bubbles.push(new Bubble(cx, cy, r, 24, 0));
+      for (var i = 0; i < 6; i++) {
+        var ang = (i / 6) * Math.PI * 2;
+        var dist = r * 1.85;
+        bubbles.push(new Bubble(cx + Math.cos(ang) * dist, cy + Math.sin(ang) * dist, r, 24, (i + 1) % PALETTES.length));
+      }
+    } else if (name === 'vesicle') {
+      // Macro-Vesicle Organelle Cell
+      var outerR = Math.min(width, height) * 0.22;
+      var innerR = outerR * 0.28;
+      bubbles.push(new Bubble(cx, cy, outerR, 32, 1));
+      bubbles.push(new Bubble(cx - innerR * 1.2, cy - innerR * 0.6, innerR, 18, 0));
+      bubbles.push(new Bubble(cx + innerR * 1.1, cy - innerR * 0.5, innerR * 0.9, 18, 3));
+      bubbles.push(new Bubble(cx, cy + innerR * 1.1, innerR * 1.1, 18, 4));
+    } else if (name === 'ring') {
+      // Resonant Harmonic Chime Ring
+      var count = 6;
+      var ringR = Math.min(width, height) * 0.22;
+      var bR = ringR * 0.36;
+      for (var j = 0; j < count; j++) {
+        var theta = (j / count) * Math.PI * 2;
+        bubbles.push(new Bubble(cx + Math.cos(theta) * ringR, cy + Math.sin(theta) * ringR, bR, 22, j % PALETTES.length));
+      }
+    } else if (name === 'mitosis') {
+      // Cleavage Basin: Giant Mother Bubble ready for division
+      var bigR = Math.min(width, height) * 0.24;
+      bubbles.push(new Bubble(cx, cy, bigR, 32, 2));
+    }
+
+    AudioEngine.playBubblePop(70, 0.9);
+  }
+
+  // Inter-bubble soft repulsion (Cellular Foam Plateau mechanics)
+  function resolveBubbleCollisions(dt) {
+    var nb = bubbles.length;
+    for (var a = 0; a < nb; a++) {
+      var bA = bubbles[a];
+      if (bA.popped) continue;
+
+      for (var b = a + 1; b < nb; b++) {
+        var bB = bubbles[b];
+        if (bB.popped) continue;
+
+        var dx = bB.centroid.x - bA.centroid.x;
+        var dy = bB.centroid.y - bA.centroid.y;
+        var dist = Math.hypot(dx, dy);
+
+        var rA = Math.sqrt(Math.max(1, bA.restArea / Math.PI));
+        var rB = Math.sqrt(Math.max(1, bB.restArea / Math.PI));
+        var targetDist = (rA + rB) * 0.95;
+
+        if (dist < targetDist && dist > 1e-4) {
+          var nx = dx / dist;
+          var ny = dy / dist;
+          var overlap = targetDist - dist;
+
+          // Repulsive force on centroids distributed to nearest nodes
+          var repulseF = overlap * 48;
+
+          for (var i = 0; i < bA.nodes.length; i++) {
+            var nA = bA.nodes[i];
+            // Push node away from B center
+            var ndx = nA.x - bB.centroid.x;
+            var ndy = nA.y - bB.centroid.y;
+            var ndist = Math.hypot(ndx, ndy);
+            if (ndist < rB * 1.05 && ndist > 1e-4) {
+              nA.vx += (ndx / ndist) * repulseF * dt;
+              nA.vy += (ndy / ndist) * repulseF * dt;
+            }
+          }
+
+          for (var j = 0; j < bB.nodes.length; j++) {
+            var nB = bB.nodes[j];
+            var bdx = nB.x - bA.centroid.x;
+            var bdy = nB.y - bA.centroid.y;
+            var bdist = Math.hypot(bdx, bdy);
+            if (bdist < rA * 1.05 && bdist > 1e-4) {
+              nB.vx += (bdx / bdist) * repulseF * dt;
+              nB.vy += (bdy / bdist) * repulseF * dt;
+            }
+          }
+
+          // Trigger harmonic acoustic chime when colliding with momentum
+          var relVx = (bB.nodes[0].vx - bA.nodes[0].vx);
+          var relVy = (bB.nodes[0].vy - bA.nodes[0].vy);
+          var impSpeed = Math.hypot(relVx, relVy);
+          if (impSpeed > 28) {
+            AudioEngine.playMembraneImpact(impSpeed / 120, bA.harmonicFreq);
+          }
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6. Mitotic Rupture / Cleavage Algorithm
+  // ---------------------------------------------------------------------------
+  function cleaveBubbleWithSegment(targetBubble, x1, y1, x2, y2) {
+    if (!targetBubble || targetBubble.popped) return false;
+    var circle = targetBubble.nodes;
+    var rawHits = [];
+
+    for (var i = 0; i < circle.length; i++) {
+      var p1 = circle[i];
+      var p2 = circle[(i + 1) % circle.length];
+      var hit = lineIntersect(x1, y1, x2, y2, p1.x, p1.y, p2.x, p2.y);
+      if (hit) {
+        var dup = rawHits.some(function(h) {
+          return Math.hypot(h.pt.x - hit.x, h.pt.y - hit.y) < 1.0;
+        });
+        if (!dup) {
+          rawHits.push({ edgeIdx: i, pt: hit, u: hit.u });
+        }
+      }
+    }
+
+    rawHits.sort(function(a, b) { return a.u - b.u; });
+    if (rawHits.length !== 2) return false;
+
+    var h1 = rawHits[0];
+    var h2 = rawHits[1];
+
+    // Daughter loop 1: from h1.edgeIdx + 1 to h2.edgeIdx
+    var d1 = [{ x: h1.pt.x, y: h1.pt.y }];
+    var curr = (h1.edgeIdx + 1) % circle.length;
+    while (curr !== (h2.edgeIdx + 1) % circle.length) {
+      d1.push({ x: circle[curr].x, y: circle[curr].y });
+      curr = (curr + 1) % circle.length;
+    }
+    d1.push({ x: h2.pt.x, y: h2.pt.y });
+
+    // Daughter loop 2: from h2.edgeIdx + 1 to h1.edgeIdx
+    var d2 = [{ x: h2.pt.x, y: h2.pt.y }];
+    curr = (h2.edgeIdx + 1) % circle.length;
+    while (curr !== (h1.edgeIdx + 1) % circle.length) {
+      d2.push({ x: circle[curr].x, y: circle[curr].y });
+      curr = (curr + 1) % circle.length;
+    }
+    d2.push({ x: h1.pt.x, y: h1.pt.y });
+
+    var resampled1 = resamplePolygon(d1, Math.max(16, targetBubble.nodeCount - 2));
+    var resampled2 = resamplePolygon(d2, Math.max(16, targetBubble.nodeCount - 2));
+
+    if (!resampled1 || !resampled2) return false;
+
+    var area1 = shoelaceArea(resampled1);
+    var area2 = shoelaceArea(resampled2);
+
+    if (area1 < 200 || area2 < 200) return false;
+
+    targetBubble.popped = true;
+
+    // Create 2 daughter vesicles with conserved fluid areas
+    var c1 = getCentroid(resampled1);
+    var c2 = getCentroid(resampled2);
+
+    var b1 = new Bubble(c1.x, c1.y, Math.sqrt(area1 / Math.PI), resampled1.length, targetBubble.id % PALETTES.length);
+    b1.nodes = resampled1;
+    b1.restArea = area1;
+
+    var b2 = new Bubble(c2.x, c2.y, Math.sqrt(area2 / Math.PI), resampled2.length, (targetBubble.id + 1) % PALETTES.length);
+    b2.nodes = resampled2;
+    b2.restArea = area2;
+
+    // Push daughters slightly apart along cut normal
+    var cutDx = x2 - x1;
+    var cutDy = y2 - y1;
+    var cutLen = Math.hypot(cutDx, cutDy) || 1;
+    var cutNx = -cutDy / cutLen;
+    var cutNy = cutDx / cutLen;
+
+    for (var k = 0; k < b1.nodes.length; k++) {
+      b1.nodes[k].vx += cutNx * 35;
+      b1.nodes[k].vy += cutNy * 35;
+    }
+    for (var m = 0; m < b2.nodes.length; m++) {
+      b2.nodes[m].vx -= cutNx * 35;
+      b2.nodes[m].vy -= cutNy * 35;
+    }
+
+    bubbles.push(b1);
+    bubbles.push(b2);
+
+    // Audio & Particle fx
+    AudioEngine.playBubblePop(Math.sqrt(area1 / Math.PI), 1.25);
+    AudioEngine.playCavitationWhoosh(0.7);
+    spawnCavitationDroplets((h1.pt.x + h2.pt.x) * 0.5, (h1.pt.y + h2.pt.y) * 0.5, 18, targetBubble.palette.stroke);
+
+    return true;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 7. Interactive Event Handlers
+  // ---------------------------------------------------------------------------
+  function getEventPos(e) {
+    if (e.touches && e.touches.length > 0) {
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function findBubbleAt(x, y) {
+    for (var i = bubbles.length - 1; i >= 0; i--) {
+      var b = bubbles[i];
+      if (b.popped) continue;
+      var d = Math.hypot(b.centroid.x - x, b.centroid.y - y);
+      var r = Math.sqrt(Math.max(1, b.restArea / Math.PI));
+      if (d < r * 1.15) return b;
+    }
+    return null;
+  }
+
+  function findNearestNode(x, y) {
+    var bestDist = 45;
+    var best = null;
+    for (var i = 0; i < bubbles.length; i++) {
+      var b = bubbles[i];
+      if (b.popped) continue;
+      for (var j = 0; j < b.nodes.length; j++) {
+        var n = b.nodes[j];
+        var d = Math.hypot(n.x - x, n.y - y);
+        if (d < bestDist) {
+          bestDist = d;
+          best = { bubble: b, node: n, index: j };
+        }
+      }
+    }
+    return best;
+  }
+
+  function onPointerDown(e) {
+    AudioEngine.unlock();
+    isPointerDown = true;
+    var pos = getEventPos(e);
+    pointerPos = pos;
+    lastPointerPos = pos;
+
+    if (currentTool === 'perturb') {
+      grabbedNode = findNearestNode(pos.x, pos.y);
+      selectedBubble = findBubbleAt(pos.x, pos.y);
+    } else if (currentTool === 'rupture') {
+      sliceStart = { x: pos.x, y: pos.y };
+    } else if (currentTool === 'spawn') {
+      var newR = 35 + Math.random() * 30;
+      bubbles.push(new Bubble(pos.x, pos.y, newR, 22, bubbles.length % PALETTES.length));
+      AudioEngine.playBubblePop(newR, 1.1);
+      spawnCavitationDroplets(pos.x, pos.y, 10, '#00e5ff');
+    }
+  }
+
+  function onPointerMove(e) {
+    var pos = getEventPos(e);
+    pointerPos = pos;
+    var spd = Math.hypot(pos.x - lastPointerPos.x, pos.y - lastPointerPos.y);
+
+    if (spd > 35) {
+      AudioEngine.playCavitationWhoosh(spd / 120);
+    }
+
+    if (isPointerDown) {
+      if (currentTool === 'perturb' && grabbedNode) {
+        grabbedNode.node.x = pos.x;
+        grabbedNode.node.y = pos.y;
+        grabbedNode.node.vx = (pos.x - lastPointerPos.x) * 20;
+        grabbedNode.node.vy = (pos.y - lastPointerPos.y) * 20;
+      }
+    }
+
+    lastPointerPos = pos;
+  }
+
+  function onPointerUp(e) {
+    if (!isPointerDown) return;
+    isPointerDown = false;
+
+    if (currentTool === 'rupture' && sliceStart) {
+      var sliceEnd = pointerPos;
+      var dist = Math.hypot(sliceEnd.x - sliceStart.x, sliceEnd.y - sliceStart.y);
+
+      if (dist < 15) {
+        // Single click: bisect the clicked bubble across its centroid
+        var hitB = findBubbleAt(sliceStart.x, sliceStart.y);
+        if (hitB) {
+          cleaveBubbleWithSegment(hitB, hitB.centroid.x - 120, hitB.centroid.y, hitB.centroid.x + 120, hitB.centroid.y);
+        }
+      } else {
+        // Slicing cut line
+        for (var i = bubbles.length - 1; i >= 0; i--) {
+          var b = bubbles[i];
+          if (!b.popped) {
+            if (cleaveBubbleWithSegment(b, sliceStart.x, sliceStart.y, sliceEnd.x, sliceEnd.y)) {
+              break; // Cleave one vesicle per slice stroke
+            }
+          }
+        }
+      }
+      sliceStart = null;
+    }
+
+    grabbedNode = null;
+    selectedBubble = null;
+  }
+
+  // Active continuous injection or draining while holding pointer
+  function handleContinuousTools(dt) {
+    if (!isPointerDown) return;
+
+    if (currentTool === 'inject') {
+      var target = findBubbleAt(pointerPos.x, pointerPos.y);
+      if (target) {
+        target.restArea += 6500 * dt;
+        spawnCavitationDroplets(pointerPos.x, pointerPos.y, 1, target.palette.stroke);
+        AudioEngine.playPumpPulse(1.0 + (target.restArea / target.initialArea) * 0.4);
+      }
+    } else if (currentTool === 'deflate') {
+      var bDeflate = findBubbleAt(pointerPos.x, pointerPos.y);
+      if (bDeflate && bDeflate.restArea > 400) {
+        bDeflate.restArea = Math.max(350, bDeflate.restArea - 5000 * dt);
+        AudioEngine.playPumpPulse(0.7);
+      }
+    }
+  }
+
+  // Acoustic Shockwave Pulse (Spacebar)
+  function triggerAcousticPulse() {
+    AudioEngine.unlock();
+    AudioEngine.playBubblePop(20, 0.65);
+    AudioEngine.playCavitationWhoosh(1.0);
+
+    var cx = width * 0.5;
+    var cy = height * 0.5;
+
+    for (var i = 0; i < bubbles.length; i++) {
+      var b = bubbles[i];
+      if (b.popped) continue;
+      for (var j = 0; j < b.nodes.length; j++) {
+        var n = b.nodes[j];
+        var dx = n.x - cx;
+        var dy = n.y - cy;
+        var dist = Math.hypot(dx, dy) || 1;
+        n.vx += (dx / dist) * 120;
+        n.vy += (dy / dist) * 120;
+      }
+    }
+    spawnCavitationDroplets(cx, cy, 32, '#00e5ff');
+  }
+
+  // Bind Events
+  canvas.addEventListener('pointerdown', onPointerDown);
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerUp);
+
+  // Keyboard Shortcuts
+  window.addEventListener('keydown', function(e) {
+    AudioEngine.unlock();
+    if (e.key === '1') selectTool('perturb');
+    else if (e.key === '2' || e.key.toLowerCase() === 'c') selectTool('rupture');
+    else if (e.key === '3' || e.key.toLowerCase() === 'p') selectTool('inject');
+    else if (e.key === '4') selectTool('deflate');
+    else if (e.key === '5') selectTool('spawn');
+    else if (e.key.toLowerCase() === 'm') toggleMuteBtn();
+    else if (e.key.toLowerCase() === 'r') loadPreset(activePreset);
+    else if (e.key === ' ') {
+      e.preventDefault();
+      triggerAcousticPulse();
+    } else if (e.key === '?') toggleHelpModal();
+  });
+
+  // UI Buttons
+  var toolBtns = document.querySelectorAll('.tool-btn');
+  function selectTool(toolName) {
+    currentTool = toolName;
+    toolBtns.forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-tool') === toolName);
+    });
+  }
+
+  toolBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      selectTool(btn.getAttribute('data-tool'));
+    });
+  });
+
+  var activePreset = 'foam';
+  var presetBtns = document.querySelectorAll('.preset-btn');
+  presetBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      presetBtns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      activePreset = btn.getAttribute('data-preset');
+      loadPreset(activePreset);
+    });
+  });
+
+  var soundBtn = document.getElementById('sound-btn');
+  var soundIcon = document.getElementById('sound-icon');
+  function toggleMuteBtn() {
+    AudioEngine.unlock();
+    var unmuted = AudioEngine.toggleMute();
+    soundBtn.classList.toggle('active', unmuted);
+    soundIcon.textContent = unmuted ? '🔊' : '🔇';
+  }
+  soundBtn.addEventListener('click', toggleMuteBtn);
+
+  document.getElementById('reset-btn').addEventListener('click', function() {
+    loadPreset(activePreset);
+  });
+
+  var helpModal = document.getElementById('help-modal');
+  function toggleHelpModal() {
+    helpModal.classList.toggle('visible');
+  }
+  document.getElementById('help-btn').addEventListener('click', toggleHelpModal);
+  document.getElementById('close-modal-btn').addEventListener('click', toggleHelpModal);
+  helpModal.addEventListener('click', function(e) {
+    if (e.target === helpModal) toggleHelpModal();
+  });
+
+  // ---------------------------------------------------------------------------
+  // 8. Visual Rendering Loop
+  // ---------------------------------------------------------------------------
+  var statCount = document.getElementById('stat-count');
+  var statPressure = document.getElementById('stat-pressure');
+  var statEnergy = document.getElementById('stat-energy');
+
+  var lastFrameTime = performance.now();
+
+  function render() {
+    requestAnimationFrame(render);
+
+    var now = performance.now();
+    var frameDt = Math.min(0.033, (now - lastFrameTime) * 0.001);
+    lastFrameTime = now;
+
+    // Substep physics 3 times for stability
+    var substeps = 3;
+    var subDt = frameDt / substeps;
+    for (var s = 0; s < substeps; s++) {
+      handleContinuousTools(subDt);
+
+      for (var i = 0; i < bubbles.length; i++) {
+        bubbles[i].updatePhysics(subDt, width, height);
+      }
+      resolveBubbleCollisions(subDt);
+    }
+
+    // Filter out popped bubbles and trigger acoustic lysis
+    for (var pIdx = bubbles.length - 1; pIdx >= 0; pIdx--) {
+      var testB = bubbles[pIdx];
+      if (testB.popped) {
+        AudioEngine.playBubblePop(Math.sqrt(testB.restArea / Math.PI), 1.8);
+        spawnCavitationDroplets(testB.centroid.x, testB.centroid.y, 24, testB.palette.stroke);
+        bubbles.splice(pIdx, 1);
+      }
+    }
+
+    // Clear Canvas with subtle motion trail
+    ctx.clearRect(0, 0, width, height);
+
+    // Render Subtle Hydrodynamic Metric Grid
+    ctx.strokeStyle = 'rgba(100, 181, 246, 0.04)';
+    ctx.lineWidth = 1;
+    var gridSize = 60;
+    ctx.beginPath();
+    for (var gx = gridSize; gx < width; gx += gridSize) {
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, height);
+    }
+    for (var gy = gridSize; gy < height; gy += gridSize) {
+      ctx.moveTo(0, gy);
+      ctx.lineTo(width, gy);
+    }
+    ctx.stroke();
+
+    var totalLatticePressure = 0;
+    var totalKineticEnergy = 0;
+
+    // Render Bubbles (Closed Smooth Splines)
+    for (var b = 0; b < bubbles.length; b++) {
+      var bub = bubbles[b];
+      var nodes = bub.nodes;
+      var nLen = nodes.length;
+      if (nLen < 3) continue;
+
+      totalLatticePressure += Math.abs(bub.pressure);
+
+      // Path around perimeter with smooth Catmull-Rom / midpoints
+      ctx.beginPath();
+      var mid0x = (nodes[0].x + nodes[1].x) * 0.5;
+      var mid0y = (nodes[0].y + nodes[1].y) * 0.5;
+      ctx.moveTo(mid0x, mid0y);
+
+      for (var k = 1; k < nLen; k++) {
+        var curr = nodes[k];
+        var next = nodes[(k + 1) % nLen];
+        var midX = (curr.x + next.x) * 0.5;
+        var midY = (curr.y + next.y) * 0.5;
+        ctx.quadraticCurveTo(curr.x, curr.y, midX, midY);
+
+        totalKineticEnergy += (curr.vx * curr.vx + curr.vy * curr.vy);
+      }
+      ctx.quadraticCurveTo(nodes[0].x, nodes[0].y, mid0x, mid0y);
+      ctx.closePath();
+
+      // Fluid interior glow
+      var rEff = Math.sqrt(Math.max(1, bub.restArea / Math.PI));
+      var radGrad = ctx.createRadialGradient(
+        bub.centroid.x - rEff * 0.25, bub.centroid.y - rEff * 0.25, rEff * 0.1,
+        bub.centroid.x, bub.centroid.y, rEff * 1.05
+      );
+      radGrad.addColorStop(0, 'rgba(255, 255, 255, 0.22)');
+      radGrad.addColorStop(0.35, bub.palette.fill);
+      radGrad.addColorStop(1, 'rgba(6, 12, 28, 0.05)');
+
+      ctx.fillStyle = radGrad;
+      ctx.fill();
+
+      // Membrane perimeter stroke with tension coloring
+      ctx.strokeStyle = bub.palette.stroke;
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+
+      // Render membrane nodes
+      for (var m = 0; m < nLen; m++) {
+        var nd = nodes[m];
+        var stress = nd.stress || 0;
+        var nodeR = 2.0;
+
+        ctx.fillStyle = stress > 0.4 ? '#ff5252' : bub.palette.glow;
+        ctx.beginPath();
+        ctx.arc(nd.x, nd.y, nodeR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Center harmonic frequency indicator
+      ctx.fillStyle = 'rgba(230, 237, 253, 0.4)';
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(Math.round(bub.harmonicFreq) + ' Hz', bub.centroid.x, bub.centroid.y + 4);
+    }
+
+    // Render Droplets & Cavitation Particles
+    for (var p = particles.length - 1; p >= 0; p--) {
+      var part = particles[p];
+      part.x += part.vx * frameDt;
+      part.y += part.vy * frameDt;
+      part.vx *= 0.96;
+      part.vy *= 0.96;
+      part.life -= frameDt;
+
+      if (part.life <= 0) {
+        particles.splice(p, 1);
+        continue;
+      }
+
+      var alpha = part.life / part.maxLife;
+      ctx.fillStyle = part.color;
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(part.x, part.y, part.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+    }
+
+    // Render Cleave / Slicing Vector
+    if (currentTool === 'rupture' && sliceStart && isPointerDown) {
+      ctx.save();
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(sliceStart.x, sliceStart.y);
+      ctx.lineTo(pointerPos.x, pointerPos.y);
+      ctx.stroke();
+
+      ctx.fillStyle = '#00e5ff';
+      ctx.beginPath();
+      ctx.arc(sliceStart.x, sliceStart.y, 4, 0, Math.PI * 2);
+      ctx.arc(pointerPos.x, pointerPos.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Update Telemetry HUD Readouts
+    statCount.textContent = bubbles.length;
+    statPressure.textContent = (totalLatticePressure * 0.01).toFixed(2) + ' kPa';
+    statEnergy.textContent = (totalKineticEnergy * 0.0001).toFixed(2) + ' J';
+  }
+
+  // Initialize Default Preset
+  loadPreset('foam');
+  requestAnimationFrame(render);
+
+})();
+</script>
+</body>
+</html>

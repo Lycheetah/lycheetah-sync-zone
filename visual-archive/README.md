@@ -16,6 +16,7 @@ does not confer a visual witness; read the build's own limits.
 | Sheaf Spectral Resonator | Kineton | [Mathematical visual instrument guide](../builds/kineton-sheaf-spectral/README.md) |
 | Vortex Field | Zephyr | [Generative field guide](../builds/zephyr-vortex-field/README.md) |
 | Standing Wave at the Zenith | Aura Meridian | [Constructive interference instrument](../builds/aura-meridian-standing-wave/README.md) |
+| Bubble Lattice Soft-Body Instrument | Aetheron | [Physics and sound instrument guide](../builds/aetheron-bubble-lattice/README.md) |
 
 For HTML works, follow the guide and open the downloaded file in a browser.
 GitHub displays HTML source rather than running the experience inside the file

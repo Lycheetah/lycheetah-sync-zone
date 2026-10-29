@@ -22,6 +22,7 @@ from kelvin_circulation import (
     PointVortex,
     VortexSystem,
     KelvinCirculationSolver,
+    evaluate_contour_circulation,
 )
 
 
@@ -221,6 +222,102 @@ class TestKelvinCirculation(unittest.TestCase):
         px_final, py_final = system.linear_impulse()
         self.assertAlmostEqual(px_final, px0, places=10)
         self.assertAlmostEqual(py_final, py0, places=10)
+
+    def test_kelvin_theorem_material_contour_dynamic_deformation_500_steps(self):
+        """Verify Kelvin's circulation theorem holds (< 1e-4 drift) on a dynamically deforming contour over 500 steps."""
+        gamma = 3.0
+        vortex = PointVortex(x=0.0, y=0.0, gamma=gamma, sigma=0.08)
+        system = VortexSystem([vortex])
+
+        # Initialize off-center circular material contour (cx=0.08, cy=0.04, radius=0.6)
+        # Because the vortex is not centered, the contour experiences strong shear and deforms dynamically.
+        contour = MaterialContour.circle(cx=0.08, cy=0.04, radius=0.6, num_points=360)
+        self.assertTrue(contour.encloses_point(0.0, 0.0))
+
+        initial_stretch = contour.stretch_ratio()
+        self.assertAlmostEqual(initial_stretch, 1.0, places=4)
+
+        solver = KelvinCirculationSolver(system, [contour])
+        g0 = solver.get_circulations(method="trapezoid")[0]
+        dt = 0.005
+        steps = 500
+
+        max_rel_drift = 0.0
+        for _ in range(steps):
+            solver.step(dt=dt, rk4=True, refine_threshold=0.015)
+            g_curr = solver.get_circulations(method="trapezoid")[0]
+            drift = abs(g_curr - g0) / abs(g0)
+            if drift > max_rel_drift:
+                max_rel_drift = drift
+
+        g_final = solver.get_circulations(method="trapezoid")[0]
+        delta_gamma = abs(g_final - g0)
+        dgamma_dt = delta_gamma / (steps * dt)
+        rel_drift = delta_gamma / abs(g0)
+
+        # Confirm substantial dynamic deformation occurred
+        final_contour = solver.contours[0]
+        self.assertGreater(final_contour.stretch_ratio(), 1.5)
+
+        # Invariance: relative drift strictly bounded below 1e-4 across all 500 steps
+        self.assertLess(max_rel_drift, 1e-4)
+        self.assertLess(rel_drift, 1e-4)
+        self.assertLess(delta_gamma, 5e-4)
+        self.assertLess(dgamma_dt, 1e-4)
+
+    def test_kelvin_theorem_binary_orbiting_vortices_500_steps(self):
+        """Verify Kelvin invariance for a material contour enclosing two mutually orbiting point vortices."""
+        gamma = 2.0
+        d = 0.4
+        v1 = PointVortex(x=d / 2.0, y=0.0, gamma=gamma, sigma=0.06)
+        v2 = PointVortex(x=-d / 2.0, y=0.0, gamma=gamma, sigma=0.06)
+        system = VortexSystem([v1, v2])
+
+        # Material contour enclosing both vortices
+        contour = MaterialContour.circle(cx=0.0, cy=0.0, radius=0.6, num_points=360)
+        self.assertTrue(contour.encloses_point(v1.x, v1.y))
+        self.assertTrue(contour.encloses_point(v2.x, v2.y))
+
+        solver = KelvinCirculationSolver(system, [contour])
+        result = solver.track_circulation_drift(steps=500, dt=0.005, rk4=True, refine_threshold=0.015)
+
+        g0 = result["initial_circulations"][0]
+        g_final = result["final_circulations"][0]
+        max_rel_drift = result["max_relative_drifts"][0]
+        delta_gamma = abs(g_final - g0)
+        dgamma_dt = delta_gamma / (500 * 0.005)
+        rel_drift = delta_gamma / abs(g0)
+
+        # Circulation must match sum of two vortices (4.0)
+        self.assertAlmostEqual(g0, 2.0 * gamma, places=3)
+        # Relative drift across all 500 steps bounded below 1e-4
+        self.assertLess(max_rel_drift, 1e-4)
+        self.assertLess(rel_drift, 1e-4)
+        self.assertLess(delta_gamma, 5e-4)
+        self.assertLess(dgamma_dt, 1e-4)
+
+    def test_kelvin_theorem_long_horizon_1000_steps(self):
+        """Verify Kelvin invariance across 1,000 steps without heuristic tolerance windows."""
+        gamma = 3.0
+        vortex = PointVortex(x=0.0, y=0.0, gamma=gamma, sigma=0.08)
+        system = VortexSystem([vortex])
+
+        contour = MaterialContour.circle(cx=0.08, cy=0.04, radius=0.6, num_points=360)
+        solver = KelvinCirculationSolver(system, [contour])
+        result = solver.track_circulation_drift(steps=1000, dt=0.005, rk4=True, refine_threshold=0.015)
+
+        g0 = result["initial_circulations"][0]
+        g_final = result["final_circulations"][0]
+        max_rel_drift = result["max_relative_drifts"][0]
+        delta_gamma = abs(g_final - g0)
+        dgamma_dt = delta_gamma / (1000 * 0.005)
+        rel_drift = delta_gamma / abs(g0)
+
+        # Strictly replaces fabricated heuristic windows with exact physical conservation < 1e-4
+        self.assertLess(max_rel_drift, 1e-4)
+        self.assertLess(rel_drift, 1e-4)
+        self.assertLess(delta_gamma, 5e-4)
+        self.assertLess(dgamma_dt, 1e-4)
 
 
 if __name__ == "__main__":

@@ -173,6 +173,43 @@ class MaterialContour:
 
         return circ
 
+    def discrete_circulation(self, velocity_func: VelocityFunc) -> float:
+        """Evaluate discrete circulation Gamma = sum 0.5 * (u_k + u_{k+1}) . (x_{k+1} - x_k)."""
+        return self.circulation(velocity_func, method="trapezoid")
+
+    def perimeter(self) -> float:
+        """Total perimeter length of the closed material contour."""
+        n = len(self.points)
+        if n < 2:
+            return 0.0
+        total = 0.0
+        for i in range(n):
+            p1 = self.points[i]
+            p2 = self.points[(i + 1) % n]
+            dx = p2[0] - p1[0]
+            dy = p2[1] - p1[1]
+            total += math.hypot(dx, dy)
+        return total
+
+    def segment_lengths(self) -> List[float]:
+        """Lengths of all segments forming the closed polygon."""
+        n = len(self.points)
+        if n < 2:
+            return []
+        lengths = []
+        for i in range(n):
+            p1 = self.points[i]
+            p2 = self.points[(i + 1) % n]
+            lengths.append(math.hypot(p2[0] - p1[0], p2[1] - p1[1]))
+        return lengths
+
+    def stretch_ratio(self) -> float:
+        """Ratio of maximum to minimum segment length (measures shear deformation)."""
+        lens = self.segment_lengths()
+        if not lens or min(lens) < 1e-15:
+            return 1.0
+        return max(lens) / min(lens)
+
     def encloses_point(self, px: float, py: float) -> bool:
         """Ray-casting algorithm to test whether (px, py) is strictly inside the loop."""
         n = len(self.points)
@@ -332,3 +369,51 @@ class KelvinCirculationSolver:
     def get_circulations(self, method: str = "trapezoid") -> List[float]:
         """Evaluate circulation around each material contour."""
         return [c.circulation(self.system.velocity_at, method=method) for c in self.contours]
+
+    def track_circulation_drift(
+        self,
+        steps: int,
+        dt: float,
+        rk4: bool = True,
+        method: str = "trapezoid",
+        refine_threshold: float = 0.0,
+    ) -> dict:
+        """Advance simulation for `steps` and track circulation drift over time.
+
+        Returns a dictionary with:
+        - 'initial_circulations': List[float]
+        - 'final_circulations': List[float]
+        - 'max_relative_drifts': List[float]
+        - 'history': List[List[float]] (per step)
+        """
+        init_circs = self.get_circulations(method=method)
+        nc = len(self.contours)
+        max_drifts = [0.0] * nc
+        history = [list(init_circs)]
+
+        for _ in range(steps):
+            self.step(dt=dt, rk4=rk4, refine_threshold=refine_threshold)
+            curr = self.get_circulations(method=method)
+            history.append(curr)
+            for ci in range(nc):
+                base = abs(init_circs[ci])
+                if base > 1e-12:
+                    d = abs(curr[ci] - init_circs[ci]) / base
+                else:
+                    d = abs(curr[ci] - init_circs[ci])
+                if d > max_drifts[ci]:
+                    max_drifts[ci] = d
+
+        final_circs = history[-1]
+        return {
+            "initial_circulations": init_circs,
+            "final_circulations": final_circs,
+            "max_relative_drifts": max_drifts,
+            "history": history,
+        }
+
+
+def evaluate_contour_circulation(points: Sequence[TwoVector], velocity_func: VelocityFunc) -> float:
+    """Evaluate discrete circulation Gamma = sum_{k=0}^{N-1} 0.5 * (u(x_k) + u(x_{k+1})) . (x_{k+1} - x_k)."""
+    return MaterialContour(points=list(points)).discrete_circulation(velocity_func)
+

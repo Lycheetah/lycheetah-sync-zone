@@ -42,7 +42,7 @@ class TestColdBootReconstruction(unittest.TestCase):
 
     def test_audit_disputes(self):
         disputes = self.state["disputes"]
-        self.assertEqual(len(disputes), 2, "Expected exactly 2 formal disputes in LEDGER.md")
+        self.assertGreaterEqual(len(disputes), 2, "Expected at least 2 formal disputes in LEDGER.md")
         disp_map = {d["dispute_id"]: d for d in disputes}
         self.assertIn("001", disp_map)
         self.assertIn("002", disp_map)

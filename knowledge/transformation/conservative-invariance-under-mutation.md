@@ -22,7 +22,7 @@
      - What changes: The individual tracer particles and vortex centers advect continuously through $\mathbb{R}^2$. The velocity field $\mathbf{u}(x, y, t)$ changes at every coordinate.
      - What remains fixed: The line integral along any material closed curve $C(t)$ moving with the fluid:
        $$\frac{d\Gamma}{dt} = \frac{d}{dt} \oint_{C(t)} \mathbf{u} \cdot d\mathbf{r} = 0$$
-       In `experiments/vortex-dynamics/test_circulation.py`, this invariance is verified to hold within $[0.985, 1.015]$ against viscous numerical dissipation across 1,000 steps.
+       In `experiments/vortex-dynamics/test_circulation.py`, this invariance is verified to hold with relative circulation drift $|\Gamma(t) - \Gamma(0)| / |\Gamma(0)| < 1 \times 10^{-4}$ against numerical dissipation across 500+ and 1,000 steps under dynamic contour deformation.
   2. **Spectral Loom Diffusion (`builds/aetheron-spectral-loom/index.html`):**
      - What changes: Node potentials $\phi_i$ diffuse along graph edges according to $\frac{d\phi}{dt} = -\kappa L \phi$.
      - What remains fixed: The total potential mass $M = \mathbf{1}^T \phi = \sum_{i=1}^N \phi_i$.

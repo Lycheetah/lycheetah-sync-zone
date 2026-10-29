@@ -18,18 +18,22 @@ A sound that cannot be decoded back to its exact symbol is mere decorative drift
 
 ## Acoustic Architecture & Harmonic Overtone Ratios
 
-The tonecode engine operates upon a ladder of just-intonation intervals derived from the harmonic overtone series. While the primary interactive canvas renders six fundamental discrete rungs (numbered 1 through 6, colored `--n0` through `--n5`), the foundational sacred acoustic grammar maps the key liturgical syllables to integer harmonic frequency ratios:
+The tonecode engine operates upon a ladder of harmonic intervals derived from the overtone series. While the primary interactive canvas renders six fundamental discrete rungs (numbered 1 through 6, colored `--n0` through `--n5`), the foundational sacred acoustic grammar maps the key liturgical syllables to integer harmonic frequency ratios.
 
-| Syllable | Harmonic Ratio | Solfège / Function | Interval Name | Frequency ($f_0 = 293.66\text{ Hz}$) | Euler Gradus ($\Gamma$) |
-|:---|:---:|:---|:---|:---:|:---:|
-| **sol** | $1/1$ | Unison / Tonic Base | Fundamental Ground | $293.66\text{ Hz}$ | $1$ |
-| **fa** | $9/8$ | Epistemic Major Second | Major Tone (Pythagorean) | $330.37\text{ Hz}$ | $8$ |
-| **mi** | $5/4$ | Subjective Major Third | Just Major Third | $367.08\text{ Hz}$ | $7$ |
-| **ra** | $4/3$ | Modal Fourth | Perfect Fourth | $391.55\text{ Hz}$ | $5$ |
-| **do** | $3/2$ | Harmonic Fifth | Perfect Fifth | $440.49\text{ Hz}$ | $4$ |
-| **ke** | $5/3$ | Connective Sixth | Just Major Sixth | $489.43\text{ Hz}$ | $7$ |
-| **ath** | $15/8$ | Hearth Seventh | Just Major Seventh | $550.61\text{ Hz}$ | $10$ |
-| **sol'** | $2/1$ | Octave Crown | Octave Duplication | $587.32\text{ Hz}$ | $2$ |
+In Dispute 504, the 7 sacred syllables (`SO`, `EL`, `RA`, `NU`, `TI`, `KA`, `MA`) were formally reconciled with the canonical 7-degree Pythagorean heptatonic scale, completed by the transcendent octave seal `OM`:
+
+| Degree | Syllable | Harmonic Ratio | Solfège / Function | Interval Name | Frequency ($f_0 = 293.66\text{ Hz}$) | Euler Gradus ($\Gamma$) |
+|:---:|:---|:---:|:---|:---|:---:|:---:|
+| 1 | **SO** | $1/1$ | Unison / Tonic Base | Fundamental Ground | $293.66\text{ Hz}$ | $1$ |
+| 2 | **EL** | $9/8$ | Epistemic Second | Major Tone (Pythagorean) | $330.37\text{ Hz}$ | $8$ |
+| 3 | **RA** | $81/64$ | Subjective Third | Pythagorean Ditone | $371.66\text{ Hz}$ | $15$ |
+| 4 | **NU** | $4/3$ | Kinetic Fourth | Perfect Fourth | $391.55\text{ Hz}$ | $5$ |
+| 5 | **TI** | $3/2$ | Harmonic Fifth | Perfect Fifth Pillar | $440.49\text{ Hz}$ | $4$ |
+| 6 | **KA** | $27/16$ | Connective Sixth | Pythagorean Major Sixth | $495.55\text{ Hz}$ | $11$ |
+| 7 | **MA** | $243/128$ | Epistemic Seventh | Pythagorean Major Seventh | $557.50\text{ Hz}$ | $18$ |
+| **Seal** | **OM** | $2/1$ | Transcendent Crown | Octave Seal | $587.32\text{ Hz}$ | $2$ |
+
+*(Historical note: Early round-three drafts used 5-limit Just Intonation ratios for `mi` 5/4, `ke` 5/3, `ath` 15/8; reconciled to pure 3-limit Pythagorean tuning in Dispute 504).*
 
 ### Web Audio Engine Implementation
 1. **Pure Client-Side AudioContext:** Uses zero external audio libraries, zero sample downloads, and zero network calls (`fetch`/`xhr`).

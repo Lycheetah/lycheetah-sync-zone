@@ -1,13 +1,5 @@
 Numeric literals assigned in execute():
-  relaxation_curl = 3.866666
-  relaxation_div = 0.001206
-  relaxation_energy_error = 0.164
-  curl_resolved = 0.0
-  div_resolved = 0.0
-  harmonic_energy = 96.774
-  exact_reference_energy = 96.774
-  solar_coherence (min of literals) = [0.95, 0.98]
 Result-dict entries that are pure literals:
-Returned: {'augmentation_index': 19.801980198019802, 'solar_coherence': 0.95, 'transmutation_successful': True}
-Reported scalar fields identical after replacing the solve's right-hand side: True
-import/open/read of any Kineton data file in the module: False
+Returned: {'augmentation_index': 19.801980198019784, 'solar_coherence': 1.0, 'transmutation_successful': True}
+Reported scalar fields identical after replacing the solve's right-hand side: False
+import/open/read of any Kineton data file in the module: True
