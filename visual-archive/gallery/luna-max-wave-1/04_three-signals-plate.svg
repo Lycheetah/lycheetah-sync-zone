@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Three Signals — a shared plate with separate truth labels</title>
+  <desc id="desc">Three illustrated islands show an invented language, an ideal mathematical toy, and a fictional contemplative practice. A dotted path connects the exhibits as a reading route only, not as causal evidence. The reader may enter, pause, or leave.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1724"/>
+      <stop offset=".55" stop-color="#142a39"/>
+      <stop offset="1" stop-color="#25223b"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#85dec8" stop-opacity=".12"/>
+      <stop offset=".5" stop-color="#f2c47f" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#b39aff" stop-opacity=".12"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="65%">
+      <stop offset="0" stop-color="#ffcb80" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#ffcb80" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .caps { font-size: 12px; font-weight: 750; letter-spacing: 2px; }
+      .muted { fill: #afc0c9; }
+      .card { fill: #111f2d; stroke: #536777; stroke-width: 1.4; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <circle cx="1040" cy="97" r="215" fill="#b392d3" opacity=".055"/>
+  <circle cx="158" cy="678" r="220" fill="#7bd7c0" opacity=".055"/>
+  <path d="M45 176H1155" stroke="#c2d8da" stroke-opacity=".2"/>
+
+  <text x="60" y="57" class="caps" fill="#f2c47f">LYCHEETAH SYNC ZONE · VISUAL FORGE</text>
+  <text x="58" y="125" fill="#f5eddd" font-family="Georgia,serif" font-size="52">Three signals, one reading path</text>
+  <text x="62" y="155" class="muted" font-size="16">A small invented coast for language, a toy model, and a story of rest.</text>
+
+  <!-- This dotted route is editorial navigation, not a causal or evidential chain. -->
+  <path d="M194 561 C284 623 331 573 406 581 S544 629 604 581 S754 551 803 584 S968 625 1039 560" fill="none" stroke="url(#water)" stroke-width="17" stroke-linecap="round"/>
+  <path d="M194 561 C284 623 331 573 406 581 S544 629 604 581 S754 551 803 584 S968 625 1039 560" fill="none" stroke="#c7d5d6" stroke-opacity=".55" stroke-width="1.5" stroke-dasharray="3 10" stroke-linecap="round"/>
+
+  <!-- Language island -->
+  <g>
+    <rect x="58" y="218" width="338" height="358" rx="25" class="card" stroke="#74d8bf" stroke-opacity=".72"/>
+    <text x="84" y="255" class="caps" fill="#84e2c8">01 · INVENTED LANGUAGE</text>
+    <text x="83" y="300" fill="#f1ead8" font-family="Georgia,serif" font-size="31">Rillwire</text>
+    <text x="84" y="327" class="muted" font-size="14">A handle can travel by different tails.</text>
+    <circle cx="226" cy="423" r="90" fill="url(#glow)"/>
+    <circle cx="226" cy="421" r="65" fill="#142b36" stroke="#7cd9c5" stroke-opacity=".8" stroke-width="1.6"/>
+    <ellipse cx="226" cy="421" rx="34" ry="59" fill="none" stroke="#f3c782" stroke-opacity=".8" stroke-width="2" transform="rotate(42 226 421)"/>
+    <ellipse cx="226" cy="421" rx="34" ry="59" fill="none" stroke="#80ddc5" stroke-opacity=".8" stroke-width="2" transform="rotate(-42 226 421)"/>
+    <circle cx="226" cy="421" r="31" fill="#e7bd7f"/>
+    <text x="226" y="426" text-anchor="middle" fill="#1d2a31" font-family="Georgia,serif" font-size="20" font-weight="700">oru</text>
+    <path d="M278 389 C314 365 327 359 348 361M286 407 C322 397 332 395 354 397M287 429 C319 434 333 438 352 449" fill="none" stroke="#82dfc7" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="351" cy="361" r="5" fill="#f3c782"/><circle cx="357" cy="398" r="5" fill="#80ddc5"/><circle cx="353" cy="450" r="5" fill="#b6a1fa"/>
+    <text x="84" y="530" fill="#aec6cc" font-size="13">[invented grammar · not a field language]</text>
+  </g>
+
+  <!-- Science island -->
+  <g>
+    <rect x="431" y="218" width="338" height="358" rx="25" class="card" stroke="#7db4fa" stroke-opacity=".72"/>
+    <text x="457" y="255" class="caps" fill="#91c1ff">02 · MATHEMATICAL TOY</text>
+    <text x="456" y="300" fill="#f1ead8" font-family="Georgia,serif" font-size="31">Quasi-clock</text>
+    <text x="457" y="327" class="muted" font-size="14">Two ideal phases approach, then drift.</text>
+    <circle cx="600" cy="421" r="86" fill="#111b2a" stroke="#66849d" stroke-width="1.3"/>
+    <circle cx="600" cy="421" r="62" fill="none" stroke="#66849d" stroke-dasharray="3 7" stroke-width="1.4"/>
+    <circle cx="600" cy="421" r="37" fill="none" stroke="#66849d" stroke-dasharray="3 7" stroke-width="1.4"/>
+    <path d="M600 421 L650 377" stroke="#88e2d6" stroke-width="4" stroke-linecap="round"/>
+    <path d="M600 421 L559 363" stroke="#f0bc78" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="650" cy="377" r="7" fill="#88e2d6"/><circle cx="559" cy="363" r="7" fill="#f0bc78"/>
+    <circle cx="600" cy="421" r="8" fill="#f4eedf"/>
+    <text x="457" y="530" fill="#aec6cc" font-size="13">[ideal model · not a measurement]</text>
+  </g>
+
+  <!-- Fiction island -->
+  <g>
+    <rect x="804" y="218" width="338" height="358" rx="25" class="card" stroke="#c1a8f5" stroke-opacity=".76"/>
+    <text x="830" y="255" class="caps" fill="#c6b2ff">03 · FICTIONAL PRACTICE</text>
+    <text x="829" y="300" fill="#f1ead8" font-family="Georgia,serif" font-size="31">The unspent hour</text>
+    <text x="830" y="327" class="muted" font-size="14">A lamp rests unlit. Nothing is owed.</text>
+    <circle cx="978" cy="414" r="94" fill="url(#glow)" opacity=".36"/>
+    <path d="M864 470 Q977 450 1086 470 L1086 493 Q981 480 864 496Z" fill="#705465" stroke="#c58c81" stroke-width="1.5"/>
+    <path d="M916 444 C921 423 941 414 958 414 C977 414 994 425 999 445 L993 455 Q955 466 921 455Z" fill="#ab6d65" stroke="#e1a78b" stroke-width="1.5"/>
+    <path d="M936 420 C935 400 943 389 958 385 C973 392 981 403 979 420Z" fill="#a96560" stroke="#e1a78b" stroke-width="1.5"/>
+    <path d="M958 386 C957 377 960 372 964 368" fill="none" stroke="#493547" stroke-width="5" stroke-linecap="round"/>
+    <path d="M1012 451 C1023 426 1060 428 1070 449 C1073 458 1064 463 1052 464 L1025 464Z" fill="#aaa1a7" stroke="#dfd1c5" stroke-width="1.5"/>
+    <text x="830" y="530" fill="#aec6cc" font-size="13">[fiction · not instruction or treatment]</text>
+  </g>
+
+  <rect x="60" y="631" width="1080" height="98" rx="20" fill="#0d1a28" stroke="#516778" stroke-opacity=".65"/>
+  <text x="84" y="669" class="caps" fill="#f2c47f">THE THREAD IS A READING ROUTE</text>
+  <text x="84" y="700" fill="#e6e4dc" font-size="16">Three labels stay distinct. The dotted line links pages; it is not proof, cause, or shared evidence.</text>
+  <text x="1110" y="760" text-anchor="end" fill="#aebdc5" font-size="12" letter-spacing="1.5">ENTER · PAUSE · LEAVE</text>
+</svg>

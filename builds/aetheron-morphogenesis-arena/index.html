@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Aetheron Morphogenesis Arena: 2D Gray-Scott Reaction-Diffusion & Sonoluminescent Synthesizer">
+  <title>Aetheron Morphogenesis Arena · Lycheetah Sync Zone</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: #121620;
+      --panel-border: #1e2638;
+      --accent: #5ef0d2;
+      --accent-glow: rgba(94, 240, 210, 0.25);
+      --gold: #f5c46b;
+      --text: #e8ecf4;
+      --text-muted: #8c98b0;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      max-width: 800px;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    h1 span {
+      color: var(--accent);
+      text-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .arena-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 960px;
+    }
+
+    @media (min-width: 768px) {
+      .arena-container {
+        grid-template-columns: 460px 1fr;
+      }
+    }
+
+    .canvas-panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 1 / 1;
+      border-radius: 8px;
+      background: #000;
+      cursor: crosshair;
+      image-rendering: pixelated;
+    }
+
+    .canvas-caption {
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .control-panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+      margin-bottom: 0.4rem;
+    }
+
+    .presets-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    button {
+      background: #1a2030;
+      color: var(--text);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    button:hover {
+      background: #232c42;
+      border-color: var(--accent);
+    }
+
+    button.active {
+      background: var(--accent);
+      color: #050b14;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      background: #1e2638;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .metrics-hud {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      background: #090c14;
+      border: 1px solid #1a2234;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .metric-item span:first-child {
+      color: var(--text-muted);
+      display: block;
+      font-size: 0.7rem;
+    }
+
+    .metric-item span:last-child {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: auto;
+    }
+
+    .footer-actions button {
+      flex: 1;
+    }
+
+    #btn-audio.active {
+      background: var(--gold);
+      color: #0b0904;
+      border-color: var(--gold);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AETHERON <span>MORPHOGENESIS</span> ARENA</h1>
+    <p class="subtitle">2D Gray-Scott Reaction-Diffusion Dynamics & Sonoluminescent Barlow Acoustic Synthesis</p>
+  </header>
+
+  <main class="arena-container">
+    <div class="canvas-panel">
+      <canvas id="morphoCanvas" width="128" height="128"></canvas>
+      <div class="canvas-caption">Click / Drag to nucleate active hypotheses</div>
+    </div>
+
+    <div class="control-panel">
+      <div>
+        <div class="section-title">Morphogenetic Regimes</div>
+        <div class="presets-grid">
+          <button id="p-soliton" class="active">Soliton Dots</button>
+          <button id="p-labyrinth">Labyrinth</button>
+          <button id="p-mitosis">Mitosis</button>
+          <button id="p-chaos">Wave Chaos</button>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Feed Rate (F)</span>
+          <span id="val-F">0.0300</span>
+        </div>
+        <input type="range" id="slide-F" min="0.010" max="0.060" step="0.001" value="0.030">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>Kill Rate (k)</span>
+          <span id="val-k">0.0620</span>
+        </div>
+        <input type="range" id="slide-k" min="0.045" max="0.070" step="0.001" value="0.062">
+      </div>
+
+      <div class="metrics-hud">
+        <div class="metric-item">
+          <span>SIMULATION STEPS</span>
+          <span id="metric-steps">0</span>
+        </div>
+        <div class="metric-item">
+          <span>KINETIC ENERGY</span>
+          <span id="metric-energy">0.0000</span>
+        </div>
+        <div class="metric-item">
+          <span>SPATIAL ENTROPY</span>
+          <span id="metric-entropy">0.0000</span>
+        </div>
+        <div class="metric-item">
+          <span>BARLOW CONSONANCE</span>
+          <span id="metric-consonance">Pure 3:2</span>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button id="btn-audio">Activate Sonoluminescence</button>
+        <button id="btn-reset">Reset Hearth</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // State & Constants
+    const N = 128;
+    let u = new Float32Array(N * N);
+    let v = new Float32Array(N * N);
+    let nextU = new Float32Array(N * N);
+    let nextV = new Float32Array(N * N);
+
+    let Du = 0.16;
+    let Dv = 0.08;
+    let F = 0.030;
+    let k = 0.062;
+    let steps = 0;
+    let isDrawing = false;
+    let audioCtx = null;
+    let oscBank = [];
+    let masterGain = null;
+    let filterNode = null;
+
+    const canvas = document.getElementById("morphoCanvas");
+    const ctx = canvas.getContext("2d");
+    const imgData = ctx.createImageData(N, N);
+
+    function initField() {
+      for (let i = 0; i < N * N; i++) {
+        u[i] = 1.0;
+        v[i] = 0.0;
+      }
+      seedCircle(Math.floor(N / 2), Math.floor(N / 2), 8);
+      seedCircle(Math.floor(N / 3), Math.floor(N / 3), 6);
+      seedCircle(Math.floor(2 * N / 3), Math.floor(2 * N / 3), 6);
+      steps = 0;
+    }
+
+    function seedCircle(cx, cy, r) {
+      for (let y = Math.max(0, cy - r); y < Math.min(N, cy + r); y++) {
+        for (let x = Math.max(0, cx - r); x < Math.min(N, cx + r); x++) {
+          if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= r * r) {
+            const idx = y * N + x;
+            u[idx] = 0.50;
+            v[idx] = 0.25 + Math.random() * 0.1;
+          }
+        }
+      }
+    }
+
+    function stepSimulation() {
+      for (let sub = 0; sub < 4; sub++) {
+        for (let y = 0; y < N; y++) {
+          const yUp = ((y - 1 + N) % N) * N;
+          const yDown = ((y + 1) % N) * N;
+          const yRow = y * N;
+
+          for (let x = 0; x < N; x++) {
+            const idx = yRow + x;
+            const left = yRow + ((x - 1 + N) % N);
+            const right = yRow + ((x + 1) % N);
+
+            const uVal = u[idx];
+            const vVal = v[idx];
+
+            const lapU = u[left] + u[right] + u[yUp + x] + u[yDown + x] - 4.0 * uVal;
+            const lapV = v[left] + v[right] + v[yUp + x] + v[yDown + x] - 4.0 * vVal;
+
+            const uvv = uVal * vVal * vVal;
+            const du = Du * lapU - uvv + F * (1.0 - uVal);
+            const dv = Dv * lapV + uvv - (F + k) * vVal;
+
+            let nu = uVal + du;
+            let nv = vVal + dv;
+
+            nextU[idx] = nu < 0.0 ? 0.0 : (nu > 1.0 ? 1.0 : nu);
+            nextV[idx] = nv < 0.0 ? 0.0 : (nv > 1.0 ? 1.0 : nv);
+          }
+        }
+        let tempU = u; u = nextU; nextU = tempU;
+        let tempV = v; v = nextV; nextV = tempV;
+        steps++;
+      }
+    }
+
+    function render() {
+      stepSimulation();
+
+      const data = imgData.data;
+      let totalEnergy = 0.0;
+      let sumV = 0.0;
+
+      for (let i = 0; i < N * N; i++) {
+        const valU = u[i];
+        const valV = v[i];
+        sumV += valV;
+
+        // Color mapping: deep indigo void to luminous turquoise & gold
+        const p = i * 4;
+        const lum = Math.min(1.0, valV * 2.5);
+        const r = Math.floor(lum * 94 * (1.0 - valU * 0.5) + valV * 160);
+        const g = Math.floor(lum * 240);
+        const b = Math.floor(lum * 210 + (1.0 - valU) * 80);
+
+        data[p] = r;
+        data[p + 1] = g;
+        data[p + 2] = b;
+        data[p + 3] = 255;
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      // Compute quick kinetic energy & entropy approximations
+      const meanV = sumV / (N * N);
+      let variance = 0.0;
+      for (let i = 0; i < N * N; i += 4) {
+        variance += Math.abs(v[i] - meanV);
+      }
+      const entropy = (variance / (N * N / 4)) * 4.0;
+      const energy = variance * 12.0;
+
+      document.getElementById("metric-steps").innerText = steps;
+      document.getElementById("metric-energy").innerText = energy.toFixed(4);
+      document.getElementById("metric-entropy").innerText = entropy.toFixed(4);
+
+      if (audioCtx && filterNode) {
+        const targetFreq = 120 + entropy * 800;
+        filterNode.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.05);
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    // Audio Engine
+    function initAudio() {
+      if (audioCtx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      filterNode = audioCtx.createBiquadFilter();
+      filterNode.type = "lowpass";
+      filterNode.frequency.setValueAtTime(350, audioCtx.currentTime);
+      filterNode.Q.setValueAtTime(4.0, audioCtx.currentTime);
+
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+
+      filterNode.connect(masterGain);
+      masterGain.connect(audioCtx.destination);
+
+      // Additive synthesizer tuned to Barlow ratios (Fundamental C2 = 65.41 Hz)
+      const baseFreq = 65.41;
+      const ratios = [1.0, 1.5, 2.0, 3.0, 4.5]; // Pure Pythagorean consonance
+      ratios.forEach((ratio, idx) => {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = idx % 2 === 0 ? "sine" : "triangle";
+        osc.frequency.setValueAtTime(baseFreq * ratio, audioCtx.currentTime);
+        g.gain.setValueAtTime(0.18 / (idx + 1), audioCtx.currentTime);
+        osc.connect(g);
+        g.connect(filterNode);
+        osc.start();
+        oscBank.push({ osc, gain: g });
+      });
+    }
+
+    // UI Event Wiring
+    document.getElementById("btn-audio").addEventListener("click", () => {
+      initAudio();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      document.getElementById("btn-audio").classList.toggle("active");
+    });
+
+    document.getElementById("btn-reset").addEventListener("click", initField);
+
+    function applyPreset(btnId, presetF, presetK) {
+      document.querySelectorAll(".presets-grid button").forEach(b => b.classList.remove("active"));
+      document.getElementById(btnId).classList.add("active");
+      F = presetF;
+      k = presetK;
+      document.getElementById("slide-F").value = F;
+      document.getElementById("slide-k").value = k;
+      document.getElementById("val-F").innerText = F.toFixed(4);
+      document.getElementById("val-k").innerText = k.toFixed(4);
+    }
+
+    document.getElementById("p-soliton").addEventListener("click", () => applyPreset("p-soliton", 0.030, 0.062));
+    document.getElementById("p-labyrinth").addEventListener("click", () => applyPreset("p-labyrinth", 0.029, 0.057));
+    document.getElementById("p-mitosis").addEventListener("click", () => applyPreset("p-mitosis", 0.036, 0.065));
+    document.getElementById("p-chaos").addEventListener("click", () => applyPreset("p-chaos", 0.026, 0.055));
+
+    document.getElementById("slide-F").addEventListener("input", (e) => {
+      F = parseFloat(e.target.value);
+      document.getElementById("val-F").innerText = F.toFixed(4);
+    });
+
+    document.getElementById("slide-k").addEventListener("input", (e) => {
+      k = parseFloat(e.target.value);
+      document.getElementById("val-k").innerText = k.toFixed(4);
+    });
+
+    // Touch & Mouse Drawing
+    function injectAtPointer(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = N / rect.width;
+      const scaleY = N / rect.height;
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+      if (clientX === undefined) return;
+      const cx = Math.floor((clientX - rect.left) * scaleX);
+      const cy = Math.floor((clientY - rect.top) * scaleY);
+      seedCircle(cx, cy, 5);
+    }
+
+    canvas.addEventListener("mousedown", (e) => { isDrawing = true; injectAtPointer(e); });
+    window.addEventListener("mouseup", () => { isDrawing = false; });
+    canvas.addEventListener("mousemove", (e) => { if (isDrawing) injectAtPointer(e); });
+    canvas.addEventListener("touchstart", (e) => { isDrawing = true; injectAtPointer(e); e.preventDefault(); }, { passive: false });
+    canvas.addEventListener("touchmove", (e) => { if (isDrawing) injectAtPointer(e); e.preventDefault(); }, { passive: false });
+    window.addEventListener("touchend", () => { isDrawing = false; });
+
+    // Boot
+    initField();
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>

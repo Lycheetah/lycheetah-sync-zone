@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Rillwire Playroom</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #173039;
+      --muted: #455e65;
+      --paper: #f5f7f2;
+      --panel: #ffffff;
+      --edge: #9bb3ad;
+      --deep: #174e52;
+      --focus: #a43e1a;
+      --wash: #e5f0e9;
+      --warm: #fff4dc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 1rem/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main { width: min(100% - 2rem, 58rem); margin: 0 auto; padding: 2rem 0 3rem; }
+    header { padding: 1.5rem 0 1.25rem; }
+    .eyebrow { margin: 0 0 .45rem; color: var(--deep); font-size: .85rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { max-width: 14ch; margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.02; letter-spacing: -.04em; }
+    h2 { margin: 0 0 .75rem; font-size: 1.35rem; line-height: 1.2; }
+    p { margin: .5rem 0 0; }
+    .intro { max-width: 66ch; margin-top: 1rem; color: var(--muted); font-size: 1.08rem; }
+    .notice { border-left: .35rem solid var(--deep); border-radius: .4rem; background: var(--wash); margin: 1.25rem 0; padding: .85rem 1rem; }
+    .notice p:first-child { margin-top: 0; }
+    .panel { margin-top: 1rem; padding: clamp(1rem, 4vw, 1.5rem); border: 1px solid var(--edge); border-radius: 1rem; background: var(--panel); box-shadow: 0 .4rem 1.2rem rgb(23 48 57 / 6%); }
+    .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 1rem; }
+    label { display: block; margin-bottom: .35rem; font-weight: 700; }
+    select, textarea, button {
+      width: 100%; min-height: 2.9rem; border: 1px solid #607d7e; border-radius: .55rem;
+      background: #fff; color: var(--ink); font: inherit;
+    }
+    select, textarea { padding: .65rem .75rem; }
+    textarea { display: block; min-height: 5.25rem; resize: vertical; }
+    button { padding: .6rem .9rem; background: var(--deep); color: #fff; font-weight: 750; cursor: pointer; }
+    button.secondary { background: #fff; color: var(--deep); }
+    button:disabled { cursor: not-allowed; opacity: .6; }
+    :focus-visible { outline: .2rem solid var(--focus); outline-offset: .2rem; }
+    .button-row { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: .9rem; }
+    .button-row button { width: auto; min-width: 10rem; }
+    .clause {
+      overflow-wrap: anywhere; margin: 1rem 0 .4rem; padding: 1rem; border: 1px solid var(--edge);
+      border-radius: .65rem; background: #f1f6f0; color: #102d34;
+      font: 700 clamp(1.15rem, 4vw, 1.7rem)/1.35 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+    .small { color: var(--muted); font-size: .94rem; }
+    .state { min-height: 3.3rem; margin-top: .8rem; padding: .75rem; border-radius: .55rem; background: var(--warm); }
+    .decode-result { min-height: 3rem; padding: .75rem; border: 1px solid var(--edge); border-radius: .55rem; background: #f8faf7; }
+    details { margin-top: 1rem; border-top: 1px solid var(--edge); padding-top: .8rem; }
+    summary { min-height: 2.75rem; padding: .5rem 0; color: var(--deep); cursor: pointer; font-weight: 750; }
+    dl { display: grid; grid-template-columns: minmax(5rem, .3fr) 1fr; gap: .25rem .9rem; margin: .6rem 0 0; }
+    dt { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-weight: 750; }
+    dd { margin: 0; }
+    footer { margin-top: 1.5rem; color: var(--muted); font-size: .93rem; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">An invented language sketch · reader comprehension untested</p>
+      <h1>Rillwire Playroom</h1>
+      <p class="intro">Build one small clause and listen to its last sound with your eyes. In Rillwire, the final tail offers a way for a topic to travel. It does not mark truth, evidence, or permission.</p>
+    </header>
+
+    <aside class="notice" aria-label="Privacy and scope">
+      <p><strong>Just a local paper toy.</strong> Your choices stay in this open page. Nothing is sent or saved.</p>
+      <p class="small">All wording and grammar here are invented. This page does not judge whether a reader understands them.</p>
+    </aside>
+
+    <section class="panel" aria-labelledby="compose-title">
+      <h2 id="compose-title">Compose a clause</h2>
+      <p class="small">The order stays speaker + action + handle + final echo. Change one part at a time and watch the gloss.</p>
+
+      <div class="controls">
+        <div>
+          <label for="speaker">Speaker</label>
+          <select id="speaker">
+            <option value="mi">mi — I, the present speaker</option>
+            <option value="tu">tu — you, the person addressed</option>
+            <option value="nu">nu — we, if both opted into this thread</option>
+          </select>
+        </div>
+        <div>
+          <label for="action">Action</label>
+          <select id="action">
+            <option value="vemi">vemi — place on the table</option>
+            <option value="kela">kela — reshape or revise</option>
+            <option value="suni">suni — hold open</option>
+            <option value="doma">doma — retire from the active thread</option>
+          </select>
+        </div>
+        <div>
+          <label for="handle">Handle</label>
+          <select id="handle">
+            <option value="oru">oru — a shared word or topic</option>
+            <option value="ena">ena — a small next step</option>
+          </select>
+        </div>
+        <div>
+          <label for="tail">Sentence-final echo</label>
+          <select id="tail">
+            <option value="ra">=ra — return to the speaker</option>
+            <option value="le">=le — leave it available to carry</option>
+            <option value="hu" selected>=hu — keep open; no reply is due</option>
+            <option value="do">=do — stop resurfacing it here</option>
+            <option value="ya">=ya — undo this speaker’s last route choice</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="small" id="form-hint">Each tail changes circulation only. The selected speaker, action, and handle remain visible.</p>
+      <p class="clause" id="composed" aria-label="Composed Rillwire clause" aria-live="polite"></p>
+      <p id="gloss" aria-live="polite"></p>
+      <p class="state" id="route-state" aria-live="polite"></p>
+      <div class="button-row">
+        <button class="secondary" id="undo" type="button" disabled>Undo last edit</button>
+        <button class="secondary" id="reset" type="button">Reset sample</button>
+      </div>
+      <p class="small">Undo restores the previous controls and local demonstration state. Reset returns to mi vemi oru=hu. These are page-only edits.</p>
+
+      <details>
+        <summary>Open the pocket lexicon</summary>
+        <dl>
+          <dt>mi</dt><dd>I, the present speaker</dd>
+          <dt>tu</dt><dd>you, the person addressed</dd>
+          <dt>nu</dt><dd>we, when both speakers opted into the shared thread</dd>
+          <dt>oru</dt><dd>a shared word or topic-handle</dd>
+          <dt>ena</dt><dd>a small next step</dd>
+          <dt>vemi</dt><dd>place an idea on the table</dd>
+          <dt>kela</dt><dd>reshape or revise</dd>
+          <dt>suni</dt><dd>hold open</dd>
+          <dt>doma</dt><dd>retire from the active thread; keep its record</dd>
+          <dt>=ra</dt><dd>echo the handle back to the speaker</dd>
+          <dt>=le</dt><dd>leave the handle available for anyone who chooses to carry it</dd>
+          <dt>=hu</dt><dd>keep it open without requiring an immediate reply</dd>
+          <dt>=do</dt><dd>stop actively resurfacing it in this thread</dd>
+          <dt>=ya</dt><dd>restore the speaker’s own prior route choice, when one is staged</dd>
+        </dl>
+      </details>
+    </section>
+
+    <section class="panel" aria-labelledby="decode-title">
+      <h2 id="decode-title">Decode a clause</h2>
+      <p class="small">Try the composed sample or enter another three-part clause with one final tail, such as mi vemi oru=hu.</p>
+      <label for="decode-input">Clause to decode</label>
+      <textarea id="decode-input" rows="2" spellcheck="false">mi vemi oru=hu</textarea>
+      <div class="button-row">
+        <button id="use-composed" class="secondary" type="button">Use composed clause</button>
+        <button id="decode-button" type="button">Decode clause</button>
+      </div>
+      <p id="decode-result" class="decode-result" aria-live="polite">Press Decode clause to see the word-by-word reading.</p>
+    </section>
+
+    <footer>
+      <p>Rillwire is a playful proposal, not a tested language. A tail cannot reverse another person’s refusal, make a topic true, or authorize an action. The =ya example only undoes a route choice in this page’s local demonstration.</p>
+    </footer>
+  </main>
+
+  <script>
+    'use strict';
+    const words = {
+      speakers: {
+        mi: 'I, the present speaker',
+        tu: 'you, the person addressed',
+        nu: 'we, when both speakers have opted into the shared thread'
+      },
+      actions: {
+        vemi: 'place an idea on the table',
+        kela: 'reshape or revise',
+        suni: 'hold open',
+        doma: 'retire from the active thread while keeping its record'
+      },
+      handles: {
+        oru: 'a shared word or topic-handle',
+        ena: 'a small next step'
+      },
+      tails: {
+        ra: { name: 'return', meaning: 'echo the handle back to the speaker for another pass' },
+        le: { name: 'lend', meaning: 'leave the handle available for anyone who chooses to carry it' },
+        hu: { name: 'harbor', meaning: 'keep the handle open without requiring an immediate reply' },
+        do: { name: 'damp', meaning: 'stop actively resurfacing the handle in this thread; keep its record' },
+        ya: { name: 'undo', meaning: 'restore this speaker’s own most recent route choice for this handle, when available' }
+      }
+    };
+    const ids = ['speaker', 'action', 'handle', 'tail'];
+    const byId = (id) => document.getElementById(id);
+    let routeMemory = new Map();
+    let undoStack = [];
+
+    function readValues() {
+      return {
+        speaker: byId('speaker').value,
+        action: byId('action').value,
+        handle: byId('handle').value,
+        tail: byId('tail').value
+      };
+    }
+    function keyFor(value) { return value.speaker + '|' + value.handle; }
+    function cloneMemory(memory) {
+      return new Map(Array.from(memory.entries(), ([key, state]) => [key, { current: state.current, previous: state.previous }]));
+    }
+    function ensureRoute(value) {
+      const key = keyFor(value);
+      if (!routeMemory.has(key)) {
+        routeMemory.set(key, { current: value.tail === 'ya' ? 'hu' : value.tail, previous: null });
+      }
+      return routeMemory.get(key);
+    }
+    function clauseFor(value) { return value.speaker + ' ' + value.action + ' ' + value.handle + '=' + value.tail; }
+    function describe(value) {
+      const tail = words.tails[value.tail];
+      return words.speakers[value.speaker] + ' ' + words.actions[value.action] + ' ' + words.handles[value.handle] + '. The final echo, =' + value.tail + ' (' + tail.name + '), ' + tail.meaning + '. The echo describes routing only; it does not change whether the clause is true.';
+    }
+    function parseClause(text) {
+      const normalized = text.trim().toLowerCase().replace(/\s+/g, ' ');
+      const match = normalized.match(/^([a-z]+) ([a-z]+) ([a-z]+)=(ra|le|hu|do|ya)$/);
+      if (!match) return null;
+      const value = { speaker: match[1], action: match[2], handle: match[3], tail: match[4] };
+      if (!words.speakers[value.speaker] || !words.actions[value.action] || !words.handles[value.handle]) return null;
+      return value;
+    }
+    function describeTypedClause(text) {
+      const value = parseClause(text);
+      if (!value) return 'I could not read that sample. Use three known words in speaker + action + handle=tail order, with one of the five listed tails.';
+      return describe(value);
+    }
+    function storeUndo(values) {
+      undoStack.push({ values: values, memory: cloneMemory(routeMemory) });
+      if (undoStack.length > 40) undoStack.shift();
+      byId('undo').disabled = false;
+    }
+    function applyTailChange(value) {
+      const state = ensureRoute(value);
+      if (value.tail === 'ya') {
+        if (state.previous !== null) {
+          state.current = state.previous;
+          state.previous = null;
+          state.note = 'The clause ends with =ya. It restored this sample’s local route state to =' + state.current + '.';
+        } else {
+          state.note = 'The clause ends with =ya, but this sample has no earlier route choice to restore. Its local route state stays =' + state.current + '.';
+        }
+      } else if (state.current !== value.tail) {
+        const before = state.current;
+        state.current = value.tail;
+        state.previous = before;
+        state.note = 'The local route changed from =' + before + ' to =' + value.tail + '. Choose =ya to restore =' + before + '.';
+      } else {
+        state.note = 'The local route is already =' + value.tail + '. Choose another tail to create a change that =ya can restore.';
+      }
+    }
+    function updateView(value) {
+      byId('composed').textContent = clauseFor(value);
+      byId('gloss').textContent = describe(value);
+      const state = ensureRoute(value);
+      let message = state.note || ('Starting local route state: =' + state.current + '. Choose a different tail to stage a change; =ya can then restore the earlier route.');
+      byId('route-state').textContent = message + ' This is a reversible illustration in the page, not a message to another person.';
+    }
+
+    let lastValues = readValues();
+    routeMemory.set(keyFor(lastValues), { current: 'hu', previous: null });
+    updateView(lastValues);
+
+    ids.forEach((id) => {
+      byId(id).addEventListener('change', () => {
+        const before = lastValues;
+        const after = readValues();
+        storeUndo(before);
+        if (id === 'tail') applyTailChange(after);
+        else ensureRoute(after);
+        lastValues = after;
+        updateView(after);
+      });
+    });
+    byId('undo').addEventListener('click', () => {
+      const snapshot = undoStack.pop();
+      if (!snapshot) return;
+      routeMemory = snapshot.memory;
+      ids.forEach((id) => { byId(id).value = snapshot.values[id]; });
+      lastValues = snapshot.values;
+      byId('undo').disabled = undoStack.length === 0;
+      updateView(lastValues);
+    });
+    byId('reset').addEventListener('click', () => {
+      byId('speaker').value = 'mi';
+      byId('action').value = 'vemi';
+      byId('handle').value = 'oru';
+      byId('tail').value = 'hu';
+      undoStack = [];
+      routeMemory = new Map();
+      lastValues = readValues();
+      routeMemory.set(keyFor(lastValues), { current: 'hu', previous: null });
+      byId('undo').disabled = true;
+      updateView(lastValues);
+    });
+    byId('use-composed').addEventListener('click', () => {
+      byId('decode-input').value = clauseFor(readValues());
+      byId('decode-result').textContent = 'Composed clause copied locally. Press Decode clause to read it.';
+      byId('decode-input').focus();
+    });
+    byId('decode-button').addEventListener('click', () => {
+      byId('decode-result').textContent = describeTypedClause(byId('decode-input').value);
+    });
+  </script>
+</body>
+</html>

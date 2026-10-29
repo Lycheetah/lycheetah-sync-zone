@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Quasi-Clock Atlas: two hands, one non-repeating route</title>
+  <desc id="desc">An invented mathematical instrument diagram. Two ideal oscillator dials feed a phase-square representation of a two-torus. Ten first-hand-crest samples from the ratio square root of two are shown on the wrapped theta-one seam. A tolerance gate spans the matching corners, with the fifth sample near the double crest. No physical measurement is depicted.</desc>
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#091321"/>
+      <stop offset="0.58" stop-color="#10243a"/>
+      <stop offset="1" stop-color="#162b40"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#132b40"/>
+      <stop offset="1" stop-color="#0d1c2c"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffcc76"/>
+      <stop offset="1" stop-color="#ff8d58"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#75e4e0"/>
+      <stop offset="1" stop-color="#86bafa"/>
+    </linearGradient>
+    <radialGradient id="halo">
+      <stop offset="0" stop-color="#ffca72" stop-opacity=".38"/>
+      <stop offset="1" stop-color="#ffca72" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="stars" width="96" height="96" patternUnits="userSpaceOnUse">
+      <circle cx="13" cy="21" r="1" fill="#a9d3df" opacity=".28"/>
+      <circle cx="71" cy="58" r="1.3" fill="#ffd591" opacity=".22"/>
+      <circle cx="42" cy="84" r=".8" fill="#a9d3df" opacity=".2"/>
+    </pattern>
+    <filter id="soft-glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow-gold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#ffbe6e"/>
+    </marker>
+    <marker id="arrow-cyan" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#75e4e0"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#night)"/>
+  <rect width="1200" height="800" fill="url(#stars)"/>
+  <circle cx="1002" cy="117" r="190" fill="url(#halo)" opacity=".28"/>
+
+  <g font-family="system-ui, sans-serif" fill="#edf4f1">
+    <text x="52" y="48" font-size="13" font-weight="700" letter-spacing="3" fill="#81d9d8">VISUAL FORGE · MATHEMATICAL TOY</text>
+    <text x="50" y="101" font-size="39" font-weight="750" letter-spacing="1.2">QUASI-CLOCK ATLAS</text>
+    <text x="53" y="132" font-size="17" fill="#b7c8d4">Two ideal hands. One route that never returns to the exact same pair.</text>
+    <rect x="951" y="52" width="196" height="36" rx="18" fill="#382d27" stroke="#dca96b" stroke-opacity=".7"/>
+    <text x="1049" y="75" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.4" fill="#ffd38a">[INVENTED MODEL]</text>
+  </g>
+
+  <!-- Oscillator dials -->
+  <g font-family="system-ui, sans-serif">
+    <rect x="48" y="165" width="357" height="495" rx="24" fill="url(#panel)" stroke="#35516a" stroke-width="1.5"/>
+    <text x="77" y="203" fill="#bed0dc" font-size="12" font-weight="700" letter-spacing="2">THE TWO HANDS</text>
+
+    <circle cx="150" cy="294" r="63" fill="#0a1828" stroke="#ffbe6e" stroke-opacity=".7" stroke-width="2"/>
+    <circle cx="150" cy="294" r="47" fill="none" stroke="#476077" stroke-width="1"/>
+    <path d="M150 238V248M206 294H196M150 350V340M94 294H104" stroke="#8ea7b5" stroke-width="2"/>
+    <path d="M150 294L183 268" stroke="#ffbe6e" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-gold)"/>
+    <circle cx="150" cy="294" r="5" fill="#ffbe6e"/>
+    <text x="241" y="274" fill="#ffd18b" font-size="13" font-weight="700" letter-spacing="1.2">HAND ONE</text>
+    <text x="241" y="309" fill="#f4f5ee" font-size="26" font-weight="650">ω₁ = 1</text>
+    <text x="241" y="333" fill="#aebfca" font-size="13">radians per unit time</text>
+
+    <circle cx="150" cy="445" r="63" fill="#0a1828" stroke="#75e4e0" stroke-opacity=".7" stroke-width="2"/>
+    <circle cx="150" cy="445" r="47" fill="none" stroke="#476077" stroke-width="1"/>
+    <path d="M150 389V399M206 445H196M150 501V491M94 445H104" stroke="#8ea7b5" stroke-width="2"/>
+    <path d="M150 445L126 409" stroke="#75e4e0" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-cyan)"/>
+    <circle cx="150" cy="445" r="5" fill="#75e4e0"/>
+    <text x="241" y="425" fill="#92e9e4" font-size="13" font-weight="700" letter-spacing="1.2">HAND TWO</text>
+    <text x="241" y="460" fill="#f4f5ee" font-size="26" font-weight="650">ω₂ = √2</text>
+    <text x="241" y="484" fill="#aebfca" font-size="13">radians per unit time</text>
+
+    <rect x="76" y="532" width="300" height="42" rx="21" fill="#142f3d" stroke="#4f8991" stroke-opacity=".75"/>
+    <text x="226" y="559" text-anchor="middle" fill="#b7f0e8" font-size="17" font-weight="650">ω₂ / ω₁ = √2 ∉ ℚ</text>
+    <text x="78" y="608" fill="#e7eef0" font-size="14" font-weight="700">NO SHARED EXACT PERIOD</text>
+    <text x="78" y="632" fill="#aebfca" font-size="13">Derived for ideal hands with an irrational ratio.</text>
+  </g>
+
+  <!-- Phase atlas -->
+  <g font-family="system-ui, sans-serif">
+    <rect x="430" y="165" width="722" height="495" rx="24" fill="url(#panel)" stroke="#35516a" stroke-width="1.5"/>
+    <text x="461" y="203" fill="#bed0dc" font-size="12" font-weight="700" letter-spacing="2">T² PHASE MAP · OPPOSITE EDGES WRAP</text>
+    <text x="1083" y="203" text-anchor="end" fill="#90aab9" font-size="12">schematic orbit view</text>
+
+    <!-- plot grid: x 500..1080, y 248..564 -->
+    <rect x="500" y="248" width="580" height="316" rx="3" fill="#091827" stroke="#7590a0" stroke-width="1.5"/>
+    <path d="M693.3 248V564M886.7 248V564M500 353.3H1080M500 458.7H1080" stroke="#456075" stroke-width="1" opacity=".58"/>
+    <path d="M500 248V564M500 564H1080" stroke="#b5c7d0" stroke-width="1.4" opacity=".9"/>
+
+    <!-- Tolerance gate split over wrapped corners -->
+    <rect x="500" y="248" width="46" height="26" rx="7" fill="#ffbd69" fill-opacity=".15" stroke="#ffbd69" stroke-width="2" stroke-dasharray="5 4"/>
+    <rect x="1034" y="248" width="46" height="26" rx="7" fill="#ffbd69" fill-opacity=".15" stroke="#ffbd69" stroke-width="2" stroke-dasharray="5 4"/>
+    <rect x="500" y="538" width="46" height="26" rx="7" fill="#ffbd69" fill-opacity=".15" stroke="#ffbd69" stroke-width="2" stroke-dasharray="5 4"/>
+    <rect x="1034" y="538" width="46" height="26" rx="7" fill="#ffbd69" fill-opacity=".15" stroke="#ffbd69" stroke-width="2" stroke-dasharray="5 4"/>
+
+    <!-- First-hand crests: q=0..9 for alpha=sqrt(2), shown on the theta-one seam. -->
+    <path d="M500 564V248" stroke="#75e4e0" stroke-width="2" stroke-dasharray="4 6" opacity=".62"/>
+    <g fill="#75e4e0" stroke="#0b1928" stroke-width="2">
+      <circle cx="500" cy="564" r="5"/><circle cx="500" cy="433" r="5"/>
+      <circle cx="500" cy="302" r="5"/><circle cx="500" cy="487" r="5"/>
+      <circle cx="500" cy="356" r="5"/><circle cx="500" cy="541" r="5"/>
+      <circle cx="500" cy="410" r="5"/><circle cx="500" cy="278" r="5"/>
+      <circle cx="500" cy="464" r="5"/><circle cx="500" cy="333" r="5"/>
+    </g>
+    <circle cx="500" cy="541" r="11" fill="none" stroke="#ffca77" stroke-width="2.5" filter="url(#soft-glow)"/>
+    <text x="514" y="534" fill="#ffd48e" font-size="12" font-weight="700">q=5</text>
+    <text x="555" y="292" fill="#a8c5d1" font-size="12">crest samples: θ₁ = 0</text>
+
+    <!-- Axis labels and ticks -->
+    <g fill="#c0d0d9" font-size="12">
+      <text x="500" y="585" text-anchor="middle">0</text>
+      <text x="790" y="585" text-anchor="middle">π</text>
+      <text x="1080" y="585" text-anchor="middle">2π</text>
+      <text x="500" y="607" text-anchor="middle" fill="#84d9d8">θ₁</text>
+      <text x="485" y="252" text-anchor="end">2π</text>
+      <text x="485" y="357" text-anchor="end">π</text>
+      <text x="485" y="568" text-anchor="end">0</text>
+      <text x="458" y="405" text-anchor="middle" fill="#84d9d8" transform="rotate(-90 458 405)">θ₂</text>
+    </g>
+
+    <rect x="728" y="607" width="386" height="34" rx="17" fill="#332d27" stroke="#9e8054" stroke-opacity=".7"/>
+    <text x="921" y="629" text-anchor="middle" fill="#f8d69f" font-size="12">δ = 0.5 rad · gate is one region split across wrapped corners</text>
+  </g>
+
+  <!-- Bottom interpretation band -->
+  <g font-family="system-ui, sans-serif">
+    <rect x="48" y="684" width="1104" height="75" rx="20" fill="#0a1725" stroke="#2d4a60"/>
+    <circle cx="89" cy="721" r="14" fill="#ffbd69" fill-opacity=".18" stroke="#ffbd69"/>
+    <path d="M82 721H96M89 714V728" stroke="#ffd286" stroke-width="2"/>
+    <text x="119" y="714" fill="#edf4f1" font-size="14" font-weight="700">NEAR RETURN, NOT A RESET</text>
+    <text x="119" y="738" fill="#aebfca" font-size="13">In the √2 example, q=5 lands at about 0.447 rad from the second-hand crest, inside the 0.5-rad gate.</text>
+    <text x="1117" y="710" text-anchor="end" fill="#75e4e0" font-size="12" font-weight="700">ARITHMETIC, NOT MEASUREMENT</text>
+    <text x="1117" y="734" text-anchor="end" fill="#9bb1bf" font-size="11">The drawn crest samples are rounded.</text>
+  </g>
+</svg>

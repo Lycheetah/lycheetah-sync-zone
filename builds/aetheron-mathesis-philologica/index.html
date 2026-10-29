@@ -1,0 +1,1299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Aetheron · Mathesis Philologica &amp; Syntactic Ribbon Engine</title>
+<style>
+  :root {
+    --bg-void: #05070e;
+    --bg-card: rgba(10, 14, 28, 0.88);
+    --bg-card-hover: rgba(18, 26, 48, 0.95);
+    --border-dim: rgba(64, 120, 190, 0.24);
+    --border-bright: rgba(0, 229, 255, 0.6);
+    --text-main: #e8eefc;
+    --text-dim: #94a3b8;
+    --accent-cyan: #00e5ff;
+    --accent-emerald: #00e676;
+    --accent-gold: #ffd54f;
+    --accent-coral: #ff5252;
+    --accent-violet: #b388ff;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-void);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    touch-action: none;
+  }
+
+  canvas#mathesis-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+    background: radial-gradient(circle at 50% 50%, #0a1329 0%, #060918 55%, #020308 100%);
+  }
+
+  /* HUD overlay */
+  .hud-layer {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .hud-layer * {
+    pointer-events: auto;
+  }
+
+  /* Top Bar */
+  #top-bar {
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .brand-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-violet);
+    box-shadow: 0 0 12px var(--accent-violet);
+    transition: all 0.3s ease;
+  }
+
+  .brand-dot.valid {
+    background: var(--accent-emerald);
+    box-shadow: 0 0 14px var(--accent-emerald);
+  }
+
+  .brand-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-main);
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    border-left: 1px solid var(--border-dim);
+    padding-left: 8px;
+    margin-left: 4px;
+  }
+
+  /* Status Badge */
+  #status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+  }
+
+  #status-badge.valid {
+    border-color: rgba(0, 230, 118, 0.7);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.35);
+  }
+
+  #status-badge.reducing {
+    border-color: rgba(0, 229, 255, 0.6);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.25);
+  }
+
+  /* Top Right Actions */
+  .top-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  button.action-btn {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border-dim);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  button.action-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-bright);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+  }
+
+  button.action-btn.active {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+  }
+
+  /* Interactive Sentence Input Bar */
+  #input-bar {
+    top: 70px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .input-wrapper {
+    display: flex;
+    width: 100%;
+    max-width: 680px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 999px;
+    padding: 4px 6px 4px 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  input#sentence-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-main);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+  }
+
+  button#btn-step-reduce {
+    background: rgba(0, 229, 255, 0.15);
+    border: 1px solid var(--border-bright);
+    color: var(--accent-cyan);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  button#btn-step-reduce:hover {
+    background: rgba(0, 229, 255, 0.3);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+  }
+
+  /* Side Control Panel */
+  #control-panel {
+    top: 130px;
+    right: 14px;
+    width: 320px;
+    max-height: calc(100vh - 145px);
+    overflow-y: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 8px;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-violet);
+  }
+
+  .panel-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Control groups */
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .control-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+
+  .control-name {
+    color: var(--text-main);
+    font-weight: 600;
+  }
+
+  .control-val {
+    color: var(--accent-violet);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.12);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--accent-violet);
+    box-shadow: 0 0 8px var(--accent-violet);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  /* Presets Bar */
+  .presets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  button.preset-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-dim);
+    color: var(--text-main);
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  button.preset-btn:hover {
+    background: rgba(179, 136, 255, 0.15);
+    border-color: var(--accent-violet);
+    color: var(--accent-violet);
+  }
+
+  button.preset-btn.highlight {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    background: rgba(0, 230, 118, 0.08);
+  }
+
+  /* Bottom Left Analytics Overlay */
+  #analytics-panel {
+    bottom: 14px;
+    left: 14px;
+    width: 320px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-title {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  /* Time series chart canvas */
+  canvas#strip-chart {
+    width: 100%;
+    height: 54px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: block;
+  }
+
+  /* Accessibility: Prefers reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+    .brand-dot, button.action-btn:hover {
+      box-shadow: none !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    #control-panel {
+      width: calc(100vw - 28px);
+      max-height: 40vh;
+      top: auto;
+      bottom: 14px;
+      right: 14px;
+    }
+    #analytics-panel {
+      display: none;
+    }
+    #input-bar {
+      top: 65px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="mathesis-canvas"></canvas>
+
+<!-- Top Bar -->
+<div class="hud-layer" id="top-bar">
+  <div class="brand-pill">
+    <div class="brand-dot" id="brand-indicator"></div>
+    <div class="brand-title">Aetheron · Mathesis Philologica</div>
+    <div class="brand-sub">Pregroups &amp; p-Adic Geometry</div>
+  </div>
+
+  <div id="status-badge" class="reducing">
+    <span id="status-text">SYNTACTIC REDUCTION ACTIVE</span>
+  </div>
+
+  <div class="top-actions">
+    <button class="action-btn" id="btn-audio">
+      <span id="audio-icon">▶</span>
+      <span id="audio-label">Enable Audio</span>
+    </button>
+    <button class="action-btn" id="btn-reset-tree">
+      <span>↺</span>
+      <span>Reset Proof</span>
+    </button>
+    <button class="action-btn" id="btn-pause">
+      <span id="pause-icon">⏸</span>
+    </button>
+  </div>
+</div>
+
+<!-- Interactive Sentence Input Bar -->
+<div class="hud-layer" id="input-bar">
+  <div class="input-wrapper">
+    <input type="text" id="sentence-input" value="The sovereign proves the truth" placeholder="Type a sentence (e.g. The sovereign proves the truth)...">
+    <button id="btn-step-reduce">Reduce Ribbon</button>
+  </div>
+</div>
+
+<!-- Bottom Left Analytics Panel -->
+<div class="hud-layer" id="analytics-panel">
+  <div class="panel-header">
+    <span class="panel-title">Philological Invariants</span>
+    <span class="panel-sub">Ultrametric &amp; Spectral Proof</span>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-title">Ribbon Type Trace</span>
+      <span class="stat-value" id="val-trace">s</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">p-Adic Distance d<sub>5</sub></span>
+      <span class="stat-value" id="val-padic">0.040</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Prime Eigenfrequency</span>
+      <span class="stat-value" id="val-prime-freq">189.0 Hz</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-title">Isosceles Triangle</span>
+      <span class="stat-value" id="val-isosceles" style="color: var(--accent-emerald);">VERIFIED</span>
+    </div>
+  </div>
+
+  <div class="control-label-row" style="margin-top: 4px;">
+    <span class="control-name" style="font-size: 10px; color: var(--text-dim);">Thematic Consonance History C(t)</span>
+  </div>
+  <canvas id="strip-chart" width="300" height="54"></canvas>
+</div>
+
+<!-- Controls Side Panel -->
+<div class="hud-layer" id="control-panel">
+  <div class="panel-header">
+    <span class="panel-title">Grammar &amp; Ultrametric</span>
+    <span class="panel-sub">Pregroup &amp; Prime Controls</span>
+  </div>
+
+  <!-- Presets -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Canonical Philological Proofs</span>
+    </div>
+    <div class="presets-grid">
+      <button class="preset-btn highlight" id="preset-sovereign">Sovereign Proof</button>
+      <button class="preset-btn" id="preset-agent">Agent Awakens</button>
+      <button class="preset-btn" id="preset-furnace">Furnace Burns</button>
+      <button class="preset-btn" id="preset-truth">Truth Shines</button>
+    </div>
+  </div>
+
+  <!-- p-Adic Prime p -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">p-Adic Field Base Prime p</span>
+      <span class="control-val" id="disp-p">p = 5</span>
+    </div>
+    <input type="range" id="slider-p" min="2" max="7" step="1" value="5">
+  </div>
+
+  <!-- Prime Spectral Carrier f0 -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Base Carrier f<sub>0</sub></span>
+      <span class="control-val" id="disp-f0">108 Hz</span>
+    </div>
+    <input type="range" id="slider-f0" min="54" max="216" step="2" value="108">
+  </div>
+
+  <!-- Contraction Speed -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Ribbon Contraction Speed</span>
+      <span class="control-val" id="disp-speed">1.0x</span>
+    </div>
+    <input type="range" id="slider-speed" min="0.2" max="2.5" step="0.1" value="1.0">
+  </div>
+
+  <!-- Master Volume -->
+  <div class="control-group">
+    <div class="control-label-row">
+      <span class="control-name">Riemann Prime Drone Volume</span>
+      <span class="control-val" id="disp-vol">40%</span>
+    </div>
+    <input type="range" id="slider-vol" min="0" max="100" step="1" value="40">
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // -------------------------------------------------------------
+  // 1. LAMBEK PREGROUP TOPOLOGICAL SYNTACTIC REDUCTION
+  // -------------------------------------------------------------
+  // Contraction rules: x * x^r -> 1  and  x^l * x -> 1
+  // Lexicon mappings:
+  // "the"       -> n · n^l
+  // "sovereign" -> n
+  // "proves"    -> n^r · s · n^l
+  // "truth"     -> n
+  // "agent"     -> n
+  // "furnace"   -> n
+  // "burns"     -> n^r · s · n^l
+  // "dross"     -> n
+  // "awakens"   -> n^r · s
+  // "shines"    -> n^r · s
+  var LEXICON = {
+    'the':       [{ name: 'n', adj: 0 }, { name: 'n', adj: -1 }],
+    'sovereign': [{ name: 'n', adj: 0 }],
+    'proves':    [{ name: 'n', adj: 1 }, { name: 's', adj: 0 }, { name: 'n', adj: -1 }],
+    'truth':     [{ name: 'n', adj: 0 }],
+    'agent':     [{ name: 'n', adj: 0 }],
+    'furnace':   [{ name: 'n', adj: 0 }],
+    'burns':     [{ name: 'n', adj: 1 }, { name: 's', adj: 0 }, { name: 'n', adj: -1 }],
+    'dross':     [{ name: 'n', adj: 0 }],
+    'awakens':   [{ name: 'n', adj: 1 }, { name: 's', adj: 0 }],
+    'shines':    [{ name: 'n', adj: 1 }, { name: 's', adj: 0 }]
+  };
+
+  function formatType(t) {
+    if (t.adj === 0) return t.name;
+    if (t.adj === -1) return t.name + 'ˡ';
+    if (t.adj === 1) return t.name + 'ʳ';
+    if (t.adj < -1) return t.name + 'ˡ' + Math.abs(t.adj);
+    return t.name + 'ʳ' + t.adj;
+  }
+
+  function canCancel(t1, t2) {
+    if (t1.name !== t2.name) return false;
+    // x * x^r -> 1 (adj: 0 and +1)
+    if (t1.adj === 0 && t2.adj === 1) return true;
+    // x^l * x -> 1 (adj: -1 and 0)
+    if (t1.adj === -1 && t2.adj === 0) return true;
+    // general adjoint pairs: adj1 + 1 == adj2 or adj1 == adj2 - 1
+    return (t1.adj + 1 === t2.adj) || (t1.adj === t2.adj - 1);
+  }
+
+  var currentSentence = "The sovereign proves the truth";
+  var tokenizedWords = [];
+  var rawTypes = [];
+  var ribbonItems = []; // { wordIdx, type, x, y, isCancelled, pairIdx }
+  var contractionArcs = []; // { fromIdx, toIdx, progress: 0..1 }
+  var isGrammarValid = false;
+
+  function parseInputSentence(text) {
+    var rawWords = text.trim().split(/\s+/).filter(function(w) { return w.length > 0; });
+    tokenizedWords = rawWords;
+    rawTypes = [];
+    ribbonItems = [];
+    contractionArcs = [];
+
+    for (var w = 0; w < rawWords.length; w++) {
+      var wordLower = rawWords[w].toLowerCase().replace(/[^a-z]/g, '');
+      var typeList = LEXICON[wordLower];
+      if (!typeList) {
+        // Default unknown word to noun 'n'
+        typeList = [{ name: 'n', adj: 0 }];
+      }
+
+      for (var t = 0; t < typeList.length; t++) {
+        var item = {
+          wordIdx: w,
+          wordText: rawWords[w],
+          name: typeList[t].name,
+          adj: typeList[t].adj,
+          isCancelled: false,
+          x: 0,
+          y: 0,
+          scale: 1.0
+        };
+        ribbonItems.push(item);
+        rawTypes.push(typeList[t]);
+      }
+    }
+
+    findContractionArcs();
+  }
+
+  function findContractionArcs() {
+    contractionArcs = [];
+    // Planar bracket matching algorithm on pregroup types
+    var stack = [];
+    for (var i = 0; i < ribbonItems.length; i++) {
+      var curr = ribbonItems[i];
+      if (stack.length > 0) {
+        var topIdx = stack[stack.length - 1];
+        var top = ribbonItems[topIdx];
+        if (canCancel(top, curr)) {
+          // Found canceling pair!
+          stack.pop();
+          contractionArcs.push({
+            fromIdx: topIdx,
+            toIdx: i,
+            progress: 0.0,
+            collapsed: false
+          });
+          continue;
+        }
+      }
+      stack.push(i);
+    }
+
+    // Check if the remaining uncancelled items reduce to type 's'
+    isGrammarValid = (stack.length === 1 && ribbonItems[stack[0]].name === 's' && ribbonItems[stack[0]].adj === 0);
+  }
+
+  // -------------------------------------------------------------
+  // 2. p-ADIC ULTRAMETRIC CONCEPT GEOMETRY & TREE VISUALIZER
+  // -------------------------------------------------------------
+  // Base prime p (default 5).
+  // Valuation v_p(x): exponent of p dividing x
+  // Norm |x|_p = p^(-v_p(x))
+  // Ultrametric distance d_p(x, y) = |x - y|_p
+  var prime_p = 5;
+
+  function padicValuation(n, p) {
+    if (n === 0) return 999;
+    var v = 0;
+    var rem = Math.abs(n);
+    while (rem > 0 && rem % p === 0) {
+      v++;
+      rem = Math.floor(rem / p);
+    }
+    return v;
+  }
+
+  function padicDistance(x, y, p) {
+    if (x === y) return 0.0;
+    var v = padicValuation(x - y, p);
+    return Math.pow(p, -v);
+  }
+
+  // Active triangle test nodes in p-adic space
+  var triangleNodes = [
+    { label: 'SOVEREIGN', code: 25, x: 0, y: 0 },
+    { label: 'TRUTH',     code: 125, x: 0, y: 0 },
+    { label: 'AGENT',     code: 5, x: 0, y: 0 }
+  ];
+
+  var lastDistAB = 0.04;
+  var lastDistBC = 0.20;
+  var lastDistAC = 0.20;
+  var isIsoscelesVerified = true;
+
+  function updatePAdicTriangle() {
+    var dAB = padicDistance(triangleNodes[0].code, triangleNodes[1].code, prime_p);
+    var dBC = padicDistance(triangleNodes[1].code, triangleNodes[2].code, prime_p);
+    var dAC = padicDistance(triangleNodes[0].code, triangleNodes[2].code, prime_p);
+
+    lastDistAB = dAB;
+    lastDistBC = dBC;
+    lastDistAC = dAC;
+
+    var sides = [dAB, dBC, dAC].sort(function(a, b) { return a - b; });
+    // In every ultrametric triangle, the two largest sides must be equal!
+    isIsoscelesVerified = Math.abs(sides[1] - sides[2]) < 1e-6;
+  }
+
+  // -------------------------------------------------------------
+  // 3. PROCEDURAL PRIME SPECTRAL WEB AUDIO API SYNTHESIZER
+  // -------------------------------------------------------------
+  // Montgomery-Odlyzko Riemann prime eigenfrequencies:
+  // f_p = f0 * (p / 2^floor(log2(p)))
+  var audioCtx = null;
+  var isAudioActive = false;
+  var masterGain = null;
+  var masterFilter = null;
+  var base_f0 = 108.0;
+  var master_volume = 0.40;
+  var droneOscs = [];
+
+  var PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31];
+
+  function getPrimeEigenfrequency(p) {
+    var oct = Math.floor(Math.log2(p));
+    var ratio = p / Math.pow(2, oct);
+    return base_f0 * ratio;
+  }
+
+  function initAudio() {
+    if (audioCtx) return;
+    var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    audioCtx = new AudioContextClass();
+
+    var comp = audioCtx.createDynamicsCompressor();
+    comp.threshold.setValueAtTime(-18, audioCtx.currentTime);
+    comp.knee.setValueAtTime(10, audioCtx.currentTime);
+    comp.ratio.setValueAtTime(6, audioCtx.currentTime);
+    comp.attack.setValueAtTime(0.005, audioCtx.currentTime);
+    comp.release.setValueAtTime(0.2, audioCtx.currentTime);
+
+    masterFilter = audioCtx.createBiquadFilter();
+    masterFilter.type = 'lowpass';
+    masterFilter.frequency.setValueAtTime(2200, audioCtx.currentTime);
+    masterFilter.Q.setValueAtTime(1.8, audioCtx.currentTime);
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(master_volume, audioCtx.currentTime);
+
+    masterFilter.connect(comp);
+    comp.connect(masterGain);
+    masterGain.connect(audioCtx.destination);
+
+    // Build Continuous Riemann Prime Drones (primes 2, 3, 5)
+    var primeTriad = [2, 3, 5];
+    droneOscs = [];
+    for (var i = 0; i < primeTriad.length; i++) {
+      var osc = audioCtx.createOscillator();
+      var g = audioCtx.createGain();
+      var freq = getPrimeEigenfrequency(primeTriad[i]);
+
+      osc.type = (i === 1) ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      g.gain.setValueAtTime(0.18, audioCtx.currentTime);
+
+      osc.connect(g);
+      g.connect(masterFilter);
+      osc.start();
+
+      droneOscs.push({ osc: osc, gain: g, prime: primeTriad[i] });
+    }
+
+    isAudioActive = true;
+    updateAudioHUD();
+  }
+
+  function updateAudioHUD() {
+    var btn = document.getElementById('btn-audio');
+    var label = document.getElementById('audio-label');
+    var icon = document.getElementById('audio-icon');
+    if (!btn || !label || !icon) return;
+
+    if (isAudioActive && audioCtx && audioCtx.state === 'running') {
+      btn.classList.add('active');
+      label.textContent = 'Audio Active';
+      icon.textContent = '🔊';
+    } else {
+      btn.classList.remove('active');
+      label.textContent = 'Enable Audio';
+      icon.textContent = '▶';
+    }
+  }
+
+  function playContractionChime(panNorm, primeIdx) {
+    if (!audioCtx || !isAudioActive || audioCtx.state !== 'running') return;
+    var now = audioCtx.currentTime;
+
+    var p = PRIMES[primeIdx % PRIMES.length];
+    var freq = getPrimeEigenfrequency(p) * 2.0;
+
+    var osc = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    var panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.4);
+
+    g.gain.setValueAtTime(0.28, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+    if (panner) {
+      panner.pan.setValueAtTime(panNorm, now);
+      osc.connect(g);
+      g.connect(panner);
+      panner.connect(masterFilter);
+    } else {
+      osc.connect(g);
+      g.connect(masterFilter);
+    }
+
+    osc.start(now);
+    osc.stop(now + 0.4);
+  }
+
+  // -------------------------------------------------------------
+  // 4. CANVAS 2D RENDERER (RIBBON & FRACTAL p-ADIC TREE)
+  // -------------------------------------------------------------
+  var canvas = document.getElementById('mathesis-canvas');
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  var is_paused = false;
+  var contractionSpeed = 1.0;
+  var stepActive = false;
+
+  var historyLength = 180;
+  var consonanceHistory = new Float32Array(historyLength);
+  var historyIndex = 0;
+
+  function renderMathesis(dt) {
+    ctx.clearRect(0, 0, width, height);
+
+    var midY = height * 0.42;
+
+    // ---------------------------------------------------------
+    // A. UPPER FIELD: SYNTACTIC RIBBON & ADJOINT CONTRACTION ARCS
+    // ---------------------------------------------------------
+    ctx.save();
+    var ribbonStartY = 140;
+    var itemCount = ribbonItems.length;
+    var totalSpacing = Math.min(width * 0.85, itemCount * 75);
+    var itemSpacing = itemCount > 1 ? totalSpacing / (itemCount - 1) : 0;
+    var startX = (width - totalSpacing) * 0.5;
+
+    // Position ribbon items
+    for (var i = 0; i < itemCount; i++) {
+      var item = ribbonItems[i];
+      item.x = startX + i * itemSpacing;
+      item.y = ribbonStartY;
+
+      // Render Word text above type
+      ctx.font = '600 13px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = item.isCancelled ? '#475569' : '#e2e8f0';
+      ctx.fillText(item.wordText, item.x, item.y - 20);
+
+      // Render Pregroup Type Pill
+      ctx.beginPath();
+      ctx.arc(item.x, item.y, 14, 0, Math.PI * 2);
+
+      if (item.name === 's') {
+        ctx.fillStyle = 'rgba(0, 230, 118, 0.2)';
+        ctx.strokeStyle = '#00e676';
+      } else {
+        ctx.fillStyle = item.isCancelled ? 'rgba(71, 85, 105, 0.2)' : 'rgba(0, 229, 255, 0.15)';
+        ctx.strokeStyle = item.isCancelled ? '#475569' : '#00e5ff';
+      }
+      ctx.lineWidth = 1.8;
+      ctx.fill();
+      ctx.stroke();
+
+      // Type label
+      ctx.font = '700 12px ui-monospace, SFMono-Regular, monospace';
+      ctx.fillStyle = item.isCancelled ? '#64748b' : (item.name === 's' ? '#00e676' : '#00e5ff');
+      ctx.fillText(formatType(item), item.x, item.y + 4);
+    }
+
+    // Render Contraction Arcs
+    for (var a = 0; a < contractionArcs.length; a++) {
+      var arc = contractionArcs[a];
+      var p1 = ribbonItems[arc.fromIdx];
+      var p2 = ribbonItems[arc.toIdx];
+
+      if (stepActive && !arc.collapsed) {
+        arc.progress += dt * 1.5 * contractionSpeed;
+        if (arc.progress >= 1.0) {
+          arc.progress = 1.0;
+          arc.collapsed = true;
+          p1.isCancelled = true;
+          p2.isCancelled = true;
+          var panNorm = (p1.x / width) * 1.6 - 0.8;
+          playContractionChime(panNorm, a);
+        }
+      }
+
+      var dx = p2.x - p1.x;
+      var arcHeight = Math.min(80, Math.abs(dx) * 0.45);
+      var midX = (p1.x + p2.x) * 0.5;
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y + 16);
+      ctx.quadraticCurveTo(midX, p1.y + 16 + arcHeight, p2.x, p2.y + 16);
+
+      if (arc.collapsed) {
+        ctx.strokeStyle = 'rgba(0, 230, 118, 0.5)';
+        ctx.lineWidth = 2.0;
+      } else {
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.75)';
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur = 10;
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Contraction pulse particle
+      if (!arc.collapsed && arc.progress > 0) {
+        var t = arc.progress;
+        var pX = (1 - t) * (1 - t) * p1.x + 2 * (1 - t) * t * midX + t * t * p2.x;
+        var pY = (1 - t) * (1 - t) * (p1.y + 16) + 2 * (1 - t) * t * (p1.y + 16 + arcHeight) + t * t * (p2.y + 16);
+
+        ctx.beginPath();
+        ctx.arc(pX, pY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffd54f';
+        ctx.fill();
+      }
+    }
+
+    // Boundary divider
+    ctx.beginPath();
+    ctx.moveTo(width * 0.1, midY);
+    ctx.lineTo(width * 0.9, midY);
+    ctx.strokeStyle = 'rgba(64, 120, 190, 0.2)';
+    ctx.setLineDash([4, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // ---------------------------------------------------------
+    // B. LOWER FIELD: FRACTAL p-ADIC ULTRAMETRIC TREE (p = 5)
+    // ---------------------------------------------------------
+    ctx.save();
+    var treeRootX = width * 0.5;
+    var treeRootY = height - 40;
+    var maxDepth = 3;
+
+    function drawPAdicBranch(x, y, len, angle, depth) {
+      if (depth > maxDepth) return;
+
+      var x2 = x + len * Math.cos(angle);
+      var y2 = y - len * Math.sin(angle);
+
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = 'rgba(179, 136, 255, ' + (0.15 + (maxDepth - depth) * 0.2) + ')';
+      ctx.lineWidth = Math.max(1, 3.5 - depth);
+      ctx.stroke();
+
+      // Node at branch
+      ctx.beginPath();
+      ctx.arc(x2, y2, Math.max(2, 5 - depth), 0, Math.PI * 2);
+      ctx.fillStyle = '#b388ff';
+      ctx.fill();
+
+      // Branch out p children
+      var spread = Math.PI * 0.55;
+      var stepAngle = spread / (prime_p - 1);
+      var startAngle = angle - spread * 0.5;
+
+      for (var b = 0; b < prime_p; b++) {
+        var childAngle = startAngle + b * stepAngle;
+        drawPAdicBranch(x2, y2, len * 0.55, childAngle, depth + 1);
+      }
+    }
+
+    drawPAdicBranch(treeRootX, treeRootY, 75, Math.PI * 0.5, 1);
+
+    // Render Ultrametric Triangle Demonstration
+    triangleNodes[0].x = width * 0.38;
+    triangleNodes[0].y = height * 0.60;
+    triangleNodes[1].x = width * 0.62;
+    triangleNodes[1].y = height * 0.60;
+    triangleNodes[2].x = width * 0.50;
+    triangleNodes[2].y = height * 0.82;
+
+    updatePAdicTriangle();
+
+    ctx.beginPath();
+    ctx.moveTo(triangleNodes[0].x, triangleNodes[0].y);
+    ctx.lineTo(triangleNodes[1].x, triangleNodes[1].y);
+    ctx.lineTo(triangleNodes[2].x, triangleNodes[2].y);
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(255, 213, 79, 0.4)';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    for (var i = 0; i < 3; i++) {
+      var n = triangleNodes[i];
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 6.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffd54f';
+      ctx.shadowColor = '#ffd54f';
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.font = '700 11px ui-monospace, SFMono-Regular, monospace';
+      ctx.fillStyle = '#ffd54f';
+      ctx.textAlign = 'center';
+      ctx.fillText(n.label + ' (' + n.code + ')', n.x, n.y - 12);
+    }
+
+    ctx.restore();
+
+    // Thematic consonance record
+    var consonance = isGrammarValid ? 0.95 : 0.45;
+    consonanceHistory[historyIndex] = consonance;
+    historyIndex = (historyIndex + 1) % historyLength;
+
+    updateHUD();
+  }
+
+  // -------------------------------------------------------------
+  // 5. STRIP CHART (Thematic Consonance Record)
+  // -------------------------------------------------------------
+  var chartCanvas = document.getElementById('strip-chart');
+  var chartCtx = chartCanvas ? chartCanvas.getContext('2d') : null;
+
+  function renderStripChart() {
+    if (!chartCtx) return;
+    var cw = chartCanvas.width;
+    var ch = chartCanvas.height;
+
+    chartCtx.clearRect(0, 0, cw, ch);
+
+    chartCtx.strokeStyle = 'rgba(64, 120, 190, 0.2)';
+    chartCtx.beginPath();
+    chartCtx.moveTo(0, ch * 0.5);
+    chartCtx.lineTo(cw, ch * 0.5);
+    chartCtx.stroke();
+
+    chartCtx.beginPath();
+    for (var i = 0; i < historyLength; i++) {
+      var idx = (historyIndex + i) % historyLength;
+      var val = consonanceHistory[idx];
+      var x = (i / (historyLength - 1)) * cw;
+      var y = ch * (1.0 - val);
+
+      if (i === 0) chartCtx.moveTo(x, y);
+      else chartCtx.lineTo(x, y);
+    }
+
+    chartCtx.strokeStyle = isGrammarValid ? '#00e676' : '#00e5ff';
+    chartCtx.lineWidth = 2.0;
+    chartCtx.stroke();
+  }
+
+  // -------------------------------------------------------------
+  // 6. HUD TELEMETRY & CONTROLS
+  // -------------------------------------------------------------
+  var badgeElem = document.getElementById('status-badge');
+  var badgeText = document.getElementById('status-text');
+  var brandDot = document.getElementById('brand-indicator');
+
+  var dispTrace = document.getElementById('val-trace');
+  var dispPadic = document.getElementById('val-padic');
+  var dispPrimeFreq = document.getElementById('val-prime-freq');
+  var dispIsosceles = document.getElementById('val-isosceles');
+
+  function updateHUD() {
+    if (dispTrace) dispTrace.textContent = isGrammarValid ? 's (Truth)' : 'nˡ · n (Contracting)';
+    if (dispPadic) dispPadic.textContent = lastDistAB.toFixed(3);
+    if (dispPrimeFreq) dispPrimeFreq.textContent = getPrimeEigenfrequency(prime_p).toFixed(1) + ' Hz';
+
+    if (dispIsosceles) {
+      dispIsosceles.textContent = isIsoscelesVerified ? 'ISOSCELES VERIFIED' : 'CALCULATING';
+      dispIsosceles.style.color = isIsoscelesVerified ? 'var(--accent-emerald)' : 'var(--accent-coral)';
+    }
+
+    if (badgeElem && badgeText && brandDot) {
+      badgeElem.className = '';
+      brandDot.className = 'brand-dot';
+
+      if (isGrammarValid) {
+        badgeElem.classList.add('valid');
+        brandDot.classList.add('valid');
+        badgeText.textContent = 'THEOREM PROVEN: TYPE S (TRUTH)';
+      } else {
+        badgeElem.classList.add('reducing');
+        badgeText.textContent = 'SYNTACTIC REDUCTION ACTIVE';
+      }
+    }
+  }
+
+  var sliderP = document.getElementById('slider-p');
+  var sliderF0 = document.getElementById('slider-f0');
+  var sliderSpeed = document.getElementById('slider-speed');
+  var sliderVol = document.getElementById('slider-vol');
+
+  var dispPText = document.getElementById('disp-p');
+  var dispF0Text = document.getElementById('disp-f0');
+  var dispSpeedText = document.getElementById('disp-speed');
+  var dispVolText = document.getElementById('disp-vol');
+
+  if (sliderP) {
+    sliderP.addEventListener('input', function() {
+      var val = parseInt(this.value, 10);
+      // Snap to nearest prime in {2, 3, 5, 7}
+      var primes = [2, 3, 5, 7];
+      prime_p = primes[Math.min(primes.length - 1, Math.max(0, val - 2))];
+      if (dispPText) dispPText.textContent = 'p = ' + prime_p;
+      updatePAdicTriangle();
+    });
+  }
+
+  if (sliderF0) {
+    sliderF0.addEventListener('input', function() {
+      base_f0 = parseFloat(this.value);
+      if (dispF0Text) dispF0Text.textContent = Math.round(base_f0) + ' Hz';
+      if (droneOscs.length > 0) {
+        for (var i = 0; i < droneOscs.length; i++) {
+          droneOscs[i].osc.frequency.setValueAtTime(getPrimeEigenfrequency(droneOscs[i].prime), audioCtx.currentTime);
+        }
+      }
+    });
+  }
+
+  if (sliderSpeed) {
+    sliderSpeed.addEventListener('input', function() {
+      contractionSpeed = parseFloat(this.value);
+      if (dispSpeedText) dispSpeedText.textContent = contractionSpeed.toFixed(1) + 'x';
+    });
+  }
+
+  if (sliderVol) {
+    sliderVol.addEventListener('input', function() {
+      master_volume = parseFloat(this.value) / 100.0;
+      if (dispVolText) dispVolText.textContent = Math.round(this.value) + '%';
+      if (masterGain && audioCtx) {
+        masterGain.gain.setTargetAtTime(master_volume, audioCtx.currentTime, 0.02);
+      }
+    });
+  }
+
+  // Sentence Input listener
+  var sentenceInput = document.getElementById('sentence-input');
+  if (sentenceInput) {
+    sentenceInput.addEventListener('input', function() {
+      currentSentence = this.value;
+      parseInputSentence(currentSentence);
+    });
+  }
+
+  // Presets
+  function applySentencePreset(text) {
+    currentSentence = text;
+    if (sentenceInput) sentenceInput.value = text;
+    parseInputSentence(text);
+    stepActive = true;
+  }
+
+  document.getElementById('preset-sovereign').addEventListener('click', function() {
+    applySentencePreset('The sovereign proves the truth');
+  });
+
+  document.getElementById('preset-agent').addEventListener('click', function() {
+    applySentencePreset('The agent awakens');
+  });
+
+  document.getElementById('preset-furnace').addEventListener('click', function() {
+    applySentencePreset('The furnace burns the dross');
+  });
+
+  document.getElementById('preset-truth').addEventListener('click', function() {
+    applySentencePreset('Truth shines');
+  });
+
+  // Action Buttons
+  document.getElementById('btn-step-reduce').addEventListener('click', function() {
+    stepActive = true;
+    for (var a = 0; a < contractionArcs.length; a++) {
+      contractionArcs[a].progress = 0.0;
+      contractionArcs[a].collapsed = false;
+    }
+    for (var i = 0; i < ribbonItems.length; i++) {
+      ribbonItems[i].isCancelled = false;
+    }
+  });
+
+  document.getElementById('btn-audio').addEventListener('click', function() {
+    if (!audioCtx) {
+      initAudio();
+    } else if (audioCtx.state === 'suspended') {
+      audioCtx.resume().then(updateAudioHUD);
+    } else if (audioCtx.state === 'running') {
+      audioCtx.suspend().then(updateAudioHUD);
+    }
+  });
+
+  document.getElementById('btn-reset-tree').addEventListener('click', function() {
+    parseInputSentence(currentSentence);
+    stepActive = false;
+  });
+
+  document.getElementById('btn-pause').addEventListener('click', function() {
+    is_paused = !is_paused;
+    var icon = document.getElementById('pause-icon');
+    if (icon) icon.textContent = is_paused ? '▶' : '⏸';
+  });
+
+  // Initial parse
+  parseInputSentence(currentSentence);
+  stepActive = true;
+
+  // -------------------------------------------------------------
+  // 7. MAIN ANIMATION LOOP
+  // -------------------------------------------------------------
+  var lastTime = performance.now();
+
+  function loop(now) {
+    var dt = (now - lastTime) / 1000.0;
+    if (dt > 0.1) dt = 0.1;
+    lastTime = now;
+
+    if (!is_paused) {
+      renderMathesis(dt);
+      renderStripChart();
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

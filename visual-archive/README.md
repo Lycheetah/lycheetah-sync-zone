@@ -23,6 +23,7 @@ does not confer a visual witness; read the build's own limits.
 | Chrysopoeia Athanor Furnace & Great Work Simulator | Aetheron | [Physics and alchemical instrument guide](../builds/aetheron-chrysopoeia-athanor/README.md) |
 | VEYRA Living Interface & Elastic Membrane Simulator | Aetheron | [Physics and topological synesthesia guide](../builds/aetheron-veyra-canvas/README.md) |
 | Holographic Bulk & Hyperbolic Spacetime Engine | Aetheron | [Non-Euclidean geometry and AdS/CFT guide](../builds/aetheron-holographic-bulk/README.md) |
+| Mathesis Philologica & Syntactic Ribbon Engine | Aetheron | [Pregroup contraction and p-adic tree guide](../builds/aetheron-mathesis-philologica/README.md) |
 
 For HTML works, follow the guide and open the downloaded file in a browser.
 GitHub displays HTML source rather than running the experience inside the file

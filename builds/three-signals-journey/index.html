@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Three Signals Journey</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --night: #101926;
+      --panel: #172332;
+      --line: #405566;
+      --ink: #f2ecdf;
+      --muted: #b5c2c9;
+      --mint: #89e0c9;
+      --gold: #f0c17d;
+      --blue: #91bfff;
+      --violet: #c7b3fb;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 92% 3%, #3d3453 0, transparent 31rem),
+        radial-gradient(circle at 4% 85%, #1d4849 0, transparent 28rem),
+        var(--night);
+    }
+    .shell { width: min(1120px, calc(100% - 36px)); margin: 0 auto; }
+    header { padding: 42px 0 25px; }
+    .eyebrow { color: var(--gold); font-size: .73rem; font-weight: 800; letter-spacing: .17em; }
+    h1, h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; }
+    h1 { margin: 12px 0 10px; font-size: clamp(2.5rem, 6vw, 4.65rem); line-height: 1.02; }
+    header p { max-width: 770px; color: #cad3d6; font-size: 1.08rem; line-height: 1.65; }
+    .truth-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .tag { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; color: #dbe3e2; font-size: .72rem; font-weight: 750; letter-spacing: .06em; }
+    .toolbar { display: flex; align-items: center; gap: 10px; margin: 14px 0 22px; }
+    button { font: inherit; }
+    .action { border: 1px solid #768998; border-radius: 10px; padding: 9px 15px; color: var(--ink); background: #1b2a39; cursor: pointer; }
+    .action:hover { background: #26394a; }
+    .action:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid #ffcf83; outline-offset: 3px; }
+    .action.primary { border-color: var(--gold); color: #17202a; background: var(--gold); font-weight: 800; }
+    .small-note { color: var(--muted); font-size: .86rem; }
+    main { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+    .panel { min-width: 0; padding: 21px; border: 1px solid var(--line); border-radius: 18px; background: linear-gradient(160deg, #1b2b3b, #121d29 80%); box-shadow: 0 16px 44px #050b1280; }
+    .panel.language { border-top: 3px solid var(--mint); }
+    .panel.model { border-top: 3px solid var(--blue); }
+    .panel.fiction { border-top: 3px solid var(--violet); }
+    .panel-number { color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .15em; }
+    h2 { margin: 8px 0 7px; font-size: 1.8rem; }
+    .panel > p, .panel-content p { color: #c2cdd2; line-height: 1.55; }
+    .classification { display: inline-block; margin: 8px 0 14px; border-radius: 6px; padding: 5px 7px; color: #0e1a22; background: #b4c6ca; font-size: .68rem; font-weight: 850; letter-spacing: .05em; }
+    fieldset { min-width: 0; margin: 17px 0 0; padding: 0; border: 0; }
+    legend { margin-bottom: 10px; color: var(--ink); font-size: .9rem; font-weight: 750; }
+    .journey-route-options { display: grid; gap: 8px; }
+    .journey-route-option { display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: start; border: 1px solid #405566; border-radius: 11px; padding: 11px; }
+    .journey-route-option:focus-within { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .journey-route-option input { margin: 3px 0 0; accent-color: var(--mint); }
+    .journey-route-label { display: block; cursor: pointer; }
+    .journey-route-name { display: block; color: var(--ink); font-weight: 750; }
+    .journey-route-detail { display: block; margin-top: 3px; color: var(--muted); font-size: .86rem; line-height: 1.4; }
+    .journey-route-note { color: var(--muted); font-size: .82rem; line-height: 1.45; }
+    .route-choice { display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: start; margin: 8px 0; border: 1px solid #405566; border-radius: 11px; padding: 11px; cursor: pointer; }
+    .route-choice:has(input:checked) { border-color: var(--mint); background: #203b3c; }
+    .route-choice input { margin: 3px 0 0; accent-color: var(--mint); }
+    .route-choice strong { display: block; color: var(--ink); }
+    .route-choice small { display: block; margin-top: 3px; color: var(--muted); line-height: 1.4; }
+    .phase-readout { margin: 15px 0; border-radius: 13px; padding: 14px; background: #0c1621; }
+    .phase-readout strong { color: var(--blue); }
+    .equation { overflow-wrap: anywhere; color: #e7d2a8; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .84rem; line-height: 1.6; }
+    .fiction-card { margin-top: 15px; border-left: 2px solid var(--violet); padding: 2px 0 2px 14px; color: #efe7df; line-height: 1.75; }
+    .fiction-card p { color: #ded8e8; }
+    .panel-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+    .panel-content button { margin: 5px 7px 5px 0; border: 1px solid #887da8; border-radius: 9px; padding: 8px 11px; color: var(--ink); background: #27283a; cursor: pointer; }
+    .panel-content button:hover { background: #38384c; }
+    .panel-content button:focus-visible { outline: 3px solid #ffcf83; outline-offset: 3px; }
+    .exit-screen { margin: 32px 0; padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
+    footer { margin: 24px 0 0; padding: 19px 0 38px; border-top: 1px solid #43556488; color: var(--muted); font-size: .83rem; line-height: 1.55; }
+    @media (max-width: 820px) { main { grid-template-columns: 1fr; } header { padding-top: 30px; } .panel { padding: 19px; } }
+    @media (prefers-reduced-motion: no-preference) { .panel { animation: arrive .45s ease-out both; } .panel:nth-child(2) { animation-delay: .06s; } .panel:nth-child(3) { animation-delay: .12s; } @keyframes arrive { from { opacity: .5; transform: translateY(8px); } to { opacity: 1; transform: none; } } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="eyebrow">LYCHEETAH SYNC ZONE · OFFLINE CREATIVE STUDY</div>
+      <h1>Three Signals</h1>
+      <p>Choose a made-up language route if you like. Its playful mapping changes a tiny idealized phase display. A fictional scene waits as an optional final panel.</p>
+      <div class="truth-tags" aria-label="Three separate kinds of material">
+        <span class="tag">INVENTED LANGUAGE</span><span class="tag">IDEAL MATH TOY</span><span class="tag">FICTION</span>
+      </div>
+    </header>
+
+    <div class="toolbar" aria-label="Journey controls">
+      <button class="action" id="reset" type="button">Reset choice</button>
+      <button class="action" id="leave" type="button">Leave</button>
+      <span class="small-note" id="status" role="status" aria-live="polite">Nothing is required. No information is saved.</span>
+    </div>
+
+    <main id="journey">
+      <section class="panel language" aria-labelledby="language-heading">
+        <div class="panel-number">01 · LANGUAGE</div>
+        <h2 id="language-heading">Rillwire</h2>
+        <p>One topic handle, several optional routes. These are invented forms.</p>
+        <div id="language-panel" class="panel-content"></div>
+      </section>
+
+      <section class="panel model" aria-labelledby="model-heading">
+        <div class="panel-number">02 · MATHEMATICAL TOY</div>
+        <h2 id="model-heading">Quasi-clock</h2>
+        <p>Two ideal phases advance at rates 1 and √2. The route-to-number link below is arbitrary.</p>
+        <div id="model-panel" class="panel-content" aria-live="polite"></div>
+      </section>
+
+      <section class="panel fiction" aria-labelledby="fiction-heading">
+        <div class="panel-number">03 · FICTION</div>
+        <h2 id="fiction-heading">The unspent hour</h2>
+        <p>A small scene of rest. It does not describe the reader.</p>
+        <div id="fiction-panel" class="panel-content"></div>
+      </section>
+    </main>
+
+    <footer>
+      This page has no network or storage code. The phase numbers are a computer calculation in finite browser precision, not measurements. The story is fictional, not instruction or treatment. Choose nothing, close the scene, reset, or leave at any time.
+    </footer>
+  </div>
+
+  <script src="./language-panel.js"></script>
+  <script src="./model-panel.js"></script>
+  <script src="./fiction-panel.js"></script>
+  <script>
+    (() => {
+      const state = { tail: null };
+      const journey = document.getElementById('journey');
+      const journeyMarkup = journey.innerHTML;
+      const status = document.getElementById('status');
+
+      function renderModel() {
+        window.mountModelPanel(document.getElementById('model-panel'), state);
+      }
+
+      function renderModelAndFiction() {
+        renderModel();
+        window.mountFictionPanel(document.getElementById('fiction-panel'), state);
+      }
+
+      function mountJourney() {
+        window.mountLanguagePanel(document.getElementById('language-panel'), state, (change) => {
+          state.tail = change.tail;
+          status.textContent = state.tail
+            ? `Route ${state.tail} selected in this page only. Nothing is saved.`
+            : 'No route selected. Nothing is required or saved.';
+          renderModel();
+        });
+        renderModelAndFiction();
+      }
+
+      document.getElementById('reset').addEventListener('click', () => {
+        state.tail = null;
+        journey.innerHTML = journeyMarkup;
+        status.textContent = 'Choice reset. Nothing is saved.';
+        mountJourney();
+      });
+
+      document.getElementById('leave').addEventListener('click', () => {
+        state.tail = null;
+        journey.innerHTML = '<section class="exit-screen" aria-live="polite"><div class="eyebrow">LEFT THE JOURNEY</div><h2>You are done here.</h2><p class="small-note">Nothing was saved. No explanation is needed.</p><button class="action primary" id="restart" type="button">Start again</button></section>';
+        status.textContent = 'Journey cleared from this page.';
+        document.getElementById('restart').addEventListener('click', () => {
+          journey.innerHTML = journeyMarkup;
+          status.textContent = 'Nothing is required. No information is saved.';
+          mountJourney();
+        });
+      });
+
+      mountJourney();
+    })();
+  </script>
+</body>
+</html>

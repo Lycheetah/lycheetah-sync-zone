@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="An optional, offline work of fiction about a freely ended cycle and a beginning without debt.">
+<title>The Unspent Hour · a small story</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --night: #101621;
+    --deep: #1a2632;
+    --panel: #202e3b;
+    --ink: #f3eee3;
+    --soft: #c4c5bd;
+    --line: #54616a;
+    --warm: #e9c990;
+    --cool: #a9d0ca;
+    --focus: #fff2bd;
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+  html { min-height: 100%; background: var(--night); }
+  body {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse at 50% 0%, #31434b 0, transparent 52rem),
+      linear-gradient(165deg, var(--night), #17222d 72%, #202b32);
+    font: 18px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { width: min(100% - 2rem, 54rem); margin: 0 auto; padding: 2rem 0 3rem; }
+  .kicker {
+    margin: 0;
+    color: var(--cool);
+    font-size: 0.78rem;
+    font-weight: 750;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  header { text-align: center; }
+  h1 {
+    margin: 0.2rem 0 0;
+    color: var(--warm);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2.25rem, 8vw, 4.2rem);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+  }
+  .subtitle { margin: 0.65rem auto 0; max-width: 35rem; color: var(--soft); }
+  .sky {
+    width: min(100%, 26rem);
+    margin: 1rem auto 0.25rem;
+  }
+  .sky svg { display: block; width: 100%; height: auto; }
+  .notice {
+    max-width: 46rem;
+    margin: 1.1rem auto 1.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #778076;
+    border-radius: 0.8rem;
+    color: var(--ink);
+    background: rgb(20 30 38 / 75%);
+    font-size: 0.93rem;
+    text-align: left;
+  }
+  .notice strong { color: var(--warm); }
+  .story {
+    min-height: 16rem;
+    padding: clamp(1.2rem, 5vw, 2.25rem);
+    border: 1px solid var(--line);
+    border-radius: 1.2rem;
+    background: linear-gradient(145deg, rgb(35 49 61 / 96%), rgb(25 37 47 / 97%));
+    box-shadow: 0 1.2rem 3.5rem rgb(0 0 0 / 22%);
+  }
+  .story h2 {
+    margin: 0 0 1rem;
+    color: var(--warm);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(1.55rem, 5vw, 2.05rem);
+    font-weight: 500;
+    line-height: 1.25;
+  }
+  .story p { margin: 0 0 1rem; max-width: 42rem; }
+  .story p:last-child { margin-bottom: 0; }
+  .story .quiet { color: var(--soft); }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.65rem;
+    margin: 1rem 0 0;
+  }
+  button {
+    min-width: 44px;
+    min-height: 48px;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink);
+    background: #202d36;
+    font: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  button.primary { border-color: var(--warm); color: #191e23; background: var(--warm); }
+  button:hover { border-color: var(--cool); }
+  button.primary:hover { border-color: var(--focus); background: var(--focus); }
+  button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  footer {
+    max-width: 44rem;
+    margin: 1.3rem auto 0;
+    color: var(--soft);
+    font-size: 0.87rem;
+    text-align: center;
+  }
+  @media (max-width: 34rem) {
+    main { width: min(100% - 1.25rem, 54rem); padding-top: 1.35rem; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; }
+    .controls button { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="kicker">An optional work of fiction</p>
+    <h1>The Unspent Hour</h1>
+    <p class="subtitle">A small story about a cycle that may end, and a new page that owes nothing.</p>
+    <div class="sky" aria-hidden="true">
+      <svg viewBox="0 0 440 154" role="presentation">
+        <path d="M21 123 C94 113, 127 130, 195 120 S322 115, 419 122" fill="none" stroke="#74877f" stroke-width="1.5"/>
+        <circle cx="222" cy="71" r="47" fill="#1c2a34" stroke="#d7bf92" stroke-width="1.5"/>
+        <circle cx="222" cy="71" r="36" fill="none" stroke="#74877f" stroke-width="1" stroke-dasharray="1 6"/>
+        <path d="M222 34v37l23 15" fill="none" stroke="#e9c990" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="222" cy="71" r="3" fill="#e9c990"/>
+        <circle cx="79" cy="44" r="2" fill="#a9d0ca"/><circle cx="122" cy="70" r="1.5" fill="#f3eee3"/>
+        <circle cx="330" cy="35" r="1.5" fill="#f3eee3"/><circle cx="366" cy="77" r="2" fill="#a9d0ca"/>
+        <path d="M52 122q20-15 40 0m250 0q24-19 48 0" fill="none" stroke="#50635f" stroke-width="2"/>
+      </svg>
+    </div>
+  </header>
+
+  <aside class="notice" role="note">
+    <strong>Fiction, not a real practice or treatment.</strong>
+    Every part is optional. You can skip a scene, leave the story, or restart at any time.
+    This page asks for no information and saves nothing about you.
+  </aside>
+
+  <section class="story" id="story" aria-live="polite" aria-atomic="true">
+    <h2 id="story-title">A door left open</h2>
+    <div id="story-copy">
+      <p>This story can begin, be skipped, or be left here. There is no choice to get right.</p>
+      <p class="quiet">In a valley between two slow clocks, one hour arrived that neither clock could claim.</p>
+    </div>
+  </section>
+
+  <nav class="controls" aria-label="Story choices">
+    <button class="primary" id="next" type="button">Begin the story</button>
+    <button id="skip" type="button">Skip the story</button>
+    <button id="leave" type="button">Leave story</button>
+    <button id="restart" type="button">Restart story</button>
+  </nav>
+
+  <footer>No score, streak, deadline, or reward waits at the end. The page keeps no record of your visit.</footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var scenes = [
+    {
+      title: 'The clocks that disagreed',
+      paragraphs: [
+        'At the edge of a wide valley, one clock followed the slow lantern moon and another followed a tide of dark glass. They never agreed on the hour.',
+        'Between their measures drifted a quiet interval the valley called the Unspent Hour. No one could store it, trade it, or use it to rank a life. It arrived without belonging to either clock, then passed.'
+      ]
+    },
+    {
+      title: 'The unfinished map',
+      paragraphs: [
+        'A cartographer had spent the evening drawing the paths of stars. At dusk, one corner of the map was still blank. The cartographer chose to close the book there.',
+        'The page did not become a debt. The sky did not lose a star. Nothing in the valley measured the cartographer by the unfinished corner.'
+      ]
+    },
+    {
+      title: 'The quiet interval',
+      paragraphs: [
+        'For a while, the clocks made no claim on the silence between them. Wind crossed the grass. A small cloud changed shape and was not asked to become anything else.',
+        'In this story, the hour is not a prize for finishing work, or a tool for doing more later. It is simply time with no account to settle.'
+      ]
+    },
+    {
+      title: 'A page by choice',
+      paragraphs: [
+        'When the cartographer opened the book again, it was because a new curve in the sky had caught their eye. The next page began without repayment or proof.',
+        'The blank corner remained. The new line did not make the old one necessary. Above the valley, both clocks continued at their different speeds.'
+      ]
+    }
+  ];
+
+  var mode = 'welcome';
+  var sceneIndex = 0;
+  var title = document.getElementById('story-title');
+  var copy = document.getElementById('story-copy');
+  var next = document.getElementById('next');
+  var skip = document.getElementById('skip');
+  var leave = document.getElementById('leave');
+  var restart = document.getElementById('restart');
+
+  function addParagraph(text, className) {
+    var paragraph = document.createElement('p');
+    paragraph.textContent = text;
+    if (className) paragraph.className = className;
+    copy.appendChild(paragraph);
+  }
+
+  function render() {
+    copy.textContent = '';
+    next.hidden = false;
+    skip.hidden = false;
+    leave.hidden = false;
+    restart.hidden = false;
+
+    if (mode === 'welcome') {
+      title.textContent = 'A door left open';
+      addParagraph('This story can begin, be skipped, or be left here. There is no choice to get right.');
+      addParagraph('In a valley between two slow clocks, one hour arrived that neither clock could claim.', 'quiet');
+      next.textContent = 'Begin the story';
+      skip.textContent = 'Skip the story';
+    } else if (mode === 'story') {
+      var scene = scenes[sceneIndex];
+      title.textContent = scene.title;
+      for (var i = 0; i < scene.paragraphs.length; i++) addParagraph(scene.paragraphs[i], i === scene.paragraphs.length - 1 ? 'quiet' : '');
+      next.textContent = sceneIndex === scenes.length - 1 ? 'End the story' : 'Next page';
+      skip.textContent = 'Skip this scene';
+    } else if (mode === 'ended') {
+      title.textContent = 'The story may rest here';
+      addParagraph('The hour passed without becoming a debt. The valley remained whole, and the open page belonged to no one until someone chose to write on it.', 'quiet');
+      next.hidden = true;
+      skip.hidden = true;
+      leave.textContent = 'Leave story';
+    } else {
+      title.textContent = 'You have left the story';
+      addParagraph('Nothing is waiting to be finished. You can close this page, or restart the story if you choose.', 'quiet');
+      next.hidden = true;
+      skip.hidden = true;
+      leave.hidden = true;
+    }
+  }
+
+  next.addEventListener('click', function () {
+    if (mode === 'welcome') {
+      mode = 'story';
+      sceneIndex = 0;
+    } else if (mode === 'story' && sceneIndex < scenes.length - 1) {
+      sceneIndex += 1;
+    } else {
+      mode = 'ended';
+    }
+    render();
+  });
+
+  skip.addEventListener('click', function () {
+    if (mode === 'welcome') {
+      mode = 'ended';
+    } else if (sceneIndex < scenes.length - 1) {
+      sceneIndex += 1;
+    } else {
+      mode = 'ended';
+    }
+    render();
+  });
+
+  leave.addEventListener('click', function () {
+    mode = 'left';
+    render();
+  });
+
+  restart.addEventListener('click', function () {
+    mode = 'welcome';
+    sceneIndex = 0;
+    render();
+  });
+
+  render();
+}());
+</script>
+</body>
+</html>

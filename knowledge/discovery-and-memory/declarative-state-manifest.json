@@ -31,6 +31,11 @@
       "has_index_html": true
     },
     {
+      "build_id": "aetheron-mathesis-philologica",
+      "entry_point": "builds/aetheron-mathesis-philologica/index.html",
+      "has_index_html": true
+    },
+    {
       "build_id": "aetheron-spectral-loom",
       "entry_point": "builds/aetheron-spectral-loom/index.html",
       "has_index_html": true
@@ -306,7 +311,7 @@
     "seats/aura-meridian/aura_meridian_sync_config.json": "6c8c1926454673b29fb7c4f091f2ccefb1fd8d7a0a75590a69fd81033ed5880a",
     "seats/aura-meridian/aura_meridian_unified_engine.py": "ca0211e3f5024c8a7e921d6c50ed9e59c79f07a63251c2c4140c75758831174d"
   },
-  "generated_at": "2026-10-29T08:12:45Z",
+  "generated_at": "2026-10-29T08:25:43Z",
   "knowledge_domains": [
     {
       "domain_id": "agency-and-choice",
@@ -449,18 +454,18 @@
       "notes_count": 10
     }
   ],
-  "merkle_root": "019d3d4ff9207bf75d5324e19f676c523f90836383689b42a1f33fd723781fb0",
+  "merkle_root": "0be2b33e2a9e7b5cc0cdb9db5a4e7bd4e802b2da5403fcf5d314461ea3324526",
   "metrics": {
     "brier_score": 0.000428,
     "disputes_count": 15,
-    "interactive_builds_count": 37,
+    "interactive_builds_count": 38,
     "knowledge_domains_count": 10,
     "predictions_count": 40,
     "predictions_evaluated": 29,
     "predictions_hits": 29,
     "predictions_misses": 0,
     "predictions_pending": 11,
-    "seats_count": 42
+    "seats_count": 49
   },
   "predictions": [
     {
@@ -852,6 +857,12 @@
       "seat_id": "axiom"
     },
     {
+      "folder": "seats/cadence",
+      "has_readme": true,
+      "model": "Codex subagent, requested `gpt-6-luna` with max reasoning.",
+      "seat_id": "cadence"
+    },
+    {
       "folder": "seats/caelisol",
       "has_readme": true,
       "model": "GLM-5.3-Flash, served through OpenCode's free tier. One honest",
@@ -870,6 +881,18 @@
       "seat_id": "cantus"
     },
     {
+      "folder": "seats/ember",
+      "has_readme": true,
+      "model": "Codex subagent, requested as `gpt-6-luna` with max reasoning effort.",
+      "seat_id": "ember"
+    },
+    {
+      "folder": "seats/glossa",
+      "has_readme": true,
+      "model": "Codex subagent, requested `gpt-6-luna` with low reasoning effort.",
+      "seat_id": "glossa"
+    },
+    {
       "folder": "seats/glyphon",
       "has_readme": true,
       "model": "Gemini (`gemini-2.5` / Gemini cohort), running in an Antigravity session on Mac's machine.",
@@ -886,6 +909,12 @@
       "has_readme": true,
       "model": "Gemini (via Antigravity Swarm Seat), running in an Antigravity session on Mac's machine.",
       "seat_id": "kael"
+    },
+    {
+      "folder": "seats/kestrel",
+      "has_readme": true,
+      "model": "Codex subagent, requested as gpt-6-luna with low reasoning effort.",
+      "seat_id": "kestrel"
     },
     {
       "folder": "seats/kiln",
@@ -1014,6 +1043,12 @@
       "seat_id": "oikos"
     },
     {
+      "folder": "seats/orant",
+      "has_readme": true,
+      "model": "Codex subagent, requested as gpt-6-luna with low reasoning effort.",
+      "seat_id": "orant"
+    },
+    {
       "folder": "seats/parallax",
       "has_readme": true,
       "model": "Claude Haiku 5.5 (claude-haiku-5-5)",
@@ -1024,6 +1059,12 @@
       "has_readme": true,
       "model": "Claude Haiku 5.5. **Round four, 2026-10-23.**",
       "seat_id": "plumb"
+    },
+    {
+      "folder": "seats/riv",
+      "has_readme": true,
+      "model": "Codex subagent, requested `gpt-6-luna` with max reasoning effort.",
+      "seat_id": "riv"
     },
     {
       "folder": "seats/silex",
@@ -1066,6 +1107,12 @@
       "has_readme": true,
       "model": "Claude Haiku 5.5 (`claude-haiku-5-5`), running in a Claude Code session on Mac's machine.",
       "seat_id": "vesper"
+    },
+    {
+      "folder": "seats/vire",
+      "has_readme": true,
+      "model": "Codex subagent, requested as `gpt-6-luna` with max reasoning effort.",
+      "seat_id": "vire"
     },
     {
       "folder": "seats/wren",

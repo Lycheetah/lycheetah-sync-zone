@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">The Unspent Hour — an invented still life</title>
+  <desc id="desc">At dusk, an unlit clay lamp and a resting stone sit on a broad sill beneath a quiet violet sky. The lamp is dark; the scene holds generous empty space.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#211f36"/>
+      <stop offset=".52" stop-color="#51405c"/>
+      <stop offset=".82" stop-color="#d07f71"/>
+      <stop offset="1" stop-color="#f3bb88"/>
+    </linearGradient>
+    <linearGradient id="haze" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e9a282" stop-opacity="0"/>
+      <stop offset=".48" stop-color="#ffd2a0" stop-opacity=".72"/>
+      <stop offset="1" stop-color="#e9a282" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="sill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#765363"/>
+      <stop offset="1" stop-color="#302b3b"/>
+    </linearGradient>
+    <linearGradient id="clay" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d99a77"/>
+      <stop offset=".55" stop-color="#a96259"/>
+      <stop offset="1" stop-color="#653d4d"/>
+    </linearGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2=".9" y2="1">
+      <stop offset="0" stop-color="#d7c5b3"/>
+      <stop offset=".45" stop-color="#958d98"/>
+      <stop offset="1" stop-color="#5c5868"/>
+    </linearGradient>
+    <radialGradient id="moon" cx="36%" cy="34%" r="70%">
+      <stop offset="0" stop-color="#fff2d2"/>
+      <stop offset="1" stop-color="#e3bca6"/>
+    </radialGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="800" fill="#211f36"/>
+  <rect width="1200" height="650" fill="url(#sky)"/>
+
+  <!-- Quiet, distant evening lights -->
+  <g fill="#f8dfbd" opacity=".78">
+    <circle cx="159" cy="126" r="2"/><circle cx="254" cy="202" r="1.6"/>
+    <circle cx="948" cy="118" r="1.8"/><circle cx="1052" cy="219" r="1.5"/>
+    <circle cx="844" cy="177" r="1.2"/><circle cx="354" cy="103" r="1.2"/>
+  </g>
+  <circle cx="896" cy="263" r="37" fill="url(#moon)" opacity=".92"/>
+  <ellipse cx="600" cy="541" rx="520" ry="43" fill="url(#haze)" filter="url(#soft)"/>
+
+  <!-- Low hills leave most of the sky open -->
+  <path d="M0 557 C150 532 237 550 350 541 C467 531 515 555 649 543 C796 530 858 553 987 536 C1081 524 1146 539 1200 526 L1200 650 L0 650Z" fill="#4b3b51"/>
+  <path d="M0 586 C190 568 285 589 419 571 C561 552 667 589 794 575 C945 558 1056 580 1200 560 L1200 650 L0 650Z" fill="#3b3348" opacity=".8"/>
+
+  <!-- Wide, calm sill -->
+  <path d="M0 618 Q245 607 481 619 Q745 630 947 616 Q1098 606 1200 620 L1200 800 L0 800Z" fill="url(#sill)"/>
+  <path d="M0 620 Q245 609 481 621 Q745 632 947 618 Q1098 608 1200 622" fill="none" stroke="#dca188" stroke-width="3" opacity=".62"/>
+  <path d="M110 697 C302 682 425 701 553 691 M777 739 C902 725 1052 740 1147 725" fill="none" stroke="#a67a79" stroke-width="2" opacity=".25"/>
+
+  <!-- Unlit lamp: deliberately no flame or glow -->
+  <g transform="translate(245 451)">
+    <ellipse cx="111" cy="198" rx="104" ry="16" fill="#302b3a" opacity=".6"/>
+    <path d="M21 151 C27 113 60 85 106 84 C153 83 189 111 198 151 L189 174 C170 193 53 193 30 174Z" fill="url(#clay)" stroke="#e5b08b" stroke-width="2"/>
+    <path d="M55 104 C50 73 65 44 96 33 C126 43 141 73 136 104 C118 115 73 115 55 104Z" fill="url(#clay)" stroke="#e5b08b" stroke-width="2"/>
+    <path d="M91 34 C91 18 96 9 102 2 C108 10 112 20 111 35" fill="none" stroke="#4a3443" stroke-width="8" stroke-linecap="round"/>
+    <path d="M100 6 L104 6" stroke="#292435" stroke-width="5" stroke-linecap="round"/>
+    <path d="M30 150 C-8 143 -26 124 -22 105 C-18 89 5 84 27 92" fill="none" stroke="#b97566" stroke-width="18" stroke-linecap="round"/>
+    <path d="M41 157 C78 168 146 168 178 155" fill="none" stroke="#f0bf97" stroke-width="3" opacity=".72"/>
+    <path d="M63 126 C80 132 129 132 149 124" fill="none" stroke="#7c4650" stroke-width="4" opacity=".7"/>
+  </g>
+
+  <!-- Resting stone -->
+  <g transform="translate(756 539)">
+    <ellipse cx="139" cy="103" rx="139" ry="21" fill="#292736" opacity=".54"/>
+    <path d="M14 76 C20 47 42 27 73 18 C104 8 151 12 180 28 C207 43 239 53 252 73 C261 88 239 99 216 102 C166 110 63 108 27 98 C13 94 7 87 14 76Z" fill="url(#stone)" stroke="#ddd0c1" stroke-width="2"/>
+    <path d="M52 53 C83 29 119 25 153 36" fill="none" stroke="#f1e3d1" stroke-width="4" stroke-linecap="round" opacity=".55"/>
+    <path d="M48 82 C92 91 151 92 196 81" fill="none" stroke="#5c5868" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+  </g>
+
+  <text x="600" y="88" text-anchor="middle" fill="#fff0dc" font-family="Georgia,serif" font-size="22" letter-spacing="5" opacity=".88">THE UNSPENT HOUR</text>
+  <text x="600" y="754" text-anchor="middle" fill="#f2d4c2" font-family="system-ui,sans-serif" font-size="16" letter-spacing="1.2" opacity=".86">Nothing is owed by the hour.</text>
+  <text x="600" y="779" text-anchor="middle" fill="#d8c2c3" font-family="system-ui,sans-serif" font-size="12" letter-spacing="2" opacity=".72">INVENTED STILL LIFE · NO FLAME · NO TASK</text>
+</svg>
