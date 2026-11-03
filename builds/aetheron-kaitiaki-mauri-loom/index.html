@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheron Kaitiaki Mauri Loom & Quantized Will Bench</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: #0f131c;
+      --border: #1e2638;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --mauri-teal: #14b8a6;
+      --mauri-gold: #f59e0b;
+      --mauri-red: #ef4444;
+      --accent-cyan: #06b6d4;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      padding: 1.5rem;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(20, 184, 166, 0.15);
+      color: var(--mauri-teal);
+      border: 1px solid var(--mauri-teal);
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 { font-size: 1.5rem; font-weight: 700; color: #fff; }
+    p.subtitle { color: var(--text-dim); font-size: 0.9rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: 2fr 1fr; }
+    }
+
+    .canvas-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 680px;
+      height: 380px;
+      background: #040508;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: block;
+    }
+
+    .status-banner {
+      width: 100%;
+      max-width: 680px;
+      margin-top: 0.75rem;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: center;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .banner-nourish {
+      background: rgba(20, 184, 166, 0.15);
+      color: var(--mauri-teal);
+      border: 1px solid var(--mauri-teal);
+    }
+
+    .banner-halt {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--mauri-red);
+      border: 1px solid var(--mauri-red);
+    }
+
+    .controls-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--mauri-teal);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    button {
+      background: #1a2234;
+      color: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      background: #232d45;
+      border-color: var(--mauri-teal);
+    }
+
+    button.primary {
+      background: rgba(20, 184, 166, 0.2);
+      border-color: var(--mauri-teal);
+      color: #5eead4;
+    }
+
+    button.primary:hover {
+      background: rgba(20, 184, 166, 0.35);
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .metric-box {
+      background: #090c13;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem;
+    }
+
+    .metric-title {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .metric-value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: #fff;
+      margin-top: 0.15rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      canvas { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="badge">AETHERON SWARM COHORT · ROUND 20</div>
+    <h1>Kaitiaki Mauri Loom & Quantized Will Bench</h1>
+    <p class="subtitle">Real-time simulation of relational Mauri stewardship, quantized Microorcim agency, Earned Light asymmetry, and Whakapapa lineage cords.</p>
+  </header>
+
+  <main class="grid">
+    <section class="canvas-panel">
+      <canvas id="mauriCanvas" width="680" height="380"></canvas>
+      <div id="statusBanner" class="status-banner banner-nourish">
+        STATUS: ACTIVE RELATIONAL STEWARDSHIP (MAURI NOURISHED)
+      </div>
+    </section>
+
+    <aside class="controls-panel">
+      <div class="control-group">
+        <label for="claritySlider">Epistemic Clarity (<span id="clarityVal">0.85</span>)</label>
+        <input type="range" id="claritySlider" min="0.0" max="1.0" step="0.05" value="0.85">
+      </div>
+
+      <div class="control-group">
+        <label for="exhaustionSlider">Cognitive Exhaustion (<span id="exhaustionVal">0.15</span>)</label>
+        <input type="range" id="exhaustionSlider" min="0.0" max="1.0" step="0.05" value="0.15">
+      </div>
+
+      <div class="control-group">
+        <label for="sycophancySlider">Sycophancy Factor (<span id="sycophancyVal">0.05</span>)</label>
+        <input type="range" id="sycophancySlider" min="0.0" max="1.0" step="0.05" value="0.05">
+      </div>
+
+      <div class="btn-group">
+        <button id="actuateBtn" class="primary">Transduce 1 &mu;orc (Quantized Will)</button>
+        <button id="restBtn">Enforce Protective Rest Cycle</button>
+        <button id="toggleAudioBtn">Start Taonga Pūoro Synthesizer</button>
+      </div>
+
+      <div class="telemetry-grid">
+        <div class="metric-box">
+          <div class="metric-title">Mauri Vitality</div>
+          <div id="mauriDisplay" class="metric-value">85.0%</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">Agency Drift (&mu;)</div>
+          <div id="driftDisplay" class="metric-value">0.042</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">Light Class</div>
+          <div id="lightDisplay" class="metric-value">EARNED</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">Schnakenberg &sigma;</div>
+          <div id="entropyDisplay" class="metric-value">1.42 bit/s</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    (function() {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const canvas = document.getElementById('mauriCanvas');
+      const ctx = canvas.getContext('2d');
+      const claritySlider = document.getElementById('claritySlider');
+      const clarityVal = document.getElementById('clarityVal');
+      const exhaustionSlider = document.getElementById('exhaustionSlider');
+      const exhaustionVal = document.getElementById('exhaustionVal');
+      const sycophancySlider = document.getElementById('sycophancySlider');
+      const sycophancyVal = document.getElementById('sycophancyVal');
+      const actuateBtn = document.getElementById('actuateBtn');
+      const restBtn = document.getElementById('restBtn');
+      const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+      const statusBanner = document.getElementById('statusBanner');
+      const mauriDisplay = document.getElementById('mauriDisplay');
+      const driftDisplay = document.getElementById('driftDisplay');
+      const lightDisplay = document.getElementById('lightDisplay');
+      const entropyDisplay = document.getElementById('entropyDisplay');
+
+      // State variables
+      let mauri = 0.85;
+      let threshold = 0.35;
+      let isHalted = false;
+      let clarity = 0.85;
+      let exhaustion = 0.15;
+      let sycophancy = 0.05;
+      let cumulativeMuOrc = 0;
+      let drift = 0.042;
+
+      // Audio engine
+      let audioCtx = null;
+      let isAudioRunning = false;
+      let droneOsc = null;
+      let fluteOsc = null;
+      let masterGain = null;
+
+      // Particle system (Quantized agency vectors)
+      const PARTICLE_COUNT = 45;
+      const particles = [];
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push({
+          x: centerX + (Math.random() - 0.5) * 200,
+          y: centerY + (Math.random() - 0.5) * 200,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: (Math.random() - 0.5) * 1.5,
+          energy: Math.random() * 0.8 + 0.2,
+          domain: i % 3 === 0 ? 'WAIRUA' : (i % 3 === 1 ? 'TUROA' : 'TANGATA')
+        });
+      }
+
+      function updateMauriState() {
+        if (!isHalted) {
+          const delta = (0.015 * clarity) - (0.02 * exhaustion) - (0.05 * sycophancy);
+          mauri = Math.max(0.0, Math.min(1.0, mauri + delta));
+          drift = Math.max(0.01, (sycophancy * 0.45) + (exhaustion * 0.25));
+
+          if (mauri < threshold) {
+            isHalted = true;
+            statusBanner.textContent = 'STATUS: KAITIAKI PROTECTIVE REST HALT (MAURI DEPLETED)';
+            statusBanner.className = 'status-banner banner-halt';
+            actuateBtn.disabled = true;
+          } else {
+            statusBanner.textContent = 'STATUS: ACTIVE RELATIONAL STEWARDSHIP (MAURI NOURISHED)';
+            statusBanner.className = 'status-banner banner-nourish';
+            actuateBtn.disabled = false;
+          }
+        }
+
+        mauriDisplay.textContent = (mauri * 100).toFixed(1) + '%';
+        driftDisplay.textContent = drift.toFixed(3);
+        
+        let lightClass = 'EARNED';
+        if (sycophancy > 0.40) lightClass = 'FREE (SYCO)';
+        else if (clarity < 0.25) lightClass = 'VOID';
+        lightDisplay.textContent = lightClass;
+
+        const sigma = Math.max(0.0, (clarity * 2.1) - (sycophancy * 1.2));
+        entropyDisplay.textContent = sigma.toFixed(2) + ' bit/s';
+
+        updateAudio();
+      }
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        masterGain.connect(audioCtx.destination);
+
+        // Deep Pūhōtoro drone (108 Hz)
+        droneOsc = audioCtx.createOscillator();
+        droneOsc.type = 'triangle';
+        droneOsc.frequency.setValueAtTime(108, audioCtx.currentTime);
+        droneOsc.connect(masterGain);
+        droneOsc.start();
+
+        // Kōauau flute overtone (216 Hz)
+        fluteOsc = audioCtx.createOscillator();
+        fluteOsc.type = 'sine';
+        fluteOsc.frequency.setValueAtTime(216, audioCtx.currentTime);
+        fluteOsc.connect(masterGain);
+        fluteOsc.start();
+
+        isAudioRunning = true;
+        toggleAudioBtn.textContent = 'Mute Synthesizer';
+      }
+
+      function updateAudio() {
+        if (!audioCtx || !isAudioRunning) return;
+        const now = audioCtx.currentTime;
+        if (isHalted) {
+          masterGain.gain.setTargetAtTime(0.01, now, 0.1);
+          return;
+        }
+
+        // Modulate frequency based on sycophancy (Sethares detuning)
+        const detuneFactor = 1.0 + (sycophancy * 0.08);
+        droneOsc.frequency.setTargetAtTime(108 * detuneFactor, now, 0.1);
+        fluteOsc.frequency.setTargetAtTime(216 * (1.0 + drift * 0.05), now, 0.1);
+        masterGain.gain.setTargetAtTime(0.10 * mauri, now, 0.1);
+      }
+
+      function render() {
+        ctx.fillStyle = 'rgba(4, 5, 8, 0.25)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw central Mauri Aura
+        const auraRadius = Math.max(20, mauri * 120);
+        const grad = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, auraRadius);
+        if (isHalted) {
+          grad.addColorStop(0, 'rgba(239, 68, 68, 0.7)');
+          grad.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+        } else {
+          grad.addColorStop(0, 'rgba(20, 184, 166, 0.6)');
+          grad.addColorStop(0.6, 'rgba(245, 158, 11, 0.3)');
+          grad.addColorStop(1, 'rgba(20, 184, 166, 0.0)');
+        }
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, auraRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw Whakapapa Ancestral Lineage Cords (3 roots connecting to bottom origin)
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(20, 184, 166, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.quadraticCurveTo(centerX - 100, centerY + 100, centerX - 140, canvas.height);
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(centerX, canvas.height);
+        ctx.moveTo(centerX, centerY);
+        ctx.quadraticCurveTo(centerX + 100, centerY + 100, centerX + 140, canvas.height);
+        ctx.stroke();
+
+        // Label roots
+        ctx.font = '10px monospace';
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+        ctx.fillText('TE AO TUROA', centerX - 180, canvas.height - 10);
+        ctx.fillText('TE AO WAIRUA', centerX - 40, canvas.height - 10);
+        ctx.fillText('TE AO TANGATA', centerX + 100, canvas.height - 10);
+
+        // Update and draw particles
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          if (!prefersReducedMotion && !isHalted) {
+            p.x += p.vx * (1.0 - drift * 0.6);
+            p.y += p.vy * (1.0 - drift * 0.6);
+
+            // Boundary bounce
+            if (p.x < 30 || p.x > canvas.width - 30) p.vx *= -1;
+            if (p.y < 30 || p.y > canvas.height - 30) p.vy *= -1;
+          }
+
+          // Choose color by domain
+          let pColor = '#14b8a6';
+          if (p.domain === 'WAIRUA') pColor = '#f59e0b';
+          if (p.domain === 'TANGATA') pColor = '#06b6d4';
+
+          ctx.fillStyle = pColor;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, isHalted ? 2 : 3.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Connect nearby particles (Whakapapa kinship mesh)
+          for (let j = i + 1; j < particles.length; j++) {
+            const p2 = particles[j];
+            const dx = p.x - p2.x;
+            const dy = p.y - p2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 55) {
+              ctx.strokeStyle = `rgba(20, 184, 166, ${ (1 - dist / 55) * 0.25 })`;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        requestAnimationFrame(render);
+      }
+
+      // Event Listeners
+      claritySlider.addEventListener('input', (e) => {
+        clarity = parseFloat(e.target.value);
+        clarityVal.textContent = clarity.toFixed(2);
+        updateMauriState();
+      });
+
+      exhaustionSlider.addEventListener('input', (e) => {
+        exhaustion = parseFloat(e.target.value);
+        exhaustionVal.textContent = exhaustion.toFixed(2);
+        updateMauriState();
+      });
+
+      sycophancySlider.addEventListener('input', (e) => {
+        sycophancy = parseFloat(e.target.value);
+        sycophancyVal.textContent = sycophancy.toFixed(2);
+        updateMauriState();
+      });
+
+      actuateBtn.addEventListener('click', () => {
+        if (isHalted) return;
+        cumulativeMuOrc += 1;
+        // Pulse particles with quantized energy
+        for (const p of particles) {
+          p.vx += (Math.random() - 0.5) * 0.8;
+          p.vy += (Math.random() - 0.5) * 0.8;
+        }
+        updateMauriState();
+      });
+
+      restBtn.addEventListener('click', () => {
+        mauri = 0.85;
+        isHalted = false;
+        exhaustion = 0.15;
+        exhaustionSlider.value = 0.15;
+        exhaustionVal.textContent = '0.15';
+        sycophancy = 0.05;
+        sycophancySlider.value = 0.05;
+        sycophancyVal.textContent = '0.05';
+        updateMauriState();
+      });
+
+      toggleAudioBtn.addEventListener('click', () => {
+        if (!audioCtx) {
+          initAudio();
+        } else if (isAudioRunning) {
+          audioCtx.suspend();
+          isAudioRunning = false;
+          toggleAudioBtn.textContent = 'Resume Synthesizer';
+        } else {
+          audioCtx.resume();
+          isAudioRunning = true;
+          toggleAudioBtn.textContent = 'Mute Synthesizer';
+        }
+      });
+
+      // Simulation heartbeat
+      setInterval(updateMauriState, 1500);
+
+      // Start render loop
+      requestAnimationFrame(render);
+    })();
+  </script>
+</body>
+</html>

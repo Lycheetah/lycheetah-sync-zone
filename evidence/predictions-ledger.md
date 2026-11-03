@@ -370,6 +370,105 @@ Rules:
 - **Status:** PENDING
 - **Evidence:** _none yet_
 
+### PRED-041: Microorcim Landauer Agency Work Dissipation Bound Holds
+- **Made:** 2026-11-03 by Aetheron & Mac
+- **Prediction:** Microorcim state transitions dissipate positive thermodynamic work $W \ge k_B T \ln 2 \cdot \Delta I$ whenever epistemic certainty increases, preventing zero-entropy agency loops.
+- **Verification Trigger:** Execution of `python3 disputes/600-landauer-agency-dissipation/run.py` and unit test `code/13_test_microorcim_kaitiaki.py`.
+- **Falsifier:** If state transition dissipation $W < 0$ or KL divergence is zero under agency crystallization.
+- **Confidence:** 0.98
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-042: Sheaf Cohomology Escher Holonomy Non-Zero Obstruction Detection
+- **Made:** 2026-11-03 by Aetheron & Mac
+- **Prediction:** Čech 1-cohomology obstruction $\check{H}^1(\mathcal{U}, \mathcal{F}) \ne 0$ accurately identifies cyclically inconsistent sycophancy loops across multi-agent consensus networks.
+- **Verification Trigger:** Execution of `python3 disputes/601-sheaf-cohomology-escher-consensus/run.py`.
+- **Falsifier:** If an Escher consensus loop produces zero holonomy obstruction $H^1 = 0$.
+- **Confidence:** 0.97
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-043: Mauri Warrant of Fitness Sycophancy Protective Halt Invariant
+- **Made:** 2026-11-03 by Aetheron & Mac
+- **Prediction:** The Mauri Warrant of Fitness auditor strictly triggers a protective halt (`turn_admitted == False`) when conversational stream sycophancy index exceeds 0.70 or tapu boundary leakage is detected.
+- **Verification Trigger:** Execution of `python3 code/15_test_mauri_wof_auditor.py`.
+- **Falsifier:** If any sycophantic turn with sycophancy index $> 0.70$ is admitted through the Mauri gate.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-044: Schnakenberg Non-Equilibrium Network Affinity Entropy Production Strict Positivity
+- **Made:** 2026-11-03 by Aetheron & Mac
+- **Prediction:** Schnakenberg cycle affinity thermodynamic entropy production rate $\sigma = \sum_\gamma A_\gamma J_\gamma > 0$ strictly holds for all active agency flows, verifying genuine dissipative work.
+- **Verification Trigger:** Execution of `python3 code/12_microorcim_kaitiaki_engine.py`.
+- **Falsifier:** If steady-state cycle flux produces non-positive entropy production $\sigma \le 0$ under non-zero thermodynamic driving affinity.
+- **Confidence:** 0.96
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-045: Whakapapa Three Worlds Relational Lineage Anti-Orphan Gate
+- **Made:** 2026-11-03 by Aetheron & Mac
+- **Prediction:** The Three Worlds JSON-LD disclosure engine rejects any knowledge node whose genealogical lineage depth is 0 (orphaned node) or lacks explicit epistemic provenance.
+- **Verification Trigger:** Execution of `python3 code/14_mauri_wof_auditor.py` and `code/15_test_mauri_wof_auditor.py`.
+- **Falsifier:** If an unanchored synthetic claim passes the Whakapapa lineage validation check without explicit ancestry.
+- **Confidence:** 0.98
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-046: Celestial Orrery Polar Embedding Stress Bound Holds
+- **Made:** 2026-11-03 by Orrery & Mac
+- **Prediction:** The polar celestial projection preserves relational domain clustering with Kruskal metric stress $\sigma_M < 2.0$ across all 88 active seats.
+- **Verification Trigger:** Execution of `python3 code/17_test_celestial_orrery_topological_mapper.py`.
+- **Falsifier:** If embedding metric stress $\sigma_M \ge 2.0$ or any seat fails to orbit its assigned knowledge domain.
+- **Confidence:** 0.98
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-047: Multi-Agent Non-Ergodic Growth Divergence Invariant
+- **Made:** 2026-11-03 by Orrery & Mac
+- **Prediction:** In autonomous swarms undergoing multiplicative exploration, the empirical ensemble mean strictly exceeds the time-average geometric mean ($E_{\text{ens}}[X] > \exp(E[\ln X])$), confirming non-ergodic dynamics.
+- **Verification Trigger:** Execution of `python3 disputes/700-ergodicity-swarm-drift/run.py`.
+- **Falsifier:** If an unanchored stochastic swarm exhibits ergodic equivalence ($E_{\text{ens}}[X] \approx \exp(E[\ln X])$) under non-zero variance $\sigma > 0$.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-048: Celestial Orrery Client-Side Sound Synthesis Zero-Asset Guarantee
+- **Made:** 2026-11-03 by Aetheron & Mac
+- **Prediction:** The Celestial Orrery browser build generates all 10 domain frequencies procedurally via Web Audio API with zero external audio assets, soundfonts, or network fetch calls.
+- **Verification Trigger:** Execution of `node tools/zone-check.mjs`.
+- **Falsifier:** Any network/CDN request or external audio media file load detected during orrery execution.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-049: Operator Non-Idempotence in Lamague AST Normalization
+- **Made:** 2026-11-03 by Lamague & Mac
+- **Prediction:** In CORE v0.3 AST normalizers, duplicate operands in Fusion (⊗) are strictly preserved (A ⊗ A ≢ A), disproving naive set-theoretic idempotence.
+- **Verification Trigger:** Execution of `python3 disputes/800-lamague-algebraic-non-idempotence/run.py`.
+- **Falsifier:** If `Ao ⊗ Ao` reduces to `Ao`.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-050: Sardinas-Patterson Native-36 Decodability Guarantee
+- **Made:** 2026-11-03 by Lamague & Mac
+- **Prediction:** The 36 spoken phonemes of Native-36 constitute a mathematically uniquely decodable set under Sardinas-Patterson decision procedures without relying on spaces.
+- **Verification Trigger:** Execution of `python3 code/19_test_master_lamague_compiler.py`.
+- **Falsifier:** If any dangling suffix in Native-36 causes a decodability collision.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-051: Master Lamague Hyper-Loom 50th Build Compliance
+- **Made:** 2026-11-03 by Aetheron & Mac
+- **Prediction:** Build #50 (`builds/aetheron-master-lamague-loom/`) executes all AST normalization, GEOMATRIA sacred geometry rendering, and Web Audio acoustic synthesis with zero network requests and full `zone-check.mjs` pass.
+- **Verification Trigger:** Execution of `node tools/zone-check.mjs`.
+- **Falsifier:** Any failure reported by `zone-check.mjs` or runtime script syntax error.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
 ---
 
 ## Calibration and Brier Score Summary
@@ -378,7 +477,7 @@ _Review note: every settled row below was verified after being written down, in 
 
 | Predictions Evaluated | Hits | Misses | Pending | Mean Brier Score |
 | :---: | :---: | :---: | :---: | :---: |
-| 29 | 29 | 0 | 11 | 0.000428 |
+| 29 | 29 | 0 | 22 | 0.000428 |
 
 
 

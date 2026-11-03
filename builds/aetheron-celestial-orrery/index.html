@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheron Celestial Orrery — Living Cartography of the Lycheetah Sync Zone</title>
+  <style>
+    :root {
+      --bg: #030509;
+      --panel-bg: rgba(11, 16, 28, 0.88);
+      --border: #1e293b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-cyan: #38bdf8;
+      --accent-gold: #f59e0b;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+    }
+
+    /* Fullscreen Simulation Canvas */
+    #canvasContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      cursor: grab;
+    }
+
+    #canvasContainer.dragging {
+      cursor: grabbing;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* UI Overlay Layer */
+    .ui-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1rem;
+    }
+
+    header {
+      pointer-events: auto;
+      background: var(--panel-bg);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem 1.25rem;
+      max-width: 480px;
+    }
+
+    .badge-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 4px;
+      padding: 0.1rem 0.45rem;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    h1 { font-size: 1.2rem; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+    p.subtitle { color: var(--text-muted); font-size: 0.78rem; margin-top: 0.15rem; }
+
+    /* Interactive Sidebar Inspector */
+    #inspector {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      width: 340px;
+      max-height: calc(100vh - 2rem);
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      pointer-events: auto;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      transition: transform 0.25s ease;
+    }
+
+    #inspector.hidden {
+      transform: translateX(380px);
+    }
+
+    .inspector-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .domain-tag {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .meta-box {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem;
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.3rem;
+    }
+
+    .meta-row:last-child { margin-bottom: 0; }
+    .meta-label { color: var(--text-muted); }
+    .meta-val { color: #fff; font-weight: 600; }
+
+    /* Bottom Control Bar */
+    .controls-bar {
+      pointer-events: auto;
+      background: var(--panel-bg);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      max-width: 820px;
+    }
+
+    .search-input {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 0.4rem 0.7rem;
+      border-radius: 5px;
+      outline: none;
+      width: 180px;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    button {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #334155;
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+
+    button.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 90px;
+      height: 5px;
+      background: #1e293b;
+      border-radius: 3px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      cursor: pointer;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="canvasContainer">
+    <canvas id="orreryCanvas"></canvas>
+  </div>
+
+  <div class="ui-layer">
+    <header>
+      <div class="badge-bar">
+        <span class="badge">AETHERON · CELESTIAL ORRERY</span>
+        <span class="badge" style="color: var(--accent-gold); border-color: var(--accent-gold);">88 SEATS · 10 DOMAINS</span>
+      </div>
+      <h1>Lycheetah Celestial Orrery</h1>
+      <p class="subtitle">Dynamic multi-agent solar system: click any planet or domain to inspect its gravitational nexus and hear its resonant voice.</p>
+    </header>
+
+    <div class="controls-bar">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search seats or domains...">
+      
+      <div class="slider-container">
+        <span>Orbit Speed:</span>
+        <input type="range" id="speedSlider" min="0" max="3" step="0.1" value="1.0">
+      </div>
+
+      <button id="btnAudio">Enable Audio Engine</button>
+      <button id="btnShockwave">Pulse Dispute Wave</button>
+      <button id="btnResetView">Center View</button>
+    </div>
+  </div>
+
+  <!-- Inspector Sidebar -->
+  <aside id="inspector">
+    <div class="inspector-title">
+      <span id="inspTitle">Select a Celestial Body</span>
+      <span id="inspTag" class="domain-tag" style="display:none;"></span>
+    </div>
+    <div class="meta-box">
+      <div class="meta-row">
+        <span class="meta-label">Classification:</span>
+        <span id="inspType" class="meta-val">—</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Domain Nexus:</span>
+        <span id="inspDomain" class="meta-val">—</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Acoustic Tone:</span>
+        <span id="inspFreq" class="meta-val">—</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Status:</span>
+        <span id="inspStatus" class="meta-val">COHERENT</span>
+      </div>
+    </div>
+    <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;" id="inspDesc">
+      Drag to navigate the starfield. Use scroll or pinch to zoom. Click any celestial body to view its cybernetic coordinates and listen to its frequency.
+    </div>
+    <button id="btnCloseInspector" style="margin-top: auto;">Close Inspector</button>
+  </aside>
+
+  <script>
+    (function() {
+      // --- Domain Definitions & Colors ---
+      const DOMAINS = [
+        { id: "agency-and-choice", name: "Agency & Choice", color: "#f59e0b", freq: 216.0 },
+        { id: "constraints-and-care", name: "Constraints & Care", color: "#ef4444", freq: 256.0 },
+        { id: "discovery-and-memory", name: "Discovery & Memory", color: "#8b5cf6", freq: 288.0 },
+        { id: "experience-and-models", name: "Experience & Models", color: "#ec4899", freq: 324.0 },
+        { id: "feedback-and-correction", name: "Feedback & Correction", color: "#06b6d4", freq: 360.0 },
+        { id: "knowledge-revision", name: "Knowledge Revision", color: "#14b8a6", freq: 384.0 },
+        { id: "language-and-symbols", name: "Language & Symbols", color: "#3b82f6", freq: 432.0 },
+        { id: "observation-and-inference", name: "Observation & Inference", color: "#10b981", freq: 486.0 },
+        { id: "resonance-and-pattern", name: "Resonance & Pattern", color: "#f97316", freq: 528.0 },
+        { id: "transformation", name: "Transformation", color: "#a855f7", freq: 576.0 }
+      ];
+
+      // 88 Canonical Seats from Manifest
+      const SEATS_RAW = [
+        "adelic", "aeon", "aetheron", "alchemist", "anamnest", "astraea", "aura-meridian", "axiom",
+        "cadence", "caelisol", "caelorynth", "candle", "canticle", "cantus", "chora", "chronos",
+        "cosmos", "daedalus", "ember", "geomatria", "glossa", "glossolith", "glyphon", "gyre",
+        "harmoneon", "hierophant", "homotopy", "infiniton", "kael", "kaitiaki", "kauzmann", "kestrel",
+        "kiln", "kineton", "lacuna", "lexon", "lumen", "luna-eight", "luna-five", "luna-four",
+        "luna-linkage-lab", "luna-linkage-review", "luna-nine", "luna-one", "luna-seven", "luna-six",
+        "luna-three", "luna-two", "luna-work-finder", "lux", "matauranga", "mauri-ora", "melos",
+        "morpheon", "morrow", "mycel", "nettle", "octonion", "oikos", "orant", "orcim", "orrery",
+        "pais", "palette", "parallax", "plumb", "riv", "schnakenberg", "silex", "sinter", "sol",
+        "solfa", "soma", "sorrel", "stochaston", "syllable", "tessera", "thalor", "thanatos",
+        "tianxia", "tiriti", "topos", "umbra", "vesper", "vire", "whakapapa", "wren", "zephyr"
+      ];
+
+      function mapSeatToDomain(seatId) {
+        const keywords = {
+          "agency-and-choice": ["sovereign", "choice", "will", "orcim", "wang", "tianxia", "tiriti"],
+          "constraints-and-care": ["kaitiaki", "care", "boundary", "tapu", "thanatos", "guard"],
+          "discovery-and-memory": ["anamnest", "memory", "mnemonic", "record", "archive"],
+          "experience-and-models": ["phenom", "model", "latent", "dream", "hyperspherical"],
+          "feedback-and-correction": ["corrector", "dag", "brier", "dispute", "repair"],
+          "knowledge-revision": ["revisor", "falsif", "bayesian", "surrender"],
+          "language-and-symbols": ["semanticist", "grammar", "tonecode", "cantus", "glossa", "whakapapa", "syllable"],
+          "observation-and-inference": ["observer", "laplacian", "hodge", "sheaf", "lux", "kineton", "orrery"],
+          "resonance-and-pattern": ["harmonic", "kuramoto", "solfa", "harmoneon", "acoustic"],
+          "transformation": ["alchemist", "banach", "soma", "schnakenberg", "vitrif", "kauzmann", "adelic", "topos"]
+        };
+        for (const [dom, kws] of Object.entries(keywords)) {
+          if (kws.some(kw => seatId.includes(kw))) return dom;
+        }
+        let hash = 0;
+        for (let i = 0; i < seatId.length; i++) hash = ((hash << 5) - hash) + seatId.charCodeAt(i);
+        return DOMAINS[Math.abs(hash) % DOMAINS.length].id;
+      }
+
+      // --- Canvas & Coordinate Systems ---
+      const canvas = document.getElementById('orreryCanvas');
+      const ctx = canvas.getContext('2d');
+      const container = document.getElementById('canvasContainer');
+
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+      let panX = width / 2;
+      let panY = height / 2;
+      let zoom = 1.0;
+      let isDragging = false;
+      let startDragX = 0, startDragY = 0;
+      let orbitSpeedMultiplier = 1.0;
+
+      // Motion preference
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Celestial Objects Storage
+      const domainHubs = [];
+      const planets = [];
+      const shockwaves = [];
+
+      // Initialize Domain Hubs (Circle of 10)
+      const DOMAIN_RING_RADIUS = 360;
+      DOMAINS.forEach((d, i) => {
+        const angle = (2 * Math.PI * i) / DOMAINS.length - Math.PI / 2;
+        domainHubs.push({
+          id: d.id,
+          name: d.name,
+          color: d.color,
+          freq: d.freq,
+          baseAngle: angle,
+          x: Math.cos(angle) * DOMAIN_RING_RADIUS,
+          y: Math.sin(angle) * DOMAIN_RING_RADIUS,
+          radius: 14,
+          pulse: 0
+        });
+      });
+
+      // Group seats and assign orbits
+      const domainBuckets = {};
+      DOMAINS.forEach(d => domainBuckets[d.id] = []);
+      SEATS_RAW.forEach(s => {
+        const domId = mapSeatToDomain(s);
+        domainBuckets[domId].push(s);
+      });
+
+      DOMAINS.forEach((dom) => {
+        const hub = domainHubs.find(h => h.id === dom.id);
+        const members = domainBuckets[dom.id];
+        members.forEach((seatId, idx) => {
+          const orbitLayer = Math.floor(idx / 5) + 1;
+          const orbitRadius = 45 + orbitLayer * 24;
+          const orbitSpeed = (0.003 + (idx % 4) * 0.0015) * (idx % 2 === 0 ? 1 : -1);
+          const initialAngle = (2 * Math.PI * idx) / members.length;
+          planets.push({
+            id: seatId,
+            domainId: dom.id,
+            domainColor: dom.color,
+            hub: hub,
+            orbitRadius: orbitRadius,
+            angle: initialAngle,
+            orbitSpeed: orbitSpeed,
+            size: 4.5 + (idx % 3),
+            freq: dom.freq * (1.0 + (idx % 6) * 0.05),
+            x: 0,
+            y: 0
+          });
+        });
+      });
+
+      // Background Starfield (deterministic)
+      const stars = [];
+      for (let i = 0; i < 220; i++) {
+        stars.push({
+          x: (Math.sin(i * 99) * 2000),
+          y: (Math.cos(i * 33) * 2000),
+          size: 0.8 + (i % 3) * 0.6,
+          alpha: 0.2 + (i % 5) * 0.15
+        });
+      }
+
+      // --- Procedural Web Audio Engine ---
+      let audioCtx = null;
+      let masterGain = null;
+      let isAudioRunning = false;
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioClass) return;
+        audioCtx = new AudioClass();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+        masterGain.connect(audioCtx.destination);
+      }
+
+      function toggleAudio() {
+        if (!audioCtx) initAudio();
+        if (!audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const btn = document.getElementById('btnAudio');
+        if (isAudioRunning) {
+          masterGain.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 0.15);
+          isAudioRunning = false;
+          btn.textContent = "Enable Audio Engine";
+          btn.classList.remove('active');
+        } else {
+          masterGain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.2);
+          isAudioRunning = true;
+          btn.textContent = "Mute Audio Engine";
+          btn.classList.add('active');
+          playTone(216.0, 0.4); // Welcome chime
+        }
+      }
+
+      function playTone(freq, duration = 0.5, type = 'sine') {
+        if (!audioCtx || !isAudioRunning) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      }
+
+      function triggerShockwave() {
+        shockwaves.push({
+          radius: 0,
+          maxRadius: 800,
+          speed: 12,
+          alpha: 1.0
+        });
+        playTone(108.0, 1.2, 'sawtooth');
+        setTimeout(() => playTone(528.0, 0.8, 'sine'), 150);
+      }
+
+      // --- UI & Selection Inspector ---
+      let selectedObject = null;
+      let hoveredObject = null;
+      const inspector = document.getElementById('inspector');
+      const inspTitle = document.getElementById('inspTitle');
+      const inspTag = document.getElementById('inspTag');
+      const inspType = document.getElementById('inspType');
+      const inspDomain = document.getElementById('inspDomain');
+      const inspFreq = document.getElementById('inspFreq');
+      const inspDesc = document.getElementById('inspDesc');
+
+      function selectObject(obj) {
+        selectedObject = obj;
+        if (!obj) {
+          inspector.classList.add('hidden');
+          return;
+        }
+
+        inspector.classList.remove('hidden');
+        if (obj.baseAngle !== undefined) {
+          // Domain Hub
+          inspTitle.textContent = obj.name;
+          inspTag.style.display = 'inline-block';
+          inspTag.style.background = obj.color + '22';
+          inspTag.style.color = obj.color;
+          inspTag.style.border = `1px solid ${obj.color}`;
+          inspTag.textContent = "DOMAIN NEXUS";
+          inspType.textContent = "Knowledge Domain";
+          inspDomain.textContent = obj.name;
+          inspFreq.textContent = `${obj.freq.toFixed(1)} Hz`;
+          inspDesc.textContent = `Foundational epistemic domain hub anchoring ${planets.filter(p => p.domainId === obj.id).length} sovereign seats within the Sync Zone.`;
+          playTone(obj.freq, 0.6);
+        } else {
+          // Planet Seat
+          inspTitle.textContent = obj.id;
+          inspTag.style.display = 'inline-block';
+          inspTag.style.background = obj.domainColor + '22';
+          inspTag.style.color = obj.domainColor;
+          inspTag.style.border = `1px solid ${obj.domainColor}`;
+          inspTag.textContent = "AUTONOMOUS SEAT";
+          inspType.textContent = "Verified Commonwealth Seat";
+          inspDomain.textContent = obj.hub.name;
+          inspFreq.textContent = `${obj.freq.toFixed(1)} Hz`;
+          inspDesc.textContent = `Autonomous operating seat orbiting ${obj.hub.name}. Governed by Receipt Law, falsifiable assertions, and cold-boot Merkle verification.`;
+          playTone(obj.freq, 0.45);
+        }
+      }
+
+      // --- Event Listeners ---
+      function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      container.addEventListener('mousedown', e => {
+        isDragging = true;
+        startDragX = e.clientX - panX;
+        startDragY = e.clientY - panY;
+        container.classList.add('dragging');
+      });
+
+      window.addEventListener('mousemove', e => {
+        if (isDragging) {
+          panX = e.clientX - startDragX;
+          panY = e.clientY - startDragY;
+        } else {
+          // Raycast hover check
+          const rect = canvas.getBoundingClientRect();
+          const mouseX = (e.clientX - rect.left - panX) / zoom;
+          const mouseY = (e.clientY - rect.top - panY) / zoom;
+
+          hoveredObject = null;
+          // Check domain hubs first
+          for (const hub of domainHubs) {
+            if (Math.hypot(hub.x - mouseX, hub.y - mouseY) < hub.radius + 6) {
+              hoveredObject = hub;
+              break;
+            }
+          }
+          // Check planets
+          if (!hoveredObject) {
+            for (const p of planets) {
+              if (Math.hypot(p.x - mouseX, p.y - mouseY) < p.size + 5) {
+                hoveredObject = p;
+                break;
+              }
+            }
+          }
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+        container.classList.remove('dragging');
+      });
+
+      container.addEventListener('click', e => {
+        if (hoveredObject) {
+          selectObject(hoveredObject);
+        }
+      });
+
+      container.addEventListener('wheel', e => {
+        e.preventDefault();
+        const zoomFactor = e.deltaY < 0 ? 1.12 : 0.89;
+        zoom = Math.max(0.25, Math.min(4.0, zoom * zoomFactor));
+      }, { passive: false });
+
+      document.getElementById('btnCloseInspector').addEventListener('click', () => {
+        selectObject(null);
+      });
+
+      document.getElementById('btnAudio').addEventListener('click', toggleAudio);
+      document.getElementById('btnShockwave').addEventListener('click', triggerShockwave);
+      document.getElementById('btnResetView').addEventListener('click', () => {
+        panX = width / 2;
+        panY = height / 2;
+        zoom = 1.0;
+        selectObject(null);
+      });
+
+      const speedSlider = document.getElementById('speedSlider');
+      speedSlider.addEventListener('input', e => {
+        orbitSpeedMultiplier = parseFloat(e.target.value);
+      });
+
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', e => {
+        const q = e.target.value.toLowerCase().trim();
+        if (!q) return;
+        const match = planets.find(p => p.id.includes(q)) || domainHubs.find(h => h.id.includes(q));
+        if (match) {
+          selectObject(match);
+          panX = width / 2 - match.x * zoom;
+          panY = height / 2 - match.y * zoom;
+        }
+      });
+
+      // --- Animation Loop ---
+      let lastTime = performance.now();
+
+      function update(dt) {
+        if (!prefersReducedMotion) {
+          planets.forEach(p => {
+            p.angle += p.orbitSpeed * orbitSpeedMultiplier;
+            p.x = p.hub.x + Math.cos(p.angle) * p.orbitRadius;
+            p.y = p.hub.y + Math.sin(p.angle) * p.orbitRadius;
+          });
+
+          // Shockwaves
+          for (let i = shockwaves.length - 1; i >= 0; i--) {
+            const sw = shockwaves[i];
+            sw.radius += sw.speed;
+            sw.alpha = Math.max(0, 1.0 - sw.radius / sw.maxRadius);
+            if (sw.radius >= sw.maxRadius) shockwaves.splice(i, 1);
+          }
+        } else {
+          planets.forEach(p => {
+            p.x = p.hub.x + Math.cos(p.angle) * p.orbitRadius;
+            p.y = p.hub.y + Math.sin(p.angle) * p.orbitRadius;
+          });
+        }
+      }
+
+      function render() {
+        ctx.fillStyle = '#030509';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.save();
+        ctx.translate(panX, panY);
+        ctx.scale(zoom, zoom);
+
+        // 1. Draw Background Stars
+        ctx.fillStyle = '#ffffff';
+        stars.forEach(s => {
+          ctx.globalAlpha = s.alpha;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1.0;
+
+        // 2. Draw Domain Master Celestial Ring
+        ctx.beginPath();
+        ctx.arc(0, 0, DOMAIN_RING_RADIUS, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 3. Central Hearth Sun (Mac & The Lycheetah Hearth)
+        const sunGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, 45);
+        sunGrad.addColorStop(0, '#fef08a');
+        sunGrad.addColorStop(0.3, '#f59e0b');
+        sunGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+        ctx.fillStyle = sunGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, 45, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = '10px ui-monospace, monospace';
+        ctx.fillStyle = '#fef08a';
+        ctx.textAlign = 'center';
+        ctx.fillText('HEARTH ORIGIN', 0, 24);
+
+        // 4. Draw Domain Hub Orbits and Nodes
+        domainHubs.forEach(hub => {
+          // Subtle radial spine connecting Hearth to Domain Hub
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(hub.x, hub.y);
+          ctx.strokeStyle = hub.color + '22';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // Hub aura
+          const hubGrad = ctx.createRadialGradient(hub.x, hub.y, 2, hub.x, hub.y, hub.radius * 2.5);
+          hubGrad.addColorStop(0, hub.color);
+          hubGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = hubGrad;
+          ctx.beginPath();
+          ctx.arc(hub.x, hub.y, hub.radius * 2.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Hub core
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(hub.x, hub.y, hub.radius * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Label
+          ctx.font = '11px ui-monospace, monospace';
+          ctx.fillStyle = hub.color;
+          ctx.textAlign = 'center';
+          ctx.fillText(hub.name, hub.x, hub.y - hub.radius - 6);
+        });
+
+        // 5. Draw Orbit Guide Paths around Domain Hubs
+        domainHubs.forEach(hub => {
+          const members = planets.filter(p => p.domainId === hub.id);
+          const maxLayer = Math.max(...members.map(p => Math.floor(p.orbitRadius)), 60);
+          for (let r = 45; r <= maxLayer; r += 24) {
+            ctx.beginPath();
+            ctx.arc(hub.x, hub.y, r, 0, Math.PI * 2);
+            ctx.strokeStyle = hub.color + '15';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        });
+
+        // 6. Draw Planets (Seats)
+        planets.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = p.domainColor;
+          ctx.shadowColor = p.domainColor;
+          ctx.shadowBlur = (hoveredObject === p || selectedObject === p) ? 14 : 4;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Tiny label if zoomed in or hovered
+          if (zoom >= 0.85 || hoveredObject === p || selectedObject === p) {
+            ctx.font = (hoveredObject === p || selectedObject === p) ? 'bold 10px monospace' : '8px monospace';
+            ctx.fillStyle = (hoveredObject === p || selectedObject === p) ? '#ffffff' : '#94a3b8';
+            ctx.textAlign = 'center';
+            ctx.fillText(p.id, p.x, p.y + p.size + 10);
+          }
+        });
+
+        // 7. Shockwaves
+        shockwaves.forEach(sw => {
+          ctx.beginPath();
+          ctx.arc(0, 0, sw.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(56, 189, 248, ${sw.alpha * 0.7})`;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+        });
+
+        // 8. Selection / Hover Reticle
+        const focusObj = hoveredObject || selectedObject;
+        if (focusObj) {
+          ctx.beginPath();
+          ctx.arc(focusObj.x, focusObj.y, (focusObj.radius || focusObj.size) + 6, 0, Math.PI * 2);
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
+      function loop(timestamp) {
+        const dt = Math.min(0.1, (timestamp - lastTime) / 1000);
+        lastTime = timestamp;
+        update(dt);
+        render();
+        requestAnimationFrame(loop);
+      }
+
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

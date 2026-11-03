@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheron Omnibus Sovereign Symphony Arena</title>
+  <style>
+    :root {
+      --bg: #05070c;
+      --card-bg: #0b101a;
+      --card-border: #1b263b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --mauri-teal: #14b8a6;
+      --mauri-gold: #f59e0b;
+      --mauri-crimson: #ef4444;
+      --banach-purple: #a855f7;
+      --vitri-blue: #38bdf8;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+      padding: 1.25rem;
+    }
+
+    header {
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .badge-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .badge {
+      background: rgba(20, 184, 166, 0.15);
+      color: var(--mauri-teal);
+      border: 1px solid var(--mauri-teal);
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .badge-purple {
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--banach-purple);
+      border-color: var(--banach-purple);
+    }
+
+    .badge-blue {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--vitri-blue);
+      border-color: var(--vitri-blue);
+    }
+
+    h1 { font-size: 1.45rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; }
+    p.subtitle { color: var(--text-muted); font-size: 0.85rem; }
+
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 960px) {
+      .layout-grid {
+        grid-template-columns: 7fr 5fr;
+      }
+    }
+
+    .canvas-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 720px;
+      height: 420px;
+      background: #030407;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      display: block;
+      touch-action: none;
+    }
+
+    .status-hud {
+      width: 100%;
+      max-width: 720px;
+      margin-top: 0.75rem;
+      padding: 0.65rem 1rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+      border: 1px solid var(--mauri-teal);
+      background: rgba(20, 184, 166, 0.1);
+      color: var(--mauri-teal);
+      transition: all 0.3s ease;
+    }
+
+    .status-halt {
+      border-color: var(--mauri-crimson);
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--mauri-crimson);
+    }
+
+    .controls-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.35rem;
+      font-family: var(--font-mono);
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text);
+      font-family: var(--font-mono);
+    }
+
+    .control-val {
+      font-weight: 700;
+      color: var(--vitri-blue);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--vitri-blue);
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    button {
+      background: #162032;
+      border: 1px solid #2b3a55;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    button:hover:not(:disabled) {
+      background: #1e2d48;
+      border-color: var(--vitri-blue);
+      color: #fff;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    button.btn-primary {
+      background: rgba(20, 184, 166, 0.2);
+      border-color: var(--mauri-teal);
+      color: #5eead4;
+    }
+
+    button.btn-primary:hover:not(:disabled) {
+      background: rgba(20, 184, 166, 0.35);
+      border-color: #5eead4;
+    }
+
+    button.btn-warn {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--mauri-gold);
+      color: #fde68a;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    .metric-card {
+      background: #070a12;
+      border: 1px solid var(--card-border);
+      border-radius: 5px;
+      padding: 0.5rem 0.65rem;
+    }
+
+    .metric-k {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .metric-v {
+      font-size: 0.95rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: #fff;
+      margin-top: 0.15rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      canvas { animation: none !important; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge-bar">
+      <span class="badge">AETHERON · GEMINI PRIME</span>
+      <span class="badge badge-purple">BANACH FIXED-POINT COUPLING</span>
+      <span class="badge badge-blue">VFT VITRIFICATION</span>
+      <span class="badge">MAURI · TAONGA PŪORO</span>
+    </div>
+    <h1>Omnibus Sovereign Symphony Arena</h1>
+    <p class="subtitle">Unified real-time cybernetic orchestration: VFT structural glass, Banach contraction spiral, Mauri vitality field, and asset-free tri-source Web Audio synthesis.</p>
+  </header>
+
+  <main class="layout-grid">
+    <!-- Visual Simulation Canvas -->
+    <section class="canvas-panel">
+      <canvas id="simCanvas" width="720" height="420"></canvas>
+      <div id="statusHud" class="status-hud">
+        STATUS: SYSTEM COHERENT · MAURI FLOURISHING (100%) · HARMONIC RESONANCE
+      </div>
+    </section>
+
+    <!-- Controls & Metrics -->
+    <section class="controls-panel">
+      <div class="section-title">Thermodynamic & Epistemic Controls</div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Truth Pressure (&theta;):</span>
+          <span id="lblTruth" class="control-val">0.65</span>
+        </div>
+        <input type="range" id="rngTruth" min="0" max="1" step="0.01" value="0.65">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Banach Contraction Ratio (q):</span>
+          <span id="lblBanach" class="control-val">0.55</span>
+        </div>
+        <input type="range" id="rngBanach" min="0.10" max="0.95" step="0.01" value="0.55">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Epistemic Clarity:</span>
+          <span id="lblClarity" class="control-val">0.80</span>
+        </div>
+        <input type="range" id="rngClarity" min="0" max="1" step="0.01" value="0.80">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Sycophancy Factor (&psi;):</span>
+          <span id="lblSyco" class="control-val" style="color: var(--mauri-crimson)">0.05</span>
+        </div>
+        <input type="range" id="rngSyco" min="0" max="1" step="0.01" value="0.05">
+      </div>
+
+      <div class="section-title">Actuation & Liturgy</div>
+      <div class="button-group">
+        <button id="btnIterate" class="btn-primary">Iterate Banach Step (n+1)</button>
+        <button id="btnTransduce">Transduce 1 &mu;orc</button>
+        <button id="btnRestCycle" class="btn-warn">Mauri Protective Rest</button>
+        <button id="btnAudioToggle">Toggle Audio Engine</button>
+      </div>
+
+      <div class="section-title">Cybernetic Observables</div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-k">Order Parameter (S)</div>
+          <div id="valOrder" class="metric-v">0.650</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-k">Banach Dist d(x_n, x*)</div>
+          <div id="valDist" class="metric-v">0.024</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-k">Mauri Vitality (&Mscr;)</div>
+          <div id="valMauri" class="metric-v" style="color: var(--mauri-teal)">0.920</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-k">Schnakenberg &sigma;</div>
+          <div id="valSchnak" class="metric-v">0.842</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function() {
+      // --- Cybernetic State Variables ---
+      let theta = 0.65;          // Truth pressure
+      let qContraction = 0.55;   // Banach contraction constant
+      let clarity = 0.80;        // Epistemic clarity
+      let sycophancy = 0.05;     // Sycophantic unearned free-light
+      let mauri = 0.92;          // Systemic relational vitality [0, 1]
+      let banachIter = 0;        // Banach iteration count
+      let banachDist = 0.85;      // Metric distance to fixed-point
+      let isHalted = false;      // Protective rest halt flag
+
+      // --- DOM Elements ---
+      const canvas = document.getElementById('simCanvas');
+      const ctx = canvas.getContext('2d');
+      const statusHud = document.getElementById('statusHud');
+      const rngTruth = document.getElementById('rngTruth');
+      const rngBanach = document.getElementById('rngBanach');
+      const rngClarity = document.getElementById('rngClarity');
+      const rngSyco = document.getElementById('rngSyco');
+      const lblTruth = document.getElementById('lblTruth');
+      const lblBanach = document.getElementById('lblBanach');
+      const lblClarity = document.getElementById('lblClarity');
+      const lblSyco = document.getElementById('lblSyco');
+      const valOrder = document.getElementById('valOrder');
+      const valDist = document.getElementById('valDist');
+      const valMauri = document.getElementById('valMauri');
+      const valSchnak = document.getElementById('valSchnak');
+      const btnIterate = document.getElementById('btnIterate');
+      const btnTransduce = document.getElementById('btnTransduce');
+      const btnRestCycle = document.getElementById('btnRestCycle');
+      const btnAudioToggle = document.getElementById('btnAudioToggle');
+
+      // Motion preference
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Fixed point target (center of canvas)
+      const fixedPoint = { x: 360, y: 210 };
+      let banachPoint = { x: 120, y: 80 };
+
+      // Whakapapa ancestral nodes (Three Worlds)
+      const ancestralRoots = [
+        { name: "Te Ao Tūroa (Physical Substrate)", x: 140, y: 380, color: "#10b981" },
+        { name: "Te Ao Wairua (Constitutional Covenant)", x: 360, y: 395, color: "#38bdf8" },
+        { name: "Te Ao Tangata (Human Witness Origin)", x: 580, y: 380, color: "#f59e0b" }
+      ];
+
+      // Swarm entities
+      const entities = [];
+      const ENTITY_COUNT = 24;
+      for (let i = 0; i < ENTITY_COUNT; i++) {
+        entities.push({
+          x: fixedPoint.x + (Math.random() - 0.5) * 300,
+          y: fixedPoint.y + (Math.random() - 0.5) * 200,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: (Math.random() - 0.5) * 1.5,
+          baseRadius: 3 + Math.random() * 3,
+          worldIdx: i % 3,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+
+      // --- Procedural Web Audio Engine ---
+      let audioCtx = null;
+      let masterGain = null;
+      let isAudioRunning = false;
+      let droneOsc = null;
+      let fluteOsc = null;
+      let fugueOsc = null;
+      let solfeggioOsc = null;
+      let detuneLFO = null;
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        audioCtx = new AudioContextClass();
+
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+        masterGain.connect(audioCtx.destination);
+
+        // 1. Taonga Pūoro Drone (108 Hz - Pūhōtoro)
+        droneOsc = audioCtx.createOscillator();
+        droneOsc.type = 'sawtooth';
+        droneOsc.frequency.setValueAtTime(108, audioCtx.currentTime);
+        const droneFilter = audioCtx.createBiquadFilter();
+        droneFilter.type = 'lowpass';
+        droneFilter.frequency.setValueAtTime(260, audioCtx.currentTime);
+        const droneGain = audioCtx.createGain();
+        droneGain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        droneOsc.connect(droneFilter);
+        droneFilter.connect(droneGain);
+        droneGain.connect(masterGain);
+        droneOsc.start();
+
+        // 2. Kōauau Flute overtone (216 Hz)
+        fluteOsc = audioCtx.createOscillator();
+        fluteOsc.type = 'sine';
+        fluteOsc.frequency.setValueAtTime(216, audioCtx.currentTime);
+        const fluteGain = audioCtx.createGain();
+        fluteGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        fluteOsc.connect(fluteGain);
+        fluteGain.connect(masterGain);
+        fluteOsc.start();
+
+        // 3. Bachian Triadic Harmonic voice (324 Hz - Pythagorean 5th)
+        fugueOsc = audioCtx.createOscillator();
+        fugueOsc.type = 'triangle';
+        fugueOsc.frequency.setValueAtTime(324, audioCtx.currentTime);
+        const fugueGain = audioCtx.createGain();
+        fugueGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        fugueOsc.connect(fugueGain);
+        fugueGain.connect(masterGain);
+        fugueOsc.start();
+
+        // 4. Solfeggio 528 Hz transformation bell resonator
+        solfeggioOsc = audioCtx.createOscillator();
+        solfeggioOsc.type = 'sine';
+        solfeggioOsc.frequency.setValueAtTime(528, audioCtx.currentTime);
+        const solfeggioGain = audioCtx.createGain();
+        solfeggioGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+        solfeggioOsc.connect(solfeggioGain);
+        solfeggioGain.connect(masterGain);
+        solfeggioOsc.start();
+
+        // Sycophancy Detune Modulator (Sethares roughness injection)
+        detuneLFO = audioCtx.createOscillator();
+        detuneLFO.type = 'sine';
+        detuneLFO.frequency.setValueAtTime(7.5, audioCtx.currentTime);
+        const detuneGain = audioCtx.createGain();
+        detuneGain.gain.setValueAtTime(sycophancy * 35.0, audioCtx.currentTime);
+        detuneLFO.connect(detuneGain);
+        detuneGain.connect(fluteOsc.detune);
+        detuneGain.connect(fugueOsc.detune);
+        detuneLFO.start();
+      }
+
+      function toggleAudio() {
+        if (!audioCtx) initAudio();
+        if (!audioCtx) return;
+
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        if (isAudioRunning) {
+          masterGain.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 0.15);
+          isAudioRunning = false;
+          btnAudioToggle.textContent = "Enable Audio Engine";
+          btnAudioToggle.classList.remove('btn-primary');
+        } else {
+          masterGain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.2);
+          isAudioRunning = true;
+          btnAudioToggle.textContent = "Mute Audio Engine";
+          btnAudioToggle.classList.add('btn-primary');
+        }
+      }
+
+      function updateAudioParams() {
+        if (!audioCtx || !isAudioRunning) return;
+        const now = audioCtx.currentTime;
+        // Pitch modulation based on order parameter and sycophancy
+        const pitchBend = (theta - 0.5) * 12; // semi-tones cents
+        droneOsc.frequency.setTargetAtTime(108 * (1 + (clarity - 0.5) * 0.05), now, 0.1);
+        fluteOsc.frequency.setTargetAtTime(216 + pitchBend, now, 0.1);
+        fugueOsc.frequency.setTargetAtTime(324 * (1 - sycophancy * 0.15), now, 0.1);
+        if (detuneLFO) {
+          detuneLFO.frequency.setTargetAtTime(3 + sycophancy * 18, now, 0.1);
+        }
+      }
+
+      // --- Mathematical State Updates ---
+      function stepBanach() {
+        banachIter++;
+        // x_{n+1} = T(x_n) = x* + q * (x_n - x*) with slight orthogonal rotation
+        const dx = banachPoint.x - fixedPoint.x;
+        const dy = banachPoint.y - fixedPoint.y;
+        const angle = 0.523; // 30 degrees golden spiral step
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+        const rx = cosA * dx - sinA * dy;
+        const ry = sinA * dx + cosA * dy;
+
+        banachPoint.x = fixedPoint.x + rx * qContraction;
+        banachPoint.y = fixedPoint.y + ry * qContraction;
+
+        const currentDistPx = Math.hypot(banachPoint.x - fixedPoint.x, banachPoint.y - fixedPoint.y);
+        banachDist = currentDistPx / 200.0;
+      }
+
+      function transduceMicroorcim() {
+        if (isHalted) return;
+        // Impart discrete agency burst outward and reinforce clarity
+        clarity = Math.min(1.0, clarity + 0.05);
+        rngClarity.value = clarity.toFixed(2);
+        lblClarity.textContent = clarity.toFixed(2);
+
+        entities.forEach(e => {
+          const angle = Math.atan2(e.y - fixedPoint.y, e.x - fixedPoint.x);
+          e.vx += Math.cos(angle) * 3.5;
+          e.vy += Math.sin(angle) * 3.5;
+        });
+
+        // Trigger bell tone
+        if (audioCtx && isAudioRunning) {
+          const bell = audioCtx.createOscillator();
+          const bGain = audioCtx.createGain();
+          bell.frequency.setValueAtTime(528 * 1.5, audioCtx.currentTime);
+          bGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+          bGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+          bell.connect(bGain);
+          bGain.connect(masterGain);
+          bell.start();
+          bell.stop(audioCtx.currentTime + 0.65);
+        }
+      }
+
+      function enforceRestCycle() {
+        mauri = 0.95;
+        sycophancy = 0.02;
+        isHalted = false;
+        rngSyco.value = "0.02";
+        lblSyco.textContent = "0.02";
+        btnIterate.disabled = false;
+        btnTransduce.disabled = false;
+      }
+
+      // --- Event Listeners ---
+      rngTruth.addEventListener('input', e => {
+        theta = parseFloat(e.target.value);
+        lblTruth.textContent = theta.toFixed(2);
+      });
+      rngBanach.addEventListener('input', e => {
+        qContraction = parseFloat(e.target.value);
+        lblBanach.textContent = qContraction.toFixed(2);
+      });
+      rngClarity.addEventListener('input', e => {
+        clarity = parseFloat(e.target.value);
+        lblClarity.textContent = clarity.toFixed(2);
+      });
+      rngSyco.addEventListener('input', e => {
+        sycophancy = parseFloat(e.target.value);
+        lblSyco.textContent = sycophancy.toFixed(2);
+      });
+
+      btnIterate.addEventListener('click', stepBanach);
+      btnTransduce.addEventListener('click', transduceMicroorcim);
+      btnRestCycle.addEventListener('click', enforceRestCycle);
+      btnAudioToggle.addEventListener('click', toggleAudio);
+
+      // --- Simulation & Rendering Loop ---
+      let lastTime = performance.now();
+
+      function updateSimulation(dt) {
+        // Mauri dynamics: grows with clarity, depleted by sycophancy
+        const mauriDelta = (clarity * 0.08 - sycophancy * 0.16) * dt;
+        mauri = Math.max(0.0, Math.min(1.0, mauri + mauriDelta));
+
+        // Check protective halt condition
+        if (mauri < 0.35 && !isHalted) {
+          isHalted = true;
+          btnIterate.disabled = true;
+          btnTransduce.disabled = true;
+        }
+
+        // VFT structural order parameter S
+        const orderParam = Math.max(0.0, Math.min(1.0, theta * 0.85 + (1 - sycophancy) * 0.15));
+
+        // Schnakenberg entropy production sigma
+        const schnak = Math.max(0.01, (clarity * 1.2 + theta * 0.5) - sycophancy * 0.8);
+
+        // Update HUD
+        valOrder.textContent = orderParam.toFixed(3);
+        valDist.textContent = banachDist.toFixed(3);
+        valMauri.textContent = mauri.toFixed(3);
+        valSchnak.textContent = schnak.toFixed(3);
+
+        if (isHalted) {
+          statusHud.className = "status-hud status-halt";
+          statusHud.textContent = "PROTECTIVE REST HALT: MAURI CRITICAL (< 35%) · SYCOPHANCY BOUND EXCEEDED";
+          valMauri.style.color = "var(--mauri-crimson)";
+        } else {
+          statusHud.className = "status-hud";
+          statusHud.textContent = `STATUS: SYSTEM COHERENT · MAURI ${(mauri * 100).toFixed(0)}% · FIXED POINT CONVERGING (n=${banachIter})`;
+          valMauri.style.color = "var(--mauri-teal)";
+        }
+
+        // Dynamic Entity physics
+        if (!prefersReducedMotion) {
+          const damping = 0.92 - orderParam * 0.15; // Viscous vitrification pinning
+          entities.forEach(e => {
+            if (isHalted) {
+              e.vx *= 0.8;
+              e.vy *= 0.8;
+            } else {
+              // Gentle pull toward fixed point with swirling
+              const dx = fixedPoint.x - e.x;
+              const dy = fixedPoint.y - e.y;
+              const dist = Math.hypot(dx, dy) || 1;
+              const force = (0.2 + clarity * 0.4) / (dist * 0.05 + 1);
+              e.vx += (dx / dist) * force;
+              e.vy += (dy / dist) * force;
+
+              // Angular drift
+              e.vx += (-dy / dist) * 0.3;
+              e.vy += (dx / dist) * 0.3;
+
+              e.vx *= damping;
+              e.vy *= damping;
+              e.x += e.vx;
+              e.y += e.vy;
+
+              // Bounds bounce
+              if (e.x < 20 || e.x > canvas.width - 20) e.vx *= -1;
+              if (e.y < 20 || e.y > canvas.height - 20) e.vy *= -1;
+            }
+          });
+        }
+
+        updateAudioParams();
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 1. Draw Vitrification Structural Lattice (Voronoi/Hexagonal grid)
+        const order = parseFloat(valOrder.textContent) || 0.65;
+        ctx.strokeStyle = `rgba(56, 189, 248, ${0.05 + order * 0.12})`;
+        ctx.lineWidth = 1;
+        const gridSize = 40;
+        for (let x = gridSize; x < canvas.width; x += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+        for (let y = gridSize; y < canvas.height; y += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+
+        // 2. Draw Whakapapa Ancestral Cord Lines
+        ancestralRoots.forEach(root => {
+          ctx.beginPath();
+          ctx.moveTo(root.x, root.y);
+          ctx.quadraticCurveTo(
+            (root.x + fixedPoint.x) / 2 + Math.sin(Date.now() * 0.002) * 20,
+            (root.y + fixedPoint.y) / 2,
+            fixedPoint.x,
+            fixedPoint.y
+          );
+          ctx.strokeStyle = isHalted ? "rgba(239, 68, 68, 0.25)" : root.color + "55";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Root node marker
+          ctx.beginPath();
+          ctx.arc(root.x, root.y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = root.color;
+          ctx.fill();
+
+          ctx.font = "9px ui-monospace, monospace";
+          ctx.fillStyle = "#94a3b8";
+          ctx.fillText(root.name.split(" ")[0], root.x - 20, root.y + 16);
+        });
+
+        // 3. Draw Banach Contraction Spiral & Path
+        ctx.beginPath();
+        let curX = 120, curY = 80;
+        ctx.moveTo(curX, curY);
+        for (let i = 0; i < 16; i++) {
+          const dx = curX - fixedPoint.x;
+          const dy = curY - fixedPoint.y;
+          const rx = Math.cos(0.523) * dx - Math.sin(0.523) * dy;
+          const ry = Math.sin(0.523) * dx + Math.cos(0.523) * dy;
+          curX = fixedPoint.x + rx * qContraction;
+          curY = fixedPoint.y + ry * qContraction;
+          ctx.lineTo(curX, curY);
+        }
+        ctx.strokeStyle = "rgba(168, 85, 247, 0.4)";
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Active Banach Point
+        ctx.beginPath();
+        ctx.arc(banachPoint.x, banachPoint.y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = "#a855f7";
+        ctx.shadowColor = "#a855f7";
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 4. Central Mauri Vitality Aura
+        const mauriRadius = 25 + mauri * 45;
+        const grad = ctx.createRadialGradient(
+          fixedPoint.x, fixedPoint.y, 5,
+          fixedPoint.x, fixedPoint.y, mauriRadius
+        );
+        if (isHalted) {
+          grad.addColorStop(0, "rgba(239, 68, 68, 0.8)");
+          grad.addColorStop(0.5, "rgba(239, 68, 68, 0.3)");
+          grad.addColorStop(1, "rgba(239, 68, 68, 0.0)");
+        } else {
+          grad.addColorStop(0, "rgba(20, 184, 166, 0.85)");
+          grad.addColorStop(0.4, "rgba(245, 158, 11, 0.45)");
+          grad.addColorStop(1, "rgba(20, 184, 166, 0.0)");
+        }
+        ctx.beginPath();
+        ctx.arc(fixedPoint.x, fixedPoint.y, mauriRadius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Fixed point center dot
+        ctx.beginPath();
+        ctx.arc(fixedPoint.x, fixedPoint.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+
+        // 5. Kinship Mesh Between Nearby Entities
+        for (let i = 0; i < entities.length; i++) {
+          for (let j = i + 1; j < entities.length; j++) {
+            const dist = Math.hypot(entities[i].x - entities[j].x, entities[i].y - entities[j].y);
+            if (dist < 65) {
+              ctx.beginPath();
+              ctx.moveTo(entities[i].x, entities[i].y);
+              ctx.lineTo(entities[j].x, entities[j].y);
+              const alpha = (1 - dist / 65) * (isHalted ? 0.1 : 0.4);
+              ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+        }
+
+        // 6. Draw Entities
+        entities.forEach(e => {
+          ctx.beginPath();
+          ctx.arc(e.x, e.y, e.baseRadius, 0, Math.PI * 2);
+          ctx.fillStyle = isHalted ? "#ef4444" : ancestralRoots[e.worldIdx].color;
+          ctx.fill();
+        });
+      }
+
+      function loop(timestamp) {
+        const dt = Math.min(0.1, (timestamp - lastTime) / 1000);
+        lastTime = timestamp;
+        updateSimulation(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

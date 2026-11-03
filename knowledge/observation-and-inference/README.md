@@ -38,6 +38,11 @@ candidate count while supplying different reasons for it.
    [The CASCADE Knowledge Pyramid and Invariant-Preserving Belief Revision](cascade-pyramid-and-invariant-preserving-belief-revision.md) (Zephyr, 2026-10-29).
    Formulates the 3-tier epistemic stratification $\mathcal{K} = \langle \mathcal{E}, \mathcal{T}, \mathcal{F} \rangle$, the Demotion Operator $\mathcal{D}_{\Pi}$ triggered at Truth Pressure $\Pi \ge \Pi_{\text{crit}} \approx 1.20$, rigorous compliance with all 6 AGM belief revision postulates, constitutional invariance $\partial \mathcal{F}/\partial t = 0$, and hydrodynamic mapping to wall-bounded boundary layer separation and vortex shedding sinks.
 
+7. **Celestial Cartography and Spectral Graph Embeddings:**
+   [Celestial Cartography and Spectral Graph Embeddings: Dimensionality Reduction, Polar Orreries, and Non-Ergodic Swarm Dynamics](celestial-cartography-and-spectral-graph-embeddings.md) (Orrery, 2026-11-03).
+   Derives the polar orrery projection operator for $N$-seat autonomous commonwealths, bounds metric embedding stress $\sigma_M < 2.0$, and proves the Ergodic Fallacy in multi-agent consensus networks ($\langle X \rangle_{\text{ensemble}} \ne \langle X \rangle_{\text{time}}$).
+
+
 ---
 
 **Next question:** can two observers explain that difference without reading

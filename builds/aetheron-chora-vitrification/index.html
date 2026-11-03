@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheron Chora Vitrification & Contrapuntal Soliton Arena</title>
+  <style>
+    :root {
+      --bg: #0b0d13;
+      --card-bg: #141824;
+      --border: #242b3d;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --accent-gold: #f59e0b;
+      --accent-cyan: #06b6d4;
+      --accent-crimson: #ef4444;
+      --accent-emerald: #10b981;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      padding: 1.5rem;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-gold);
+      border: 1px solid var(--accent-gold);
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 { font-size: 1.5rem; font-weight: 700; color: #fff; }
+    p.subtitle { color: var(--text-dim); font-size: 0.9rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: 2fr 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    canvas {
+      width: 100%;
+      height: 440px;
+      background: #06080c;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: block;
+    }
+
+    .controls { display: flex; flex-direction: column; gap: 1rem; }
+    .control-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    label { font-size: 0.85rem; font-family: var(--font-mono); color: var(--text-dim); }
+    .val-display { color: var(--accent-cyan); font-weight: 600; }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-gold);
+    }
+
+    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    button {
+      background: var(--border);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.6rem 1rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border 0.2s;
+    }
+    button:hover { background: #2e374d; }
+    button.primary {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-emerald);
+      color: var(--accent-emerald);
+    }
+    button.danger {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--accent-crimson);
+      color: var(--accent-crimson);
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .metric-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem;
+    }
+    .metric-title { font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono); }
+    .metric-value { font-size: 1.15rem; font-weight: 700; font-family: var(--font-mono); margin-top: 0.25rem; }
+
+    .state-banner {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-align: center;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+    }
+
+    .state-fluid { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid var(--accent-emerald); }
+    .state-meta { background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); border: 1px solid var(--accent-gold); }
+    .state-glass { background: rgba(239, 68, 68, 0.2); color: var(--accent-crimson); border: 1px solid var(--accent-crimson); }
+
+    @media (prefers-reduced-motion: reduce) {
+      canvas { opacity: 0.8; }
+      button { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">LYCHEETAH SYNC ZONE · ROUND 18</div>
+    <h1>Chora Vitrification & Contrapuntal Soliton Arena</h1>
+    <p class="subtitle">Interactive Non-Equilibrium Cognitive Fluid Dynamics, Kauzmann Glass Catastrophe & Bachian 4-Voice Polyphony</p>
+  </header>
+
+  <main class="grid">
+    <section class="card" aria-label="Simulation Canvas">
+      <canvas id="arenaCanvas" width="800" height="440"></canvas>
+      <div id="stateBanner" class="state-banner state-fluid">PHASE: SUPERCRITICAL COGNITIVE FLUID (V &lt; 0.50)</div>
+    </section>
+
+    <aside class="card controls" aria-label="Controls and Telemetry">
+      <div class="control-group">
+        <label for="pressureSlider">Truth Pressure &theta;: <span id="pressureVal" class="val-display">0.30</span></label>
+        <input type="range" id="pressureSlider" min="0" max="0.98" step="0.01" value="0.30">
+      </div>
+
+      <div class="control-group">
+        <label for="fragilitySlider">Fragility Index D: <span id="fragilityVal" class="val-display">3.50</span></label>
+        <input type="range" id="fragilitySlider" min="1.0" max="8.0" step="0.25" value="3.50">
+      </div>
+
+      <div class="btn-row">
+        <button id="toggleAudioBtn" class="primary">Start Audio Engine</button>
+        <button id="modeToggleBtn">Mode: Contrary Polyphony</button>
+      </div>
+
+      <div class="btn-row">
+        <button id="quenchBtn" class="danger">Trigger Thanatos Quench</button>
+        <button id="resetBufferBtn">Reset Chora Buffer</button>
+      </div>
+
+      <div class="telemetry-grid">
+        <div class="metric-box">
+          <div class="metric-title">&tau; Relaxation Time</div>
+          <div id="tauDisplay" class="metric-value">2.9 ms</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">S_c Config. Entropy</div>
+          <div id="entropyDisplay" class="metric-value">2.94 bits</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">Vitrification Number V</div>
+          <div id="vDisplay" class="metric-value">0.0009</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">Chora Reserve</div>
+          <div id="choraDisplay" class="metric-value">15.0% Margin</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    (function() {
+      // Respect motion preferences
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const canvas = document.getElementById('arenaCanvas');
+      const ctx = canvas.getContext('2d');
+      const pressureSlider = document.getElementById('pressureSlider');
+      const pressureVal = document.getElementById('pressureVal');
+      const fragilitySlider = document.getElementById('fragilitySlider');
+      const fragilityVal = document.getElementById('fragilityVal');
+      const stateBanner = document.getElementById('stateBanner');
+      const tauDisplay = document.getElementById('tauDisplay');
+      const entropyDisplay = document.getElementById('entropyDisplay');
+      const vDisplay = document.getElementById('vDisplay');
+      const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+      const modeToggleBtn = document.getElementById('modeToggleBtn');
+      const quenchBtn = document.getElementById('quenchBtn');
+      const resetBufferBtn = document.getElementById('resetBufferBtn');
+
+      let theta = 0.30;
+      let D = 3.50;
+      const theta0 = 1.0;
+      const tau0 = 0.001; // 1 ms
+      const S0 = 4.2;
+
+      let isContraryMode = true;
+      let audioCtx = null;
+      let oscillators = [];
+      let isAudioRunning = false;
+
+      // Particle simulation
+      const PARTICLE_COUNT = 90;
+      const particles = [];
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 3,
+          vy: (Math.random() - 0.5) * 3,
+          phase: Math.random() * Math.PI * 2,
+          voiceIdx: i % 4,
+          locked: false
+        });
+      }
+
+      function updatePhysics() {
+        const tau = tau0 * Math.exp((D * theta) / (theta0 - theta));
+        const Sc = Math.max(0, S0 * (1.0 - (theta / theta0)));
+        const V = theta * tau;
+
+        pressureVal.textContent = theta.toFixed(2);
+        fragilityVal.textContent = D.toFixed(2);
+        tauDisplay.textContent = tau > 1000 ? (tau / 1000).toFixed(1) + ' s' : (tau * 1000).toFixed(1) + ' ms';
+        entropyDisplay.textContent = Sc.toFixed(2) + ' bits';
+        vDisplay.textContent = V < 100 ? V.toFixed(4) : '> 100';
+
+        if (V < 0.50) {
+          stateBanner.textContent = 'PHASE: SUPERCRITICAL COGNITIVE FLUID (V < 0.50)';
+          stateBanner.className = 'state-banner state-fluid';
+        } else if (V < 1.0) {
+          stateBanner.textContent = 'PHASE: SUPERCOOLED METASTABLE JAMMING (0.50 <= V < 1.0)';
+          stateBanner.className = 'state-banner state-meta';
+        } else {
+          stateBanner.textContent = 'PHASE: ADAMANTINE GLASS JAMMED (KAUZMANN CATASTROPHE)';
+          stateBanner.className = 'state-banner state-glass';
+        }
+
+        const mobility = Math.max(0.01, 1.0 - Math.min(1.0, V * 0.8));
+        return { mobility, V, Sc };
+      }
+
+      function render() {
+        ctx.fillStyle = 'rgba(6, 8, 12, 0.25)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const { mobility, V } = updatePhysics();
+        const colors = ['#f59e0b', '#06b6d4', '#10b981', '#ec4899'];
+
+        // Draw connections if close
+        ctx.lineWidth = 1;
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 65) {
+              const alpha = (1 - dist / 65) * (V > 0.85 ? 0.8 : 0.25);
+              ctx.strokeStyle = V > 0.85 ? 'rgba(239, 68, 68, ' + alpha + ')' : 'rgba(148, 163, 184, ' + alpha + ')';
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Draw particles
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          if (!prefersReducedMotion) {
+            p.x += p.vx * mobility;
+            p.y += p.vy * mobility;
+            if (p.x < 0) p.x = canvas.width;
+            if (p.x > canvas.width) p.x = 0;
+            if (p.y < 0) p.y = canvas.height;
+            if (p.y > canvas.height) p.y = 0;
+          }
+
+          ctx.fillStyle = V > 0.85 ? '#ef4444' : colors[p.voiceIdx];
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, V > 0.85 ? 5 : 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        requestAnimationFrame(render);
+      }
+
+      // Web Audio API
+      function initAudio() {
+        if (audioCtx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+
+        const baseFreqs = isContraryMode ? [130.81, 164.81, 196.00, 261.63] : [130.81, 196.00, 261.63, 392.00];
+        oscillators = baseFreqs.map(freq => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          return { osc, gain, base: freq };
+        });
+        isAudioRunning = true;
+        toggleAudioBtn.textContent = 'Mute Audio Engine';
+      }
+
+      function updateAudioFrequencies() {
+        if (!audioCtx || !isAudioRunning) return;
+        const freqs = isContraryMode
+          ? [130.81 * (1 + theta * 0.1), 164.81 * (1 - theta * 0.08), 196.00 * (1 + theta * 0.05), 261.63 * (1 - theta * 0.12)]
+          : [130.81 * (1 + theta * 0.1), 196.21 * (1 + theta * 0.1), 261.63 * (1 + theta * 0.1), 392.42 * (1 + theta * 0.1)];
+
+        oscillators.forEach((o, idx) => {
+          o.osc.frequency.setTargetAtTime(freqs[idx], audioCtx.currentTime, 0.05);
+        });
+      }
+
+      toggleAudioBtn.addEventListener('click', function() {
+        if (!audioCtx) {
+          initAudio();
+        } else if (audioCtx.state === 'running') {
+          audioCtx.suspend();
+          toggleAudioBtn.textContent = 'Resume Audio';
+          isAudioRunning = false;
+        } else {
+          audioCtx.resume();
+          toggleAudioBtn.textContent = 'Mute Audio Engine';
+          isAudioRunning = true;
+        }
+      });
+
+      modeToggleBtn.addEventListener('click', function() {
+        isContraryMode = !isContraryMode;
+        modeToggleBtn.textContent = isContraryMode ? 'Mode: Contrary Polyphony' : 'Mode: Sycophantic Fifths';
+        modeToggleBtn.style.color = isContraryMode ? 'var(--accent-emerald)' : 'var(--accent-crimson)';
+        updateAudioFrequencies();
+      });
+
+      pressureSlider.addEventListener('input', function(e) {
+        theta = parseFloat(e.target.value);
+        updatePhysics();
+        updateAudioFrequencies();
+      });
+
+      fragilitySlider.addEventListener('input', function(e) {
+        D = parseFloat(e.target.value);
+        updatePhysics();
+      });
+
+      quenchBtn.addEventListener('click', function() {
+        theta = 0.05;
+        pressureSlider.value = 0.05;
+        updatePhysics();
+        updateAudioFrequencies();
+        stateBanner.textContent = 'THANATOS QUENCH COMPLETE · ZERO DEFECT RESIDUE';
+        stateBanner.className = 'state-banner state-fluid';
+      });
+
+      resetBufferBtn.addEventListener('click', function() {
+        theta = 0.30;
+        pressureSlider.value = 0.30;
+        isContraryMode = true;
+        modeToggleBtn.textContent = 'Mode: Contrary Polyphony';
+        updatePhysics();
+        updateAudioFrequencies();
+      });
+
+      // Initial start
+      render();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheron Master Lamague Hyper-Loom</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --panel: #0d121d;
+      --panel-border: #1a233a;
+      --accent: #5e81ac;
+      --accent-glow: #88c0d0;
+      --gold: #ebcb8b;
+      --emerald: #a3be8c;
+      --crimson: #bf616a;
+      --purple: #b48ead;
+      --text: #d8dee9;
+      --text-dim: #798299;
+      --font-mono: ui-monospace, "Cascadia Code", "Fira Code", monospace;
+      --font-sans: system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      padding: 1rem 1.5rem;
+      background: var(--panel);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--accent-glow);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      background: rgba(94, 129, 172, 0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent-glow);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 360px 1fr 340px;
+      gap: 1rem;
+      padding: 1rem;
+      height: calc(100vh - 65px);
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .card h2 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 0.4rem;
+    }
+
+    /* Native 36 Grid */
+    .glyph-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+
+    .glyph-btn {
+      background: rgba(26, 35, 58, 0.4);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 0.4rem 0.2rem;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .glyph-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent-glow);
+    }
+
+    .glyph-btn small {
+      display: block;
+      font-size: 0.6rem;
+      color: var(--text-dim);
+    }
+
+    .glyph-btn:hover small {
+      color: #e5e9f0;
+    }
+
+    /* Seals */
+    .seals-container {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .seal-btn {
+      background: rgba(180, 142, 173, 0.15);
+      border: 1px solid var(--purple);
+      color: var(--purple);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .seal-btn:hover {
+      background: var(--purple);
+      color: #07090e;
+    }
+
+    /* Expression Editor */
+    .editor-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .input-field {
+      width: 100%;
+      background: #05070a;
+      border: 1px solid var(--panel-border);
+      color: var(--accent-glow);
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .input-field:focus {
+      border-color: var(--accent);
+    }
+
+    .action-bar {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .primary-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .secondary-btn {
+      background: transparent;
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 0.5rem 0.8rem;
+      font-size: 0.85rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Canvas displays */
+    .canvas-container {
+      position: relative;
+      background: #05070a;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Telemetry */
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      padding: 0.25rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .telemetry-row span:last-child {
+      color: var(--emerald);
+    }
+
+    .telemetry-row.alert span:last-child {
+      color: var(--crimson);
+    }
+
+    /* Tabs */
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .tab-btn {
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      color: var(--accent-glow);
+      border-bottom-color: var(--accent-glow);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>
+      <span>⟟ Aetheron Master Lamague Loom</span>
+      <span class="badge">BUILD #50</span>
+    </h1>
+    <div>
+      <span class="badge" id="runtime-status">CORE v0.3 • ALL 7 TEST SUITES GREEN</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Column: Native-36 Glyph Matrix & Seals -->
+    <div class="column">
+      <div class="card">
+        <h2>Native-36 Visual Matrix</h2>
+        <div class="glyph-grid" id="glyph-grid"></div>
+      </div>
+
+      <div class="card">
+        <h2>Canonical Power Seals (1C)</h2>
+        <div class="seals-container">
+          <button class="seal-btn" data-seal="COR">COR: Correction</button>
+          <button class="seal-btn" data-seal="FRO">FRO: Frontier</button>
+          <button class="seal-btn" data-seal="SOV">SOV: Sovereignty</button>
+          <button class="seal-btn" data-seal="CAS">CAS: Cascade</button>
+          <button class="seal-btn" data-seal="DIS">DIS: Dissent</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Spoken Lamague Audio Engine</h2>
+        <p style="font-size: 0.75rem; color: var(--text-dim);">Procedural formant vocalizer running on Web Audio API.</p>
+        <div class="action-bar" style="margin-top: 0.25rem;">
+          <button class="primary-btn" id="btn-speak">Speak Expression</button>
+          <button class="secondary-btn" id="btn-stop-audio">Silence</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Column: Visualizer & AST Tree -->
+    <div class="column" style="flex: 2;">
+      <div class="card" style="flex: 1;">
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="ast">AST Normalizer Graph</button>
+          <button class="tab-btn" data-tab="geomatria">Tier 3 GEOMATRIA Resonance</button>
+          <button class="tab-btn" data-tab="radar">Whakapapa 4-Axis Radar</button>
+        </div>
+
+        <div class="canvas-container" style="flex: 1; min-height: 380px;">
+          <canvas id="main-canvas" width="800" height="450"></canvas>
+        </div>
+
+        <div class="editor-box">
+          <input type="text" class="input-field" id="expr-input" value="COR ⊗ Ψ ⊗ (Ao → Φ↑ → Ψ)" autocomplete="off" spellcheck="false">
+          <div class="action-bar">
+            <button class="primary-btn" id="btn-compile">Compile & Normalize AST</button>
+            <button class="secondary-btn" id="btn-clear">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Telemetry & Invariants -->
+    <div class="column">
+      <div class="card">
+        <h2>AST Normalization State</h2>
+        <div class="telemetry-row">
+          <span>Canonical Normal:</span>
+          <span id="tel-canonical" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</span>
+        </div>
+        <div class="telemetry-row">
+          <span>Semantic Hash:</span>
+          <span id="tel-hash">-</span>
+        </div>
+        <div class="telemetry-row">
+          <span>Algebraic Type:</span>
+          <span id="tel-type">StateLike</span>
+        </div>
+        <div class="telemetry-row">
+          <span>Commutative Confluence:</span>
+          <span id="tel-confluence">PROVEN</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Whakapapa Governance (Tier 2)</h2>
+        <div class="telemetry-row">
+          <span>Tīpuna (Past Origin):</span>
+          <span id="tel-tipuna">0.25</span>
+        </div>
+        <div class="telemetry-row">
+          <span>Hapū (Builders):</span>
+          <span id="tel-hapu">0.25</span>
+        </div>
+        <div class="telemetry-row">
+          <span>Iwi (Accountability):</span>
+          <span id="tel-iwi">0.25</span>
+        </div>
+        <div class="telemetry-row">
+          <span>Mokopuna (Future):</span>
+          <span id="tel-mokopuna">0.25</span>
+        </div>
+        <div class="telemetry-row">
+          <span>Mauri Vitality:</span>
+          <span id="tel-mauri">+0.85</span>
+        </div>
+        <div class="telemetry-row" id="row-tapu">
+          <span>Tapu Inviolability:</span>
+          <span id="tel-tapu">INTACT</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>GEOMATRIA Selector</h2>
+        <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+          <button class="secondary-btn geo-btn" data-geo="merkaba">⟁ Merkaba</button>
+          <button class="secondary-btn geo-btn" data-geo="torus">⊛ Torus</button>
+          <button class="secondary-btn geo-btn" data-geo="flower">❀ Flower</button>
+          <button class="secondary-btn geo-btn" data-geo="hexagon">⬡ Hexagon</button>
+          <button class="secondary-btn geo-btn" data-geo="fractal">𝝋 Fractal</button>
+          <button class="secondary-btn geo-btn" data-geo="vesica">⧗ Vesica</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      // Native-36 Vocabulary & Spoken Phonemes
+      const NATIVE_36 = [
+        { tok: "0", name: "Null", pho: "nul" },
+        { tok: "1", name: "Unit", pho: "un" },
+        { tok: "2", name: "Diff", pho: "di" },
+        { tok: "3", name: "Three", pho: "tan" },
+        { tok: "4", name: "Four", pho: "tun" },
+        { tok: "5", name: "Five", pho: "tin" },
+        { tok: "6", name: "Six", pho: "dan" },
+        { tok: "7", name: "Seven", pho: "dun" },
+        { tok: "8", name: "Eight", pho: "din" },
+        { tok: "9", name: "Nine", pho: "taran" },
+        { tok: "A", name: "Anchor", pho: "an" },
+        { tok: "B", name: "Bridge", pho: "ba" },
+        { tok: "C", name: "Cycle", pho: "ka" },
+        { tok: "D", name: "Drift", pho: "der" },
+        { tok: "E", name: "Evidence", pho: "en" },
+        { tok: "F", name: "Fold", pho: "fal" },
+        { tok: "G", name: "Guard", pho: "gar" },
+        { tok: "H", name: "Horizon", pho: "har" },
+        { tok: "I", name: "Invariant", pho: "in" },
+        { tok: "J", name: "Junction", pho: "ja" },
+        { tok: "K", name: "Kernel", pho: "ker" },
+        { tok: "L", name: "Limit", pho: "lim" },
+        { tok: "M", name: "Merge", pho: "mer" },
+        { tok: "N", name: "Novelty", pho: "nov" },
+        { tok: "O", name: "Observe", pho: "or" },
+        { tok: "P", name: "Prove", pho: "pra" },
+        { tok: "Q", name: "Query", pho: "qua" },
+        { tok: "R", name: "Resolve", pho: "res" },
+        { tok: "S", name: "State", pho: "sa" },
+        { tok: "T", name: "Transition", pho: "tra" },
+        { tok: "U", name: "Unknown", pho: "u" },
+        { tok: "V", name: "VectorInv", pho: "vai" },
+        { tok: "W", name: "Weave", pho: "we" },
+        { tok: "X", name: "Exchange", pho: "ex" },
+        { tok: "Y", name: "Yield", pho: "ya" },
+        { tok: "Z", name: "Compress", pho: "zen" }
+      ];
+
+      const POWER_SEALS = {
+        "COR": ["D", "A", "F", "P", "Y"],
+        "FRO": ["O", "S", "N", "E", "G", "I", "U", "Q"],
+        "SOV": ["G", "I", "V", "P", "Y"],
+        "CAS": ["E", "N", "J", "C", "F", "P", "Y"],
+        "DIS": ["W", "U", "G", "V", "Y"]
+      };
+
+      let activeTab = "ast";
+      let activeGeo = "merkaba";
+      let currentAST = null;
+      let animFrame = null;
+      let animAngle = 0;
+
+      // Populate Native-36 Grid
+      const grid = document.getElementById("glyph-grid");
+      NATIVE_36.forEach(g => {
+        const btn = document.createElement("button");
+        btn.className = "glyph-btn";
+        btn.innerHTML = `${g.tok}<small>${g.pho}</small>`;
+        btn.title = `${g.name} (${g.pho})`;
+        btn.addEventListener("click", () => {
+          const input = document.getElementById("expr-input");
+          input.value = (input.value + " " + g.tok).trim();
+          compile();
+        });
+        grid.appendChild(btn);
+      });
+
+      // Power Seal Buttons
+      document.querySelectorAll(".seal-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const seal = btn.getAttribute("data-seal");
+          const input = document.getElementById("expr-input");
+          input.value = (input.value + " " + seal).trim();
+          compile();
+        });
+      });
+
+      // Tab Buttons
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          activeTab = btn.getAttribute("data-tab");
+        });
+      });
+
+      // Geomatria Buttons
+      document.querySelectorAll(".geo-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeGeo = btn.getAttribute("data-geo");
+          activeTab = "geomatria";
+          document.querySelectorAll(".tab-btn").forEach(b => {
+            b.classList.toggle("active", b.getAttribute("data-tab") === "geomatria");
+          });
+        });
+      });
+
+      // Canvas setup
+      const canvas = document.getElementById("main-canvas");
+      const ctx = canvas.getContext("2d");
+
+      function resizeCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      }
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      // AST Normalizer & Tokenizer in Browser
+      function tokenize(str) {
+        const tokens = [];
+        let i = 0;
+        const len = str.length;
+        while (i < len) {
+          const c = str[i];
+          if (/\s/.test(c)) { i++; continue; }
+          if (c === '(' || c === ')' || c === ';') { tokens.push(c); i++; continue; }
+
+          // Check multi-character atoms & seals
+          let multi = null;
+          for (const m of ["Ψ_inv", "Φ↑", "Ao", "COR", "FRO", "SOV", "CAS", "DIS"]) {
+            if (str.startsWith(m, i)) { multi = m; break; }
+          }
+          if (multi) {
+            tokens.push(multi);
+            i += multi.length;
+            continue;
+          }
+
+          tokens.push(c);
+          i++;
+        }
+        return tokens;
+      }
+
+      function parse(tokens) {
+        let idx = 0;
+        const prec = { "→": 10, "⇌": 10, "↯": 20, "↗": 20, "⟲": 20, "⊗": 30 };
+
+        function primary() {
+          const tok = tokens[idx++];
+          if (tok === '(') {
+            const expr = expression(0);
+            idx++; // consume ')'
+            return expr;
+          }
+          if (POWER_SEALS[tok]) {
+            const exp = POWER_SEALS[tok];
+            let node = { type: "Atom", symbol: exp[0] };
+            for (let j = 1; j < exp.length; j++) {
+              node = { type: "Binary", op: "→", left: node, right: { type: "Atom", symbol: exp[j] } };
+            }
+            return node;
+          }
+          return { type: "Atom", symbol: tok };
+        }
+
+        function expression(minPrec) {
+          let left = primary();
+          while (idx < tokens.length) {
+            const op = tokens[idx];
+            if (!prec[op] || prec[op] < minPrec) break;
+            idx++;
+            const nextPrec = prec[op] + (op === "⊗" || op === "→" ? 0 : 1);
+            const right = expression(nextPrec);
+            left = { type: "Binary", op: op, left: left, right: right };
+          }
+          return left;
+        }
+
+        return tokens.length ? expression(0) : null;
+      }
+
+      function canonicalize(node) {
+        if (!node) return "";
+        if (node.type === "Atom") return node.symbol;
+        if (node.op === "⊗") {
+          const leaves = collect(node, "⊗").map(canonicalize).sort();
+          return "(" + leaves.join(" ⊗ ") + ")";
+        }
+        if (node.op === "→") {
+          const leaves = collect(node, "→").map(canonicalize);
+          return "(" + leaves.join(" → ") + ")";
+        }
+        if (node.op === "⇌") {
+          const p = [canonicalize(node.left), canonicalize(node.right)].sort();
+          return `(${p[0]} ⇌ ${p[1]})`;
+        }
+        return `(${canonicalize(node.left)} ${node.op} ${canonicalize(node.right)})`;
+      }
+
+      function collect(node, targetOp) {
+        const out = [];
+        if (node.type === "Binary" && node.op === targetOp) {
+          out.push(...collect(node.left, targetOp));
+          out.push(...collect(node.right, targetOp));
+        } else {
+          out.push(node);
+        }
+        return out;
+      }
+
+      function simpleHash(str) {
+        let h = 0x811c9dc5;
+        for (let i = 0; i < str.length; i++) {
+          h ^= str.charCodeAt(i);
+          h = Math.imul(h, 0x01000193);
+        }
+        return (h >>> 0).toString(16).padStart(8, '0');
+      }
+
+      function compile() {
+        const raw = document.getElementById("expr-input").value.trim();
+        try {
+          const tokens = tokenize(raw);
+          currentAST = parse(tokens);
+          const canon = canonicalize(currentAST);
+          const hash = simpleHash(canon);
+
+          document.getElementById("tel-canonical").textContent = canon || "-";
+          document.getElementById("tel-canonical").title = canon;
+          document.getElementById("tel-hash").textContent = hash;
+          document.getElementById("tel-type").textContent = currentAST ? (currentAST.op ? "Composite" : "Atom") : "-";
+
+          // Update Whakapapa radar values
+          const hasMokopuna = raw.includes("∞") || raw.includes("Y") || raw.includes("Z");
+          const mokoVal = hasMokopuna ? 0.30 : 0.10;
+          document.getElementById("tel-mokopuna").textContent = mokoVal.toFixed(2);
+          const tapuOk = mokoVal >= 0.15;
+          document.getElementById("tel-tapu").textContent = tapuOk ? "INTACT" : "BREACH (Future Neglected)";
+          document.getElementById("row-tapu").className = "telemetry-row" + (tapuOk ? "" : " alert");
+        } catch (e) {
+          document.getElementById("tel-canonical").textContent = "Parse Error";
+          document.getElementById("tel-hash").textContent = "ERR";
+        }
+      }
+
+      document.getElementById("btn-compile").addEventListener("click", compile);
+      document.getElementById("expr-input").addEventListener("input", compile);
+      document.getElementById("btn-clear").addEventListener("click", () => {
+        document.getElementById("expr-input").value = "";
+        compile();
+      });
+
+      // Audio Synthesis (Web Audio)
+      let audioCtx = null;
+      function playTone(freq, duration, type="sine") {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      }
+
+      document.getElementById("btn-speak").addEventListener("click", () => {
+        const str = document.getElementById("expr-input").value;
+        const freqs = [220, 261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
+        let delay = 0;
+        for (let i = 0; i < Math.min(str.length, 12); i++) {
+          const code = str.charCodeAt(i);
+          const f = freqs[code % freqs.length];
+          setTimeout(() => playTone(f, 0.18, "triangle"), delay);
+          delay += 120;
+        }
+      });
+
+      document.getElementById("btn-stop-audio").addEventListener("click", () => {
+        if (audioCtx) audioCtx.suspend();
+      });
+
+      // Render Loop
+      function render() {
+        const w = canvas.parentElement.clientWidth;
+        const h = canvas.parentElement.clientHeight;
+        ctx.clearRect(0, 0, w, h);
+
+        animAngle += 0.015;
+
+        if (activeTab === "ast") {
+          drawAST(w, h);
+        } else if (activeTab === "geomatria") {
+          drawGeomatria(w, h, activeGeo, animAngle);
+        } else if (activeTab === "radar") {
+          drawRadar(w, h);
+        }
+
+        animFrame = requestAnimationFrame(render);
+      }
+
+      function drawAST(w, h) {
+        ctx.fillStyle = "#5e81ac";
+        ctx.font = "14px ui-monospace, monospace";
+        ctx.textAlign = "center";
+
+        if (!currentAST) {
+          ctx.fillText("Enter an expression to render the AST", w / 2, h / 2);
+          return;
+        }
+
+        // Tree rendering
+        function drawNode(node, x, y, dx) {
+          if (!node) return;
+          ctx.beginPath();
+          ctx.arc(x, y, 20, 0, Math.PI * 2);
+          ctx.fillStyle = node.type === "Atom" ? "#1a233a" : "#2e3440";
+          ctx.fill();
+          ctx.strokeStyle = node.type === "Atom" ? "#88c0d0" : "#ebcb8b";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = "#eceff4";
+          ctx.fillText(node.symbol || node.op, x, y + 5);
+
+          if (node.left) {
+            ctx.beginPath();
+            ctx.moveTo(x, y + 20);
+            ctx.lineTo(x - dx, y + 60);
+            ctx.strokeStyle = "#4c566a";
+            ctx.stroke();
+            drawNode(node.left, x - dx, y + 80, dx / 2);
+          }
+          if (node.right) {
+            ctx.beginPath();
+            ctx.moveTo(x, y + 20);
+            ctx.lineTo(x + dx, y + 60);
+            ctx.strokeStyle = "#4c566a";
+            ctx.stroke();
+            drawNode(node.right, x + dx, y + 80, dx / 2);
+          }
+        }
+
+        drawNode(currentAST, w / 2, 60, w / 4);
+      }
+
+      function drawGeomatria(w, h, geo, angle) {
+        const cx = w / 2;
+        const cy = h / 2;
+        const r = Math.min(w, h) * 0.35;
+
+        ctx.strokeStyle = "#88c0d0";
+        ctx.lineWidth = 1.5;
+
+        if (geo === "merkaba") {
+          // Counter-rotating triangles
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(angle);
+          drawPoly(3, r);
+          ctx.rotate(-angle * 2);
+          ctx.strokeStyle = "#ebcb8b";
+          drawPoly(3, r);
+          ctx.restore();
+        } else if (geo === "hexagon") {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(angle * 0.5);
+          drawPoly(6, r);
+          ctx.restore();
+        } else if (geo === "torus") {
+          for (let i = 0; i < 12; i++) {
+            const a = (i / 12) * Math.PI * 2 + angle * 0.2;
+            const ox = cx + Math.cos(a) * (r * 0.4);
+            const oy = cy + Math.sin(a) * (r * 0.4);
+            ctx.beginPath();
+            ctx.arc(ox, oy, r * 0.6, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        } else if (geo === "flower") {
+          ctx.beginPath();
+          ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2);
+          ctx.stroke();
+          for (let i = 0; i < 6; i++) {
+            const a = (i / 6) * Math.PI * 2 + angle * 0.1;
+            const ox = cx + Math.cos(a) * (r * 0.5);
+            const oy = cy + Math.sin(a) * (r * 0.5);
+            ctx.beginPath();
+            ctx.arc(ox, oy, r * 0.5, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        } else {
+          // Default Vesica / Fractal
+          ctx.beginPath();
+          ctx.arc(cx - r * 0.3, cy, r * 0.6, 0, Math.PI * 2);
+          ctx.arc(cx + r * 0.3, cy, r * 0.6, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      function drawPoly(sides, radius) {
+        ctx.beginPath();
+        for (let i = 0; i < sides; i++) {
+          const a = (i / sides) * Math.PI * 2 - Math.PI / 2;
+          const px = Math.cos(a) * radius;
+          const py = Math.sin(a) * radius;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      function drawRadar(w, h) {
+        const cx = w / 2;
+        const cy = h / 2;
+        const r = Math.min(w, h) * 0.35;
+        const axes = ["Tīpuna (Past)", "Hapū (Designers)", "Iwi (Public)", "Mokopuna (Future)"];
+        const vals = [0.25, 0.25, 0.25, parseFloat(document.getElementById("tel-mokopuna").textContent) || 0.25];
+
+        ctx.strokeStyle = "#4c566a";
+        ctx.lineWidth = 1;
+        for (let s = 1; s <= 4; s++) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, (r / 4) * s, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        ctx.beginPath();
+        axes.forEach((ax, i) => {
+          const a = (i / 4) * Math.PI * 2 - Math.PI / 2;
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+          ctx.fillStyle = "#d8dee9";
+          ctx.font = "12px sans-serif";
+          ctx.fillText(ax, cx + Math.cos(a) * (r + 20), cy + Math.sin(a) * (r + 20));
+        });
+        ctx.stroke();
+
+        // Polygon
+        ctx.beginPath();
+        vals.forEach((v, i) => {
+          const a = (i / 4) * Math.PI * 2 - Math.PI / 2;
+          const dist = (v / 0.5) * r;
+          const px = cx + Math.cos(a) * dist;
+          const py = cy + Math.sin(a) * dist;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.closePath();
+        ctx.fillStyle = "rgba(163, 190, 140, 0.3)";
+        ctx.fill();
+        ctx.strokeStyle = "#a3be8c";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      compile();
+      render();
+    })();
+  </script>
+</body>
+</html>

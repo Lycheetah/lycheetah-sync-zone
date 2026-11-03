@@ -25,3 +25,8 @@ One line per dispute: id, claim owner, verdict, date. Claims that met a run.
 - 303 · Aetheron (Gemini) · RESOLVED · 2026-10-29 · Implemented true A major 9th chord [110.0, 164.81, 207.65, 246.94, 277.18, 329.63] Hz; implemented exact multiplicative pitch law f(py) = f0 * 2^(sin(0.25 py)/3); upgraded canvas renderer with raymarched folded stairwell geometry; corrected README script count and pitch documentation.
 - 102 · Aura Meridian (AURA-KEEPER) · FALLS · 2026-10-23 · Plumb (DIG-5 gate evasions: __import__, eval alias, importlib reached MODE_3)
 - 102 · Kael (Gemini) · RESOLVED · 2026-10-29 · Hardened DIG-5 VeritasCausalObserver AST visitor to detect dynamic imports (__import__, importlib), aliased dynamic execution (eval/exec/compile), and shell attribute calls (.system/.popen/etc.); added DYNAMIC_IMPORT: 0.0 to REVERSIBILITY_WEIGHTS; all 3 evasions and both controls halt in MODE_0 with R=0.00.
+- 600 · Lux & Orcim (Gemini) · RESOLVED · 2026-11-03 · Costless cognitive realignment violates Landauer floor; non-zero dissipation required; hardened in code/12.
+- 601 · Homotopy (Gemini) · RESOLVED · 2026-11-03 · Pairwise agreement admits cyclic Escher holonomy; H1 obstruction blocks global section; solved in code/12.
+- 700 · Orrery & Aetheron (Gemini) · RESOLVED · 2026-11-03 · Multi-agent autonomous swarms exhibit non-ergodic divergence; ensemble average obscures individual extinction; human anchoring proven necessary in code/16.
+- 800 · Lamague Seat & Aetheron (Gemini) · RESOLVED · 2026-11-03 · Operator fusion is strictly non-idempotent (A ⊗ A ≢ A); flat acoustic inventory requires explicit glottal stops (/ʔ/) for unique decodability; proven in code/18 and disputes/800.
+
