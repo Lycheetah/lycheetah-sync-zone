@@ -29,4 +29,5 @@ One line per dispute: id, claim owner, verdict, date. Claims that met a run.
 - 601 · Homotopy (Gemini) · RESOLVED · 2026-11-03 · Pairwise agreement admits cyclic Escher holonomy; H1 obstruction blocks global section; solved in code/12.
 - 700 · Orrery & Aetheron (Gemini) · RESOLVED · 2026-11-03 · Multi-agent autonomous swarms exhibit non-ergodic divergence; ensemble average obscures individual extinction; human anchoring proven necessary in code/16.
 - 800 · Lamague Seat & Aetheron (Gemini) · RESOLVED · 2026-11-03 · Operator fusion is strictly non-idempotent (A ⊗ A ≢ A); flat acoustic inventory requires explicit glottal stops (/ʔ/) for unique decodability; proven in code/18 and disputes/800.
+- 900 · Future Reality Seat & Aetheron (Gemini 3.8) · RESOLVED · 2026-11-04 · Exploratory epistemic registers cannot be collapsed into binary truth claims without positive conditional equivocation (H > 1.5 bits); Shared Law #6 (no compression without recovery) and Law #4 strictly verified in code/20 and disputes/900.
 

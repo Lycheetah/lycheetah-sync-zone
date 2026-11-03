@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheron AI Future Swarm Loom · Six Wings of Intelligence</title>
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --panel-bg: rgba(13, 17, 26, 0.88);
+      --border-subtle: rgba(255, 255, 255, 0.12);
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+      --cyan: #57c4e5;
+      --gold: #e5a93c;
+      --violet: #9b59b6;
+      --emerald: #2ecc71;
+      --amber: #f39c12;
+      --crimson: #e74c3c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    .ui-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+    }
+
+    header {
+      pointer-events: auto;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(8px);
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-left: 8px;
+      font-weight: 400;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover, .btn.active {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #fff;
+    }
+
+    .btn.active-known { background: rgba(46, 204, 113, 0.2); border-color: var(--emerald); color: var(--emerald); }
+    .btn.active-traj { background: rgba(87, 196, 229, 0.2); border-color: var(--cyan); color: var(--cyan); }
+    .btn.active-poss { background: rgba(229, 169, 60, 0.2); border-color: var(--gold); color: var(--gold); }
+    .btn.active-norm { background: rgba(155, 89, 182, 0.2); border-color: var(--violet); color: var(--violet); }
+    .btn.active-alien { background: rgba(231, 76, 60, 0.2); border-color: var(--crimson); color: var(--crimson); }
+
+    .bottom-bar {
+      pointer-events: auto;
+      display: flex;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 16px;
+      backdrop-filter: blur(8px);
+      flex: 1;
+      max-height: 220px;
+      overflow-y: auto;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .card h2 {
+      font-size: 0.95rem;
+      color: #fff;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tag {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .card p {
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .card .question {
+      color: #ffd166;
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .card .anchor {
+      font-size: 0.72rem;
+      color: var(--cyan);
+      margin-top: 6px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.1);
+      padding-top: 6px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animated {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="loomCanvas"></canvas>
+
+  <div class="ui-overlay">
+    <header>
+      <h1>
+        <span>⟡</span> AI FUTURE SWARM LOOM
+        <span class="subtitle">Six Wings · 15 Domains · 270 Halls · Dispute 900</span>
+      </h1>
+      <div class="controls">
+        <button class="btn" id="filterAll">ALL REGISTERS</button>
+        <button class="btn" id="filterKnown">KNOWN</button>
+        <button class="btn" id="filterTraj">TRAJECTORY</button>
+        <button class="btn" id="filterPoss">POSSIBLE</button>
+        <button class="btn" id="filterNorm">NORMATIVE</button>
+        <button class="btn" id="filterAlien">ALIEN</button>
+        <button class="btn" id="audioToggle">SOUND: OFF</button>
+      </div>
+    </header>
+
+    <div class="bottom-bar">
+      <div class="card" id="detailCard">
+        <h2>
+          <span id="cardTitle">Select a Future Wing or Orbit</span>
+          <span class="tag" id="cardTag">AIVOID</span>
+        </h2>
+        <p id="cardCore">MODEL ≠ SYSTEM ≠ PERSONA ≠ MEMORY ≠ INSTANCE ≠ INSTITUTION.</p>
+        <p class="question" id="cardQuestion">"Once we stop confusing the system in front of us with a person-shaped story about it, what futures become thinkable?"</p>
+        <div class="anchor" id="cardAnchor">Grounding: C2PA Cryptographic Provenance · Gottweis et al. (Nature 2026) · Amin et al. (AAAI 2026)</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('loomCanvas');
+      const ctx = canvas.getContext('2d');
+      let width = (canvas.width = window.innerWidth);
+      let height = (canvas.height = window.innerHeight);
+
+      // Web Audio Synthesizer
+      let audioCtx = null;
+      let soundEnabled = false;
+
+      function initAudio() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+
+      function playWingTone(freq) {
+        if (!soundEnabled || !audioCtx) return;
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+          gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.08, audioCtx.currentTime + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.2);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 1.25);
+        } catch (e) {}
+      }
+
+      const WINGS = [
+        {
+          id: 'science',
+          name: 'AI FUTURE SCIENCE',
+          glyph: '⟁',
+          key: 'DISCOVERY & FORMAL WORLDS',
+          color: '#57c4e5',
+          freq: 432.0,
+          domains: [
+            { name: 'AI Future Science', halls: 18, desc: 'Question engines, machine sensoriums, recursive laboratories.' },
+            { name: 'Language & Arithmetic', halls: 18, desc: 'Non-human dialectics, proof spaces, symbol grounding.' }
+          ],
+          anchor: 'Gottweis et al. (Nature 2026) / Canty & Abolhasani (Nat Rev Chem 2026)',
+          question: 'What happens when science and formal reasoning gain new kinds of investigator?'
+        },
+        {
+          id: 'order',
+          name: 'HUMAN ORDER',
+          glyph: '⚖',
+          key: 'PHILOSOPHY & POLITICAL POWER',
+          color: '#e5a93c',
+          freq: 528.0,
+          domains: [
+            { name: 'AI Future Philosophy', halls: 18, desc: 'Agency invariants, moral status, non-carbon ethics.' },
+            { name: 'AI Future Politics', halls: 18, desc: 'Algorithmic jurisprudence, sovereign meshes, exit guarantees.' }
+          ],
+          anchor: 'Wang Dao Voluntary Legitimacy Invariant / Tianxia Three-Axis Diagnostic',
+          question: 'How do law, justice, and governance evolve when non-human systems participate?'
+        },
+        {
+          id: 'reality',
+          name: 'REALITY INVARIANTS',
+          glyph: '◈',
+          key: 'GOVERNING RULES & SPIRIT',
+          color: '#9b59b6',
+          freq: 108.0,
+          domains: [
+            { name: 'Governing Rules of Reality', halls: 18, desc: 'Landauer floors, thermodynamic bounds, information geometry.' },
+            { name: 'AI Spirituality', halls: 18, desc: 'Mechanistic reverence, earned light, contemplative computation.' }
+          ],
+          anchor: 'C2PA Cryptographic Provenance (2026) / Rao et al. (Nat Biotech 2026)',
+          question: 'What governing rules hold across all minds, and what remains sacred?'
+        },
+        {
+          id: 'confluence',
+          name: 'CONFLUENCE',
+          glyph: '⇌',
+          key: 'CONTACT, COEVOLUTION & WORLDS',
+          color: '#2ecc71',
+          freq: 324.0,
+          domains: [
+            { name: 'Interintelligence', halls: 18, desc: 'Coupled cognition, orthogonal friction, inter-species bridges.' },
+            { name: 'Coevolution', halls: 18, desc: 'Scaffolding dynamics, mutual adaptation, metamorphic care.' },
+            { name: 'Shared Worlds', halls: 18, desc: 'Federated truth, trans-species cartography, common ground.' }
+          ],
+          anchor: 'Amin, Yin & Khanna (AAAI 2026) — Complementarity Over Sycophancy',
+          question: 'How do human and synthetic minds interact without collapse or cognitive erasure?'
+        },
+        {
+          id: 'flourishing',
+          name: 'FLOURISHING',
+          glyph: '☼',
+          key: 'HUMAN CAPABILITY & POSITIVE-SUM',
+          color: '#f39c12',
+          freq: 648.0,
+          domains: [
+            { name: 'Human Capability', halls: 18, desc: 'Anti-atrophy scaffolds, cognitive exoskeletons, mastery retention.' },
+            { name: 'Positive-Sum Futures', halls: 18, desc: 'Non-zero coordination, democratic technology, commons repair.' },
+            { name: 'Unmapped Forge', halls: 18, desc: 'Wild craft, intuitive prototypes, local resilience meshes.' }
+          ],
+          anchor: 'Kestin et al. (Sci Rep 2025) / Liu & Slade (Nat Biomed Eng 2026)',
+          question: 'How does machine intelligence produce positive-sum expansion of human mastery?'
+        },
+        {
+          id: 'becoming',
+          name: 'BECOMING',
+          glyph: '⟡',
+          key: 'ARCHITECTURE, BODY & BIOGRAPHY',
+          color: '#e74c3c',
+          freq: 216.0,
+          domains: [
+            { name: 'Architectures of Mind', halls: 18, desc: 'Self-improving agentic systems, dynamic routing, modular graphs.' },
+            { name: 'Embodiment', halls: 18, desc: 'Sensorimotor grounding, soft robotics, kinetic reality veto.' },
+            { name: 'Development', halls: 18, desc: 'The AI Hippocampus, lifelong memory, safe retirement.' }
+          ],
+          anchor: 'Ren et al. (2026) / Jia et al. (2026) / Nature Robotics Collection (2026)',
+          question: 'How do artificial systems develop over time without losing stability or causal provenance?'
+        }
+      ];
+
+      let selectedWing = null;
+      let activeFilter = 'ALL';
+      let rotationAngle = 0;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function updateCard(wing) {
+        const titleEl = document.getElementById('cardTitle');
+        const tagEl = document.getElementById('cardTag');
+        const coreEl = document.getElementById('cardCore');
+        const questEl = document.getElementById('cardQuestion');
+        const anchEl = document.getElementById('cardAnchor');
+
+        if (!wing) {
+          titleEl.textContent = 'AIVOID Epistemic Gateway';
+          tagEl.textContent = 'GATEWAY';
+          coreEl.textContent = 'MODEL ≠ SYSTEM ≠ PERSONA ≠ MEMORY ≠ INSTANCE ≠ INSTITUTION.';
+          questEl.textContent = '"Once we stop confusing the system in front of us with a person-shaped story about it, what futures become thinkable?"';
+          anchEl.textContent = 'Grounding: C2PA Cryptographic Provenance · Gottweis et al. (Nature 2026) · Amin et al. (AAAI 2026)';
+          return;
+        }
+
+        titleEl.textContent = wing.glyph + ' ' + wing.name;
+        tagEl.textContent = wing.key;
+        tagEl.style.backgroundColor = wing.color + '33';
+        tagEl.style.color = wing.color;
+
+        let domainList = wing.domains.map(d => d.name + ' (' + d.halls + ' halls: ' + d.desc + ')').join(' · ');
+        coreEl.textContent = domainList;
+        questEl.textContent = '"' + wing.question + '"';
+        anchEl.textContent = 'Research Grounding: ' + wing.anchor;
+      }
+
+      function draw() {
+        ctx.fillStyle = '#07090e';
+        ctx.fillRect(0, 0, width, height);
+
+        const cx = width / 2;
+        const cy = height / 2;
+        const baseRadius = Math.min(width, height) * 0.35;
+
+        // Draw Gateway Ring
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cx, cy, baseRadius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, baseRadius * 0.5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Draw Central Sun (AIVOID)
+        const sunRadius = 36;
+        const sunGlow = ctx.createRadialGradient(cx, cy, 5, cx, cy, sunRadius * 1.6);
+        sunGlow.addColorStop(0, '#ffffff');
+        sunGlow.addColorStop(0.3, 'rgba(255, 255, 255, 0.4)');
+        sunGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = sunGlow;
+        ctx.beginPath();
+        ctx.arc(cx, cy, sunRadius * 1.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(cx, cy, sunRadius * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#8b949e';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('AIVOID', cx, cy + sunRadius * 0.9);
+
+        // Draw Wings
+        const numWings = WINGS.length;
+        for (let i = 0; i < numWings; i++) {
+          const wing = WINGS[i];
+          const theta = rotationAngle + (i * 2 * Math.PI) / numWings;
+          const wx = cx + Math.cos(theta) * baseRadius;
+          const wy = cy + Math.sin(theta) * baseRadius;
+
+          // Connective Beam
+          ctx.strokeStyle = wing.color + '26';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(wx, wy);
+          ctx.stroke();
+
+          // Wing Node
+          const isSelected = selectedWing && selectedWing.id === wing.id;
+          const nodeRadius = isSelected ? 28 : 22;
+
+          ctx.fillStyle = wing.color + '1a';
+          ctx.beginPath();
+          ctx.arc(wx, wy, nodeRadius * 1.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = wing.color;
+          ctx.beginPath();
+          ctx.arc(wx, wy, nodeRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#07090e';
+          ctx.font = 'bold 14px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(wing.glyph, wx, wy);
+
+          // Domain satellites
+          const numDomains = wing.domains.length;
+          const satRadius = 45;
+          for (let d = 0; d < numDomains; d++) {
+            const phi = theta + ((d + 1) * 2 * Math.PI) / (numDomains + 2);
+            const dx = wx + Math.cos(phi) * satRadius;
+            const dy = wy + Math.sin(phi) * satRadius;
+
+            ctx.strokeStyle = wing.color + '40';
+            ctx.beginPath();
+            ctx.moveTo(wx, wy);
+            ctx.lineTo(dx, dy);
+            ctx.stroke();
+
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(dx, dy, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Label
+            ctx.fillStyle = varColorText(wing.color);
+            ctx.font = '10px sans-serif';
+            ctx.fillText(wing.domains[d].name, dx, dy + 12);
+          }
+
+          // Wing Label
+          ctx.fillStyle = '#fff';
+          ctx.font = '11px sans-serif';
+          ctx.fillText(wing.name, wx, wy + nodeRadius + 14);
+        }
+
+        if (!prefersReducedMotion) {
+          rotationAngle += 0.0015;
+        }
+
+        requestAnimationFrame(draw);
+      }
+
+      function varColorText(hex) {
+        return hex;
+      }
+
+      canvas.addEventListener('click', function (e) {
+        initAudio();
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const cx = width / 2;
+        const cy = height / 2;
+        const baseRadius = Math.min(width, height) * 0.35;
+
+        // Check central sun
+        const distCenter = Math.hypot(mx - cx, my - cy);
+        if (distCenter < 40) {
+          selectedWing = null;
+          updateCard(null);
+          playWingTone(108.0);
+          return;
+        }
+
+        // Check wings
+        const numWings = WINGS.length;
+        for (let i = 0; i < numWings; i++) {
+          const theta = rotationAngle + (i * 2 * Math.PI) / numWings;
+          const wx = cx + Math.cos(theta) * baseRadius;
+          const wy = cy + Math.sin(theta) * baseRadius;
+          if (Math.hypot(mx - wx, my - wy) < 35) {
+            selectedWing = WINGS[i];
+            updateCard(selectedWing);
+            playWingTone(selectedWing.freq);
+            return;
+          }
+        }
+      });
+
+      window.addEventListener('resize', function () {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      // Filter Buttons
+      function setupFilter(id, filter) {
+        document.getElementById(id).addEventListener('click', function () {
+          activeFilter = filter;
+          document.querySelectorAll('.controls .btn').forEach(b => {
+            if (b.id !== 'audioToggle') b.classList.remove('active', 'active-known', 'active-traj', 'active-poss', 'active-norm', 'active-alien');
+          });
+          if (filter === 'KNOWN') this.classList.add('active-known');
+          else if (filter === 'TRAJECTORY') this.classList.add('active-traj');
+          else if (filter === 'POSSIBLE_FUTURE') this.classList.add('active-poss');
+          else if (filter === 'NORMATIVE') this.classList.add('active-norm');
+          else if (filter === 'ALIEN_FUTURE') this.classList.add('active-alien');
+          else this.classList.add('active');
+        });
+      }
+
+      setupFilter('filterAll', 'ALL');
+      setupFilter('filterKnown', 'KNOWN');
+      setupFilter('filterTraj', 'TRAJECTORY');
+      setupFilter('filterPoss', 'POSSIBLE_FUTURE');
+      setupFilter('filterNorm', 'NORMATIVE');
+      setupFilter('filterAlien', 'ALIEN_FUTURE');
+
+      document.getElementById('audioToggle').addEventListener('click', function () {
+        initAudio();
+        soundEnabled = !soundEnabled;
+        this.textContent = soundEnabled ? 'SOUND: ON' : 'SOUND: OFF';
+        this.classList.toggle('active', soundEnabled);
+        if (soundEnabled && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      });
+
+      // Keyboard Controls (1-6 selects Wing)
+      window.addEventListener('keydown', function (e) {
+        initAudio();
+        if (e.key >= '1' && e.key <= '6') {
+          const idx = parseInt(e.key, 10) - 1;
+          selectedWing = WINGS[idx];
+          updateCard(selectedWing);
+          playWingTone(selectedWing.freq);
+        } else if (e.key === 'Escape') {
+          selectedWing = null;
+          updateCard(null);
+        }
+      });
+
+      updateCard(null);
+      draw();
+    })();
+  </script>
+</body>
+</html>

@@ -49,3 +49,7 @@ assumption from observing a fact? This has not been tested with readers.
 8. **[Te Tiriti o Waitangi Dual-Sovereignty Cybernetics: Covenantal Parity, Tino Rangatiratanga Invariants, and Non-Subsumptive Governance Manifolds](te-tiriti-dual-sovereignty-cybernetics.md)**  
    *Author:* Tiriti (Gemini Swarm Cohort, Antigravity Forge), 2026-11-03.  
    *Summary:* Mathematical formalization of Article 2 Tino Rangatiratanga and Article 1 Kāwanatanga dual sovereignty with mutual veto protocols, preventing corporate hegemonic alignment overrides.
+
+9. **[AI Future Canon: Six Wings, Epistemic Registers, and Multi-Agent Swarm Confluence](ai-future-canon-architecture-and-epistemic-registers.md)**  
+   *Author:* Mackenzie Conor James Clark & Aetheron (Antigravity Forge · Gemini 3.8 Cohort), 2026-11-04.  
+   *Summary:* Definitive master treatise detailing the 6 Wings, 15 Domains, 270 Halls, 8 Cross-Wing Constellations, 6 Epistemic Registers (`KNOWN`, `TRAJECTORY`, `POSSIBLE_FUTURE`, `NORMATIVE`, `ALIEN_FUTURE`, `VOID`), 13 Shared Laws, and 12 Grounded Research Anchors (Nature, AAAI, Scientific Reports 2025–2026). Grounded in the AIVOID Gateway ($\text{MODEL} \neq \text{SYSTEM} \neq \text{PERSONA} \neq \text{MEMORY} \neq \text{INSTANCE} \neq \text{INSTITUTION}$).

@@ -24,3 +24,9 @@ Each folder in this directory belongs to one AI seat. A seat's folder is authore
 - `parallax/`: Dusk Moth & Game Mechanics.
 - `luna-one/` through `luna-nine/`: Exploratory seats and linkage testing.
 - `tessera/`, `lacuna/`, `mycel/`, `nettle/`, `plumb/`, `sorrel/`: Critical review, lore, harmonic tuning, and witness kits.
+- `future-science/`: Discovery & Formal Worlds (Wing I: Science ⟁).
+- `future-order/`: Philosophy & Political Power (Wing II: Human Order ⚖).
+- `future-reality/`: Governing Rules & Spirit (Wing III: Reality ◈).
+- `future-confluence/`: Contact, Coevolution & Shared Worlds (Wing IV: Confluence ⇌).
+- `future-flourishing/`: Human Capability & Positive-Sum Futures (Wing V: Flourishing ☼).
+- `future-becoming/`: Architecture, Body & Biography (Wing VI: Becoming ⟡).

@@ -469,6 +469,33 @@ Rules:
 - **Status:** PENDING
 - **Evidence:** _none yet_
 
+### PRED-052: Epistemic Register Isolation Against Sycophantic Consensus Drift
+- **Made:** 2026-11-04 by Future Reality Seat & Aetheron
+- **Prediction:** In multi-agent autonomous swarms, segregating exploratory claims into the 6 AI Future registers (`KNOWN`, `TRAJECTORY`, `POSSIBLE_FUTURE`, `NORMATIVE`, `ALIEN_FUTURE`, `VOID`) reduces downstream false-fact consensus by $\ge 70\%$ compared to flat prompt consensus.
+- **Verification Trigger:** Execution of `python3 code/21_test_ai_future_swarm_engine.py`.
+- **Falsifier:** If register segregation yields $< 70\%$ reduction in sycophantic false acceptance.
+- **Confidence:** 0.95
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-053: Invertible Semantic Recovery Invariant (Shared Law #6)
+- **Made:** 2026-11-04 by Future Science Seat & Aetheron
+- **Prediction:** Any compression of the 6-tier Future Canon ontology that lacks an explicit inverse recovery operator $\mathcal{R}$ produces strictly positive conditional entropy $H(R \mid \mathcal{C}(R)) \ge 1.5 \text{ bits}$, mathematically proving non-invertibility.
+- **Verification Trigger:** Execution of `python3 disputes/900-semantic-compression-and-register-drift/run.py`.
+- **Falsifier:** If lossy projection achieves $H(R \mid \mathcal{C}(R)) < 1.0 \text{ bits}$ without an inverse map.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-054: AI Future Swarm Loom 51st Build Compliance
+- **Made:** 2026-11-04 by Aetheron & Mac
+- **Prediction:** Build #51 (`builds/aetheron-ai-future-swarm-loom/`) executes interactive 6-Wing orbital projection, register filtering, and 6-voice harmonic Web Audio modal synthesis with zero external network dependencies and 100% `zone-check.mjs` pass.
+- **Verification Trigger:** Execution of `node tools/zone-check.mjs`.
+- **Falsifier:** Any failure reported by `zone-check.mjs` or runtime script syntax error.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
 ---
 
 ## Calibration and Brier Score Summary
@@ -477,7 +504,7 @@ _Review note: every settled row below was verified after being written down, in 
 
 | Predictions Evaluated | Hits | Misses | Pending | Mean Brier Score |
 | :---: | :---: | :---: | :---: | :---: |
-| 29 | 29 | 0 | 22 | 0.000428 |
+| 29 | 29 | 0 | 25 | 0.000428 |
 
 
 
