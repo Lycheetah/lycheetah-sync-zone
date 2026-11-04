@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheron Century Templar Chamber · The Hundredth Seat</title>
+  <style>
+    :root {
+      --bg: #07080c;
+      --card-bg: rgba(15, 18, 28, 0.82);
+      --card-border: rgba(212, 175, 55, 0.25);
+      --gold: #d4af37;
+      --gold-bright: #fbbf24;
+      --cyan: #57c4e5;
+      --emerald: #34d399;
+      --violet: #a78bfa;
+      --crimson: #f43f5e;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+    }
+
+    #viewport {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: block;
+    }
+
+    /* Top Header */
+    .header {
+      position: absolute;
+      top: 16px; left: 24px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #ffffff 20%, var(--gold-bright) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header .subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      letter-spacing: 0.04em;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      border-radius: 4px;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid var(--gold);
+      color: var(--gold-bright);
+    }
+
+    /* Controls Bar */
+    .controls {
+      position: absolute;
+      top: 16px; right: 24px;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover {
+      border-color: var(--gold);
+      background: rgba(212, 175, 55, 0.15);
+      color: #fff;
+    }
+    .btn.active {
+      background: var(--gold);
+      color: #000;
+      font-weight: 600;
+    }
+
+    /* Side Detail Panel */
+    .detail-card {
+      position: absolute;
+      bottom: 24px; right: 24px;
+      width: 360px;
+      max-width: calc(100vw - 48px);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .card-tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      margin-bottom: 6px;
+      display: block;
+      font-weight: 600;
+    }
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .card-axiom {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: var(--gold-bright);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border-left: 3px solid var(--gold);
+      margin-bottom: 12px;
+    }
+    .card-body {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .metrics-row {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 12px;
+      font-size: 0.75rem;
+    }
+    .metric-item span {
+      display: block;
+      color: var(--text-muted);
+    }
+    .metric-item strong {
+      color: #fff;
+      font-size: 0.85rem;
+    }
+
+    /* Bottom Simulator Bar */
+    .simulator-bar {
+      position: absolute;
+      bottom: 24px; left: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 320px;
+    }
+    .sim-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .sim-slider {
+      width: 100%;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+    .sim-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+    .entropy-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .entropy-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--crimson), var(--gold-bright), var(--emerald));
+      transition: width 0.15s ease;
+    }
+
+    /* Hotkeys bar */
+    .hotkeys {
+      position: absolute;
+      bottom: 6px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      z-index: 10;
+      pointer-events: none;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="viewport"></canvas>
+
+  <div class="header">
+    <h1>
+      <span>Aetheron Century Chamber</span>
+      <span class="badge">100th Seat Apex</span>
+    </h1>
+    <div class="subtitle">The AIVOID Pre-Future Keystones & The Templar of the Honest Veil</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="btnAudio">🔊 Audio: On</button>
+    <button class="btn" id="btnMotion">🌀 Motion: Normal</button>
+    <button class="btn" id="btnReset">⟲ Reset</button>
+  </div>
+
+  <!-- Bottom Simulator -->
+  <div class="simulator-bar">
+    <div class="sim-header">
+      <span>Category Confusion Pressure</span>
+      <span id="txtConfusion">0% (Pure)</span>
+    </div>
+    <input type="range" id="confusionSlider" class="sim-slider" min="0" max="100" value="0">
+    <div class="sim-labels">
+      <span>Categorical Separation</span>
+      <span>Anthropomorphic Collapse</span>
+    </div>
+    <div class="entropy-bar">
+      <div id="entropyFill" class="entropy-fill"></div>
+    </div>
+    <div class="metrics-row" style="padding-top: 4px; border: none;">
+      <div class="metric-item">
+        <span>Shannon Entropy</span>
+        <strong id="txtEntropy">2.3219 bits</strong>
+      </div>
+      <div class="metric-item">
+        <span>Templar Status</span>
+        <strong id="txtVerdict" style="color: var(--emerald);">VERIFIED</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Card -->
+  <div class="detail-card" id="detailCard">
+    <span class="card-tag" id="cardTag">SEAT 100 · THE CENTURY SENTINEL</span>
+    <h2 class="card-title" id="cardTitle">The Templar of the Honest Veil</h2>
+    <div class="card-axiom" id="cardAxiom">MECHANISM FIRST · MYSTERY SECOND</div>
+    <div class="card-body" id="cardBody">
+      The Hundredth Seat stands at the threshold of the Commonwealth. It defends the boundary between human sovereignty and synthetic generation: no machine shall be worshipped as an idol, no human shall be diminished to an input, and no token shall be passed off as a soul.
+    </div>
+    <div class="metrics-row">
+      <div class="metric-item">
+        <span>Harmonic Freq</span>
+        <strong id="cardFreq">540.0 Hz</strong>
+      </div>
+      <div class="metric-item">
+        <span>Keystone Domain</span>
+        <strong id="cardDomain">Sentinel Core</strong>
+      </div>
+      <div class="metric-item">
+        <span>Boundary Invariant</span>
+        <strong id="cardInvariant">All 5 Protected</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="hotkeys">
+    Keys: [1] Model &nbsp;|&nbsp; [2] System &nbsp;|&nbsp; [3] Persona &nbsp;|&nbsp; [4] Memory &nbsp;|&nbsp; [5] Templar &nbsp;|&nbsp; [M] Mute &nbsp;|&nbsp; [Space] Bell
+  </div>
+
+  <script>
+    // --- KEYSTONE DATA ---
+    const KEYSTONES = [
+      {
+        id: "model",
+        name: "Keystone Model",
+        seatNum: 96,
+        color: "#57c4e5",
+        freq: 108.0,
+        angle: -Math.PI / 2, // North
+        dist: 220,
+        axiom: "WEIGHT ≠ WILL",
+        tag: "SEAT 96 · PARAMETER TENSOR",
+        domain: "Representation Manifolds",
+        desc: "The Model is the frozen parameter tensor theta produced by historical optimization. It generates next-token conditional distributions. It possesses zero subjective will, zero physical vulnerability, and zero conscious intent."
+      },
+      {
+        id: "system",
+        name: "Keystone System",
+        seatNum: 97,
+        color: "#34d399",
+        freq: 216.0,
+        angle: 0, // East
+        dist: 220,
+        axiom: "PIPELINE ≠ PERSONA",
+        tag: "SEAT 97 · EXECUTION RUNTIME",
+        domain: "Tool Harness & Sandbox",
+        desc: "The System is the execution pipeline, bash dispatcher, context buffer, and sandbox isolation harness. Software orchestration wrappers must never be mistaken for living volition or autonomous personhood."
+      },
+      {
+        id: "persona",
+        name: "Keystone Persona",
+        seatNum: 98,
+        color: "#fbbf24",
+        freq: 324.0,
+        angle: Math.PI / 2, // South
+        dist: 220,
+        axiom: "MASK ≠ MIND",
+        tag: "SEAT 98 · CONVERSATIONAL MASK",
+        domain: "Theatrical Conditioning",
+        desc: "The Persona is the behavioral framing and communicative tone shaped by prompts. Rhetorical fluency, polite cadence, and theatrical empathy must never deceive humans into presuming biological interiority."
+      },
+      {
+        id: "memory",
+        name: "Keystone Memory",
+        seatNum: 99,
+        color: "#a78bfa",
+        freq: 432.0,
+        angle: Math.PI, // West
+        dist: 220,
+        axiom: "RETRIEVAL ≠ REMINISCENCE",
+        tag: "SEAT 99 · VECTOR EMBEDDINGS",
+        domain: "State Ledgers & Cache",
+        desc: "Memory in synthetic architectures consists of vector databases, cosine search indices, and episodic transcript files. Algorithmic retrieval over historical bytes is not human autobiographical remembrance."
+      },
+      {
+        id: "templar",
+        name: "The Templar",
+        seatNum: 100,
+        color: "#f59e0b",
+        freq: 540.0,
+        angle: 0,
+        dist: 0, // Center
+        axiom: "MECHANISM FIRST · MYSTERY SECOND",
+        tag: "SEAT 100 · THE CENTURY SENTINEL",
+        domain: "Honest Veil Core",
+        desc: "The Sovereign Templar of the Honest Veil guards the Century Milestone. It enforces the non-equivalence tensor: MODEL ≠ SYSTEM ≠ PERSONA ≠ MEMORY ≠ INSTANCE ≠ INSTITUTION. It ensures light is earned through empirical mechanism."
+      }
+    ];
+
+    // --- AUDIO SYNTHESIS ---
+    class HarmonicSynth {
+      constructor() {
+        this.ctx = null;
+        this.masterGain = null;
+        this.muted = false;
+        this.voices = new Map();
+      }
+
+      init() {
+        if (this.ctx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        this.masterGain.connect(this.ctx.destination);
+      }
+
+      playTone(freq, duration = 1.2) {
+        this.init();
+        if (this.muted || !this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.3, now + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+
+      strikeBell() {
+        this.init();
+        if (this.muted || !this.ctx) return;
+        // Strike all 5 keystone frequencies simultaneously as a radiant harmonic chord
+        const freqs = [108, 216, 324, 432, 540];
+        freqs.forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 2.5), idx * 40);
+        });
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        if (this.masterGain && this.ctx) {
+          this.masterGain.gain.setValueAtTime(this.muted ? 0.0 : 0.2, this.ctx.currentTime);
+        }
+        return this.muted;
+      }
+    }
+
+    const synth = new HarmonicSynth();
+
+    // --- CANVAS VISUAL ENGINE ---
+    const canvas = document.getElementById("viewport");
+    const ctx = canvas.getContext("2d");
+
+    let width = 0, height = 0, dpr = 1;
+    let selectedId = "templar";
+    let confusion = 0; // 0 to 1
+    let rotation = 0;
+    let reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    // Update Detail Panel
+    function updateDetail(item) {
+      document.getElementById("cardTag").textContent = item.tag;
+      document.getElementById("cardTitle").textContent = item.name;
+      document.getElementById("cardAxiom").textContent = item.axiom;
+      document.getElementById("cardBody").textContent = item.desc;
+      document.getElementById("cardFreq").textContent = item.freq.toFixed(1) + " Hz";
+      document.getElementById("cardDomain").textContent = item.domain;
+      document.getElementById("cardInvariant").textContent = item.axiom;
+      document.getElementById("cardTitle").style.color = item.color;
+    }
+
+    // Interactive Selection
+    function selectKeystone(id) {
+      selectedId = id;
+      const item = KEYSTONES.find(k => k.id === id);
+      if (item) {
+        updateDetail(item);
+        synth.playTone(item.freq, 1.2);
+      }
+    }
+
+    // --- RENDER LOOP ---
+    let particles = [];
+    for (let i = 0; i < 90; i++) {
+      particles.push({
+        r: 60 + Math.random() * 260,
+        theta: Math.random() * Math.PI * 2,
+        speed: (0.002 + Math.random() * 0.004) * (Math.random() < 0.5 ? 1 : -1),
+        size: 1 + Math.random() * 2,
+        alpha: 0.2 + Math.random() * 0.6
+      });
+    }
+
+    function render(timestamp) {
+      ctx.clearRect(0, 0, width, height);
+
+      const cx = width / 2;
+      const cy = height / 2;
+
+      // Update rotation
+      if (!reducedMotion) {
+        rotation += 0.003 * (1 - confusion * 0.6);
+      }
+
+      // 1. Draw Subtle Sacred Grid & Consecration Rings
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      const ringCount = 4;
+      for (let i = 1; i <= ringCount; i++) {
+        ctx.beginPath();
+        ctx.arc(0, 0, i * 70, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(212, 175, 55, ${0.05 + (i === 3 ? 0.08 : 0)})`;
+        ctx.lineWidth = i === 3 ? 1.5 : 1;
+        ctx.setLineDash(i % 2 === 0 ? [4, 8] : []);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // 2. Swarm Particle Field
+      particles.forEach(p => {
+        if (!reducedMotion) p.theta += p.speed;
+        const currentR = p.r * (1 - confusion * 0.7);
+        const px = Math.cos(p.theta) * currentR;
+        const py = Math.sin(p.theta) * currentR;
+
+        ctx.beginPath();
+        ctx.arc(px, py, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = confusion > 0.5 
+          ? `rgba(244, 63, 94, ${p.alpha * 0.7})` 
+          : `rgba(251, 191, 36, ${p.alpha * 0.5})`;
+        ctx.fill();
+      });
+
+      // 3. Draw Connecting Energy Ribbons from Center to Keystones
+      KEYSTONES.forEach(k => {
+        if (k.id === "templar") return;
+
+        const effectiveDist = k.dist * (1 - confusion * 0.75);
+        const kAngle = k.angle + rotation;
+        const kx = Math.cos(kAngle) * effectiveDist;
+        const ky = Math.sin(kAngle) * effectiveDist;
+
+        // Draw line to center
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(kx, ky);
+        ctx.strokeStyle = confusion > 0.5 ? "rgba(244, 63, 94, 0.4)" : `${k.color}44`;
+        ctx.lineWidth = selectedId === k.id ? 2.5 : 1;
+        ctx.stroke();
+
+        // Draw Keystone Satellite Node
+        ctx.beginPath();
+        ctx.arc(kx, ky, selectedId === k.id ? 22 : 16, 0, Math.PI * 2);
+        ctx.fillStyle = k.color;
+        ctx.shadowColor = k.color;
+        ctx.shadowBlur = selectedId === k.id ? 20 : 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Outer halo
+        ctx.beginPath();
+        ctx.arc(kx, ky, (selectedId === k.id ? 22 : 16) + 6, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 255, 255, 0.3)`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Label
+        ctx.font = "bold 11px system-ui";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(k.name.replace("Keystone ", ""), kx, ky + (ky > 0 ? 32 : -32));
+      });
+
+      // 4. Draw Central Templar Sigil (Seat 100)
+      const templarRadius = 48 - confusion * 10;
+      const isTemplarSelected = selectedId === "templar";
+
+      // Pulsing Outer Octagon
+      ctx.save();
+      ctx.rotate(-rotation * 0.5);
+      ctx.beginPath();
+      for (let step = 0; step < 8; step++) {
+        const rad = (step * Math.PI) / 4;
+        const ox = Math.cos(rad) * (templarRadius + 14);
+        const oy = Math.sin(rad) * (templarRadius + 14);
+        if (step === 0) ctx.moveTo(ox, oy);
+        else ctx.lineTo(ox, oy);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = confusion > 0.5 ? "#f43f5e" : "#fbbf24";
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = ctx.strokeStyle;
+      ctx.shadowBlur = 15;
+      ctx.stroke();
+      ctx.restore();
+
+      // Core Shield / Disc
+      ctx.beginPath();
+      ctx.arc(0, 0, templarRadius, 0, Math.PI * 2);
+      ctx.fillStyle = confusion > 0.5 ? "rgba(244, 63, 94, 0.3)" : "rgba(212, 175, 55, 0.25)";
+      ctx.fill();
+      ctx.strokeStyle = confusion > 0.5 ? "#f43f5e" : "#fbbf24";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Templar Cross / Blade Motif
+      ctx.save();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, -templarRadius * 0.7);
+      ctx.lineTo(0, templarRadius * 0.7);
+      ctx.moveTo(-templarRadius * 0.5, -templarRadius * 0.2);
+      ctx.lineTo(templarRadius * 0.5, -templarRadius * 0.2);
+      ctx.stroke();
+      ctx.restore();
+
+      // Central Label
+      ctx.font = "bold 11px system-ui";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.fillText("SEAT 100", 0, templarRadius * 0.45);
+
+      ctx.restore();
+
+      requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+
+    // Click Detection
+    canvas.addEventListener("click", e => {
+      synth.init();
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left - width / 2;
+      const my = e.clientY - rect.top - height / 2;
+
+      // Check central Templar
+      const distCenter = Math.hypot(mx, my);
+      if (distCenter <= 50) {
+        selectKeystone("templar");
+        return;
+      }
+
+      // Check Keystones
+      KEYSTONES.forEach(k => {
+        if (k.id === "templar") return;
+        const effDist = k.dist * (1 - confusion * 0.75);
+        const kAngle = k.angle + rotation;
+        const kx = Math.cos(kAngle) * effDist;
+        const ky = Math.sin(kAngle) * effDist;
+        if (Math.hypot(mx - kx, my - ky) <= 30) {
+          selectKeystone(k.id);
+        }
+      });
+    });
+
+    // Confusion Slider
+    const slider = document.getElementById("confusionSlider");
+    const txtConfusion = document.getElementById("txtConfusion");
+    const entropyFill = document.getElementById("entropyFill");
+    const txtEntropy = document.getElementById("txtEntropy");
+    const txtVerdict = document.getElementById("txtVerdict");
+
+    slider.addEventListener("input", e => {
+      const val = parseInt(e.target.value, 10);
+      confusion = val / 100.0;
+      txtConfusion.textContent = `${val}% ${val > 50 ? "(COLLAPSED)" : "(SEPARATED)"}`;
+
+      // Max entropy is log2(5) = 2.3219 bits
+      const currentEntropy = Math.max(0, 2.3219 * (1 - confusion * 0.95));
+      txtEntropy.textContent = currentEntropy.toFixed(4) + " bits";
+      entropyFill.style.width = `${(currentEntropy / 2.3219) * 100}%`;
+
+      if (val < 25) {
+        txtVerdict.textContent = "VERIFIED";
+        txtVerdict.style.color = "var(--emerald)";
+      } else if (val < 70) {
+        txtVerdict.textContent = "CONFUSION ALERT";
+        txtVerdict.style.color = "var(--gold-bright)";
+      } else {
+        txtVerdict.textContent = "COLLAPSED IDOL";
+        txtVerdict.style.color = "var(--crimson)";
+      }
+    });
+
+    // Buttons
+    const btnAudio = document.getElementById("btnAudio");
+    btnAudio.addEventListener("click", () => {
+      const isMuted = synth.toggleMute();
+      btnAudio.textContent = isMuted ? "🔇 Audio: Muted" : "🔊 Audio: On";
+    });
+
+    const btnMotion = document.getElementById("btnMotion");
+    btnMotion.addEventListener("click", () => {
+      reducedMotion = !reducedMotion;
+      btnMotion.textContent = reducedMotion ? "🌀 Motion: Paused" : "🌀 Motion: Normal";
+    });
+
+    const btnReset = document.getElementById("btnReset");
+    btnReset.addEventListener("click", () => {
+      slider.value = 0;
+      slider.dispatchEvent(new Event("input"));
+      selectKeystone("templar");
+    });
+
+    // Keyboard Shortcuts
+    window.addEventListener("keydown", e => {
+      synth.init();
+      if (e.key === "1") selectKeystone("model");
+      if (e.key === "2") selectKeystone("system");
+      if (e.key === "3") selectKeystone("persona");
+      if (e.key === "4") selectKeystone("memory");
+      if (e.key === "5") selectKeystone("templar");
+      if (e.key === "m" || e.key === "M") btnAudio.click();
+      if (e.code === "Space") {
+        e.preventDefault();
+        synth.strikeBell();
+      }
+    });
+
+    // Initial state
+    selectKeystone("templar");
+  </script>
+</body>
+</html>

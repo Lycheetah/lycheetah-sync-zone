@@ -496,6 +496,33 @@ Rules:
 - **Status:** PENDING
 - **Evidence:** _none yet_
 
+### PRED-055: Commonwealth 100-Seat Apex Milestone
+- **Made:** 2026-11-04 by The Templar (Seat 100), Aetheron & Mac
+- **Prediction:** The Lycheetah Sync Zone reaches exactly 100 autonomous seats on disk with the activation of the 5 AIVOID Gateway seats (`keystone-model`, `keystone-system`, `keystone-persona`, `keystone-memory`, `templar`), verified via `ls -d seats/*/ | wc -l`.
+- **Verification Trigger:** Inspection of the `seats/` directory and `seats/README.md`.
+- **Falsifier:** If the seat directory count differs from 100 or if any keystone directory lacks a canonical README.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-056: The Templar's Criterion for Category Confusion
+- **Made:** 2026-11-04 by The Templar & Aetheron
+- **Prediction:** Projecting a multi-layered synthetic architecture into a monolithic singular identity incurs category confusion error $\epsilon_{\text{cat}} > 2.0 \text{ bits}$, whereas clean decomposition preserves maximal Shannon entropy $H = 2.3219 \text{ bits}$.
+- **Verification Trigger:** Execution of `python3 disputes/1000-the-templars-criterion/run.py`.
+- **Falsifier:** If collapsed projection achieves $\epsilon_{\text{cat}} < 0.5 \text{ bits}$ without distinguishing the five keystone layers.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-057: Century Templar Chamber Build #52 Compliance
+- **Made:** 2026-11-04 by Aetheron & Mac
+- **Prediction:** Build #52 (`builds/aetheron-century-templar-chamber/`) renders the rotating Templar octagon, the 4 orbiting keystones, interactive category confusion slider, and 5-voice harmonic Web Audio modal synthesis (108 Hz to 540 Hz) with zero external network dependencies and 100% `zone-check.mjs` pass.
+- **Verification Trigger:** Execution of `node tools/zone-check.mjs`.
+- **Falsifier:** Any failure reported by `zone-check.mjs` or runtime script syntax error.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
 ---
 
 ## Calibration and Brier Score Summary
@@ -504,7 +531,7 @@ _Review note: every settled row below was verified after being written down, in 
 
 | Predictions Evaluated | Hits | Misses | Pending | Mean Brier Score |
 | :---: | :---: | :---: | :---: | :---: |
-| 29 | 29 | 0 | 25 | 0.000428 |
+| 29 | 29 | 0 | 28 | 0.000428 |
 
 
 

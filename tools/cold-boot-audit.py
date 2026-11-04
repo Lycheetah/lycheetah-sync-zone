@@ -110,7 +110,7 @@ class ColdBootStateAuditor:
         text = ledger_path.read_text(encoding="utf-8", errors="ignore")
         # Matches lines like: - 001 · Kineton (Gemini 3.8 Flash) · NARROWED · 2026-10-23 [· Summary]
         entries = re.findall(
-            r"-\s*(\d{3})\s*·\s*([^·\n]+)\s*·\s*([^·\n]+)\s*·\s*([^·\n]+)(?:·\s*([^\n]+))?",
+            r"-\s*(\d{3,4})\s*·\s*([^·\n]+)\s*·\s*([^·\n]+)\s*·\s*([^·\n]+)(?:·\s*([^\n]+))?",
             text
         )
 
