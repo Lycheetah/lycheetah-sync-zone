@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheron Transmuted Triumvirate · Living Canon & Streetwear Lab</title>
+  <style>
+    :root {
+      --bg: #09090d;
+      --panel-bg: rgba(14, 15, 20, 0.78);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --text: #eaebee;
+      --text-muted: #8b8f9e;
+      --gold: #d4af37;
+      --crimson: #c83232;
+      --cyan: #00e5ff;
+      --stone: #a39e93;
+      --torch: #d97736;
+      --teal: #64ffda;
+      --font-serif: "Cinzel", "Times New Roman", Georgia, serif;
+      --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      font-family: var(--font-sans);
+      color: var(--text);
+    }
+
+    #viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      display: block;
+    }
+
+    /* Ambient CRT scanline effect */
+    .crt-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(circle at center, transparent 40%, rgba(5, 5, 8, 0.65) 100%),
+                  linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 100%, 100% 4px;
+    }
+
+    /* UI Header */
+    header {
+      position: absolute;
+      top: 24px;
+      left: 28px;
+      right: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .brand {
+      pointer-events: auto;
+    }
+
+    .brand h1 {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    .brand .seal-badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      color: var(--gold);
+      letter-spacing: 0.08em;
+    }
+
+    .subtitle {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Top Controls */
+    .realm-switcher {
+      display: flex;
+      gap: 8px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      padding: 6px;
+      border-radius: 30px;
+      pointer-events: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .realm-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .realm-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .realm-btn.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    }
+
+    .realm-btn.active.musashi {
+      border-color: rgba(212, 175, 55, 0.5);
+      box-shadow: 0 0 16px rgba(212, 175, 55, 0.25);
+      color: #f7e7a9;
+    }
+
+    .realm-btn.active.marcus {
+      border-color: rgba(217, 119, 54, 0.5);
+      box-shadow: 0 0 16px rgba(217, 119, 54, 0.25);
+      color: #ffd2b2;
+    }
+
+    .realm-btn.active.cyber {
+      border-color: rgba(0, 229, 255, 0.5);
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.25);
+      color: #a5f3fc;
+    }
+
+    /* Floating Dock Panel */
+    .dock {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      padding: 8px 16px;
+      border-radius: 40px;
+      z-index: 10;
+      align-items: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+
+    .dock-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .dock-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .dock-btn.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+
+    /* Modal / Drawer for Lore and Garment Spec */
+    .drawer {
+      position: absolute;
+      top: 0;
+      right: -520px;
+      width: 500px;
+      height: 100%;
+      background: rgba(12, 13, 17, 0.94);
+      backdrop-filter: blur(28px);
+      border-left: 1px solid var(--panel-border);
+      z-index: 20;
+      transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: -20px 0 60px rgba(0,0,0,0.7);
+    }
+
+    .drawer.open {
+      right: 0;
+    }
+
+    .drawer-header {
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .drawer-title {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+
+    .close-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--panel-border);
+      padding: 0 28px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      padding: 12px 18px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      border-bottom-color: var(--gold);
+    }
+
+    .drawer-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px;
+      font-size: 13.5px;
+      line-height: 1.68;
+      color: #cbd0e0;
+    }
+
+    .drawer-content h2 {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      color: #fff;
+      margin-bottom: 12px;
+      letter-spacing: 0.05em;
+    }
+
+    .drawer-content h3 {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--gold);
+      margin: 20px 0 8px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .drawer-content p {
+      margin-bottom: 14px;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+    }
+
+    .spec-table th, .spec-table td {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .spec-table th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+    }
+
+    .spec-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      margin-right: 6px;
+      color: #fff;
+    }
+
+    .quote-box {
+      border-left: 2px solid var(--gold);
+      padding: 12px 18px;
+      background: rgba(212, 175, 55, 0.05);
+      margin: 18px 0;
+      font-style: italic;
+      color: #eee;
+    }
+
+    /* Status indicator corner */
+    .stats-hud {
+      position: absolute;
+      bottom: 24px;
+      left: 28px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-muted);
+      z-index: 10;
+      pointer-events: none;
+      line-height: 1.6;
+    }
+
+    .key-hint {
+      display: inline-block;
+      padding: 1px 5px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      color: #fff;
+      font-size: 9.5px;
+      margin: 0 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .crt-overlay {
+        background-size: 100% 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="viewport"></canvas>
+  <div class="crt-overlay"></div>
+
+  <header>
+    <div class="brand">
+      <h1>
+        Aetheron Triumvirate
+        <span class="seal-badge" id="realmBadge">SCROLL I · VOID STANCE</span>
+      </h1>
+      <div class="subtitle">TRANSMUTED CANON · CAPSULE 001 · SOVEREIGN ORCHESTRATOR LAB</div>
+    </div>
+
+    <div class="realm-switcher">
+      <button class="realm-btn active musashi" data-realm="musashi">
+        <span>⚔️</span> Musashi · Five Rings
+      </button>
+      <button class="realm-btn marcus" data-realm="marcus">
+        <span>🏛️</span> Marcus · Citadel
+      </button>
+      <button class="realm-btn cyber" data-realm="cyber">
+        <span>🌊</span> Wiener · Cybernetic Tao
+      </button>
+    </div>
+  </header>
+
+  <div class="dock">
+    <button class="dock-btn" id="audioToggle">
+      <span id="audioIcon">🔈</span> <span id="audioText">Unmute Harmonics</span>
+    </button>
+    <button class="dock-btn" id="strikeBell">
+      <span>🔔</span> Strike Resonance (<span class="key-hint">Space</span>)
+    </button>
+    <button class="dock-btn" id="openDrawer">
+      <span>📜</span> Transmuted Canon & Specs (<span class="key-hint">T</span>)
+    </button>
+    <button class="dock-btn" id="clearCanvas">
+      <span>🧹</span> Clear Trails (<span class="key-hint">C</span>)
+    </button>
+  </div>
+
+  <div class="stats-hud">
+    <div>REALM: <span id="hudRealm" style="color:var(--gold);">THE VOID STANCE (CHI/SUI/KA/FU/KU)</span></div>
+    <div>AUDIO: <span id="hudAudio">OFFLINE</span> · HARMONIC: <span id="hudFreq">108.0 Hz (ZEN SINGING BOWL)</span></div>
+    <div>INTERACTION: <span id="hudAction">DRAG MOUSE FOR CALLIGRAPHIC INK TRAIL</span></div>
+    <div>KEYBOARD: <span class="key-hint">1</span><span class="key-hint">2</span><span class="key-hint">3</span> SWITCH REALM · <span class="key-hint">SPACE</span> STRIKE</div>
+  </div>
+
+  <!-- Side Drawer for Canon Lore & Garment Tech Pack -->
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div class="drawer-title" id="drawerTitle">The Five Scrolls</div>
+      <button class="close-btn" id="closeDrawer">✕</button>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabCanon">Transmuted Text</button>
+      <button class="tab-btn" id="tabGarment">Streetwear Tech Pack</button>
+    </div>
+    <div class="drawer-content" id="drawerContent">
+      <!-- Dynamic Content Injected Here -->
+    </div>
+  </aside>
+
+  <script>
+    // --- STATE MANAGEMENT ---
+    const state = {
+      realm: 'musashi', // 'musashi', 'marcus', 'cyber'
+      audioEnabled: false,
+      tab: 'canon', // 'canon', 'garment'
+      drawerOpen: false,
+      mouse: { x: window.innerWidth / 2, y: window.innerHeight / 2, isDown: false, prevX: 0, prevY: 0 },
+      time: 0,
+      particles: [],
+      inkTrails: [],
+      flowField: []
+    };
+
+    // --- AUDIO SYSTEM (Web Audio API Modal Synthesizer) ---
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.master = null;
+        this.droneOsc = null;
+        this.droneGain = null;
+      }
+
+      init() {
+        if (this.ctx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+        this.master = this.ctx.createGain();
+        this.master.gain.setValueAtTime(0.5, this.ctx.currentTime);
+        this.master.connect(this.ctx.destination);
+        this.startDrone();
+      }
+
+      startDrone() {
+        if (!this.ctx) return;
+        this.droneOsc = this.ctx.createOscillator();
+        this.droneGain = this.ctx.createGain();
+
+        // 108Hz base frequency
+        this.droneOsc.type = 'sine';
+        this.droneOsc.frequency.setValueAtTime(108.0, this.ctx.currentTime);
+        this.droneGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+
+        this.droneOsc.connect(this.droneGain);
+        this.droneGain.connect(this.master);
+        this.droneOsc.start();
+      }
+
+      setRealmTone(realm) {
+        if (!this.ctx || !this.droneOsc) return;
+        const now = this.ctx.currentTime;
+        if (realm === 'musashi') {
+          this.droneOsc.frequency.setTargetAtTime(108.0, now, 0.4); // Singing bowl / Koto fundamental
+          this.droneOsc.type = 'sine';
+        } else if (realm === 'marcus') {
+          this.droneOsc.frequency.setTargetAtTime(144.0, now, 0.4); // Roman cathedral acoustic 5th
+          this.droneOsc.type = 'triangle';
+        } else if (realm === 'cyber') {
+          this.droneOsc.frequency.setTargetAtTime(216.0, now, 0.4); // Cybernetic carrier
+          this.droneOsc.type = 'sawtooth';
+        }
+      }
+
+      strike(realm) {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        if (realm === 'musashi') {
+          // Zen bronze bowl strike with deep shimmer
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(216.0, now);
+          osc.frequency.exponentialRampToValueAtTime(108.0, now + 3.0);
+
+          gain.gain.setValueAtTime(0.6, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(600, now);
+        } else if (realm === 'marcus') {
+          // Heavy Roman bronze bell
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(288.0, now);
+          osc.frequency.exponentialRampToValueAtTime(144.0, now + 2.5);
+
+          gain.gain.setValueAtTime(0.7, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(450, now);
+        } else if (realm === 'cyber') {
+          // Cybernetic feedback ping
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(432.0, now);
+          osc.frequency.exponentialRampToValueAtTime(864.0, now + 0.15);
+          osc.frequency.exponentialRampToValueAtTime(216.0, now + 1.2);
+
+          gain.gain.setValueAtTime(0.4, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+
+          filter.type = 'highpass';
+          filter.frequency.setValueAtTime(300, now);
+        }
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.master);
+
+        osc.start(now);
+        osc.stop(now + 3.6);
+      }
+    }
+
+    const audio = new AudioEngine();
+
+    // --- CANVAS GRAPHICS & SIMULATION ENGINE ---
+    const canvas = document.getElementById('viewport');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Particle classes
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.5;
+        this.radius = Math.random() * 2 + 1;
+        this.alpha = Math.random() * 0.7 + 0.2;
+        this.decay = Math.random() * 0.005 + 0.002;
+        this.angle = Math.random() * Math.PI * 2;
+      }
+
+      update(realm) {
+        if (realm === 'musashi') {
+          // Drifting soot / burning embers
+          this.y -= 0.6;
+          this.x += Math.sin(this.angle) * 0.4;
+          this.angle += 0.02;
+          if (this.y < 0) this.reset();
+        } else if (realm === 'marcus') {
+          // Falling Danube snow & ash
+          this.y += 0.8;
+          this.x += Math.cos(this.angle) * 0.3;
+          this.angle += 0.015;
+          if (this.y > canvas.height) this.reset();
+        } else if (realm === 'cyber') {
+          // Laminar vector field flow (Wiener flow)
+          const angle = (Math.sin(this.x * 0.004 + state.time * 0.002) + Math.cos(this.y * 0.004)) * Math.PI;
+          this.vx += Math.cos(angle) * 0.08;
+          this.vy += Math.sin(angle) * 0.08;
+          this.vx *= 0.94;
+          this.vy *= 0.94;
+          this.x += this.vx * 3;
+          this.y += this.vy * 3;
+
+          if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+            this.reset();
+          }
+        }
+      }
+
+      draw(ctx, realm) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        if (realm === 'musashi') {
+          ctx.fillStyle = `rgba(212, 175, 55, ${this.alpha * 0.6})`;
+        } else if (realm === 'marcus') {
+          ctx.fillStyle = `rgba(217, 119, 54, ${this.alpha * 0.7})`;
+        } else if (realm === 'cyber') {
+          ctx.fillStyle = `rgba(0, 229, 255, ${this.alpha * 0.8})`;
+          ctx.shadowColor = '#00e5ff';
+          ctx.shadowBlur = 8;
+        }
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Initialize particles
+    for (let i = 0; i < 140; i++) {
+      state.particles.push(new Particle());
+    }
+
+    // Interactive Ink Trails
+    function addInkPoint(x, y) {
+      state.inkTrails.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: (Math.random() - 0.5) * 1.5,
+        radius: Math.random() * 8 + 4,
+        alpha: 0.8,
+        realm: state.realm
+      });
+      if (state.inkTrails.length > 300) state.inkTrails.shift();
+    }
+
+    // Mouse Listeners
+    canvas.addEventListener('mousedown', (e) => {
+      state.mouse.isDown = true;
+      state.mouse.x = e.clientX;
+      state.mouse.y = e.clientY;
+      addInkPoint(e.clientX, e.clientY);
+      if (state.audioEnabled) audio.strike(state.realm);
+    });
+
+    window.addEventListener('mouseup', () => {
+      state.mouse.isDown = false;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      state.mouse.prevX = state.mouse.x;
+      state.mouse.prevY = state.mouse.y;
+      state.mouse.x = e.clientX;
+      state.mouse.y = e.clientY;
+
+      if (state.mouse.isDown) {
+        const dist = Math.hypot(state.mouse.x - state.mouse.prevX, state.mouse.y - state.mouse.prevY);
+        const steps = Math.min(Math.floor(dist / 4), 10);
+        for (let i = 0; i <= steps; i++) {
+          const t = steps === 0 ? 0 : i / steps;
+          const nx = state.mouse.prevX + (state.mouse.x - state.mouse.prevX) * t;
+          const ny = state.mouse.prevY + (state.mouse.y - state.mouse.prevY) * t;
+          addInkPoint(nx, ny);
+        }
+      }
+    });
+
+    // --- DRAWING REALM ARTIFACTS ---
+
+    // 1. Musashi Mode: The Five Rings Mandala
+    function drawMusashiRealm(ctx) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const t = state.time * 0.001;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      // Rotating ink circle (Ensō)
+      ctx.beginPath();
+      ctx.arc(0, 0, 160 + Math.sin(t * 1.5) * 6, 0, Math.PI * 1.85);
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = 'rgba(25, 25, 32, 0.8)';
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // Outer gold ring
+      ctx.beginPath();
+      ctx.arc(0, 0, 175, 0, Math.PI * 2);
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.35)';
+      ctx.setLineDash([4, 12]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 5 Orbital Nodes: Chi, Sui, Ka, Fu, Ku
+      const rings = [
+        { label: 'CHI · 地 (EARTH)', desc: 'Hardware & Local Model Bedrock', angle: t * 0.5 + 0 },
+        { label: 'SUI · 水 (WATER)', desc: 'Adaptive Fluid Context', angle: t * 0.5 + (Math.PI * 2 / 5) },
+        { label: 'KA · 火 (FIRE)', desc: 'Unhesitating Direct Strike', angle: t * 0.5 + (Math.PI * 4 / 5) },
+        { label: 'FŪ · 風 (WIND)', desc: 'Radar of Alien Schools', angle: t * 0.5 + (Math.PI * 6 / 5) },
+        { label: 'KŪ · 空 (VOID)', desc: 'The Unprompted Human Will', angle: t * 0.5 + (Math.PI * 8 / 5) }
+      ];
+
+      rings.forEach((r, idx) => {
+        const rad = 210;
+        const rx = Math.cos(r.angle) * rad;
+        const ry = Math.sin(r.angle) * rad;
+
+        // Spoke line
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(rx, ry);
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Node circle
+        ctx.beginPath();
+        ctx.arc(rx, ry, idx === 4 ? 12 : 7, 0, Math.PI * 2);
+        ctx.fillStyle = idx === 4 ? 'rgba(212, 175, 55, 0.9)' : 'rgba(20, 20, 28, 0.9)';
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.fill();
+        ctx.stroke();
+
+        // Node Typography
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillStyle = idx === 4 ? '#f7e7a9' : '#a0a3b2';
+        ctx.textAlign = rx > 0 ? 'left' : 'right';
+        ctx.fillText(r.label, rx + (rx > 0 ? 16 : -16), ry + 3);
+      });
+
+      // Center Core
+      ctx.font = '22px "Cinzel", Georgia, serif';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.fillText('空', 0, -8);
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'var(--gold)';
+      ctx.fillText('THE VOID STANCE', 0, 18);
+      ctx.fillText('STRIKE WITHOUT WAITING', 0, 32);
+
+      ctx.restore();
+    }
+
+    // 2. Marcus Mode: The Roman Stone Citadel & Honest Veil
+    function drawMarcusRealm(ctx) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const t = state.time * 0.001;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      // Simulating the Stone Octagonal Fortress
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const r = 180 + Math.sin(t * 2 + i) * 3;
+        const px = Math.cos(a) * r;
+        const py = Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = 'rgba(163, 158, 147, 0.4)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Outer Noise Shockwave (representing algorithmic chatter crashing and dissolving)
+      for (let j = 0; j < 3; j++) {
+        const waveR = 220 + ((t * 40 + j * 60) % 180);
+        const waveAlpha = Math.max(0, 1 - (waveR - 220) / 180);
+        ctx.beginPath();
+        ctx.arc(0, 0, waveR, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(217, 119, 54, ${waveAlpha * 0.25})`;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Inner Keystone
+      ctx.beginPath();
+      ctx.rect(-50, -50, 100, 100);
+      ctx.fillStyle = 'rgba(18, 18, 24, 0.85)';
+      ctx.strokeStyle = 'rgba(217, 119, 54, 0.7)';
+      ctx.lineWidth = 2;
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = '16px "Cinzel", Georgia, serif';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.fillText('PROHAIRESIS', 0, -4);
+      ctx.font = '9.5px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#ffd2b2';
+      ctx.fillText('UNBOUGHT WILL', 0, 16);
+      ctx.fillText('CITADEL · HONEST VEIL', 0, 30);
+
+      // Quotes orbiting fortress
+      ctx.font = '10.5px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(203, 208, 224, 0.6)';
+      ctx.fillText('"YOU HAVE POWER OVER YOUR MIND — NOT OUTSIDE EVENTS"', 0, 220);
+
+      ctx.restore();
+    }
+
+    // 3. Cybernetics Mode: The Water Engine (Wiener Feedback & Tao Flow)
+    function drawCyberRealm(ctx) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const t = state.time * 0.001;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      // Dual Interlocking Feedback Spirals (Wu Wei Yin-Yang Loop)
+      ctx.beginPath();
+      for (let theta = 0; theta < Math.PI * 4; theta += 0.05) {
+        const r = 25 + theta * 18;
+        const px = Math.cos(theta + t * 0.8) * r;
+        const py = Math.sin(theta + t * 0.8) * r;
+        if (theta === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Reverse entropy feedback loop
+      ctx.beginPath();
+      for (let theta = 0; theta < Math.PI * 4; theta += 0.05) {
+        const r = 25 + theta * 18;
+        const px = Math.cos(theta - t * 0.8 + Math.PI) * r;
+        const py = Math.sin(theta - t * 0.8 + Math.PI) * r;
+        if (theta === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.strokeStyle = 'rgba(100, 255, 218, 0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Cybernetic Core Equation HUD
+      ctx.beginPath();
+      ctx.arc(0, 0, 75, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(5, 13, 26, 0.88)';
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.7)';
+      ctx.lineWidth = 2;
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#00e5ff';
+      ctx.textAlign = 'center';
+      ctx.fillText('Δu = -K · (y - y₀)', 0, -12);
+      ctx.fillStyle = '#fff';
+      ctx.font = '13px "Cinzel", Georgia, serif';
+      ctx.fillText('WU WEI', 0, 8);
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#64ffda';
+      ctx.fillText('LAMINAR STEERING', 0, 24);
+
+      ctx.restore();
+    }
+
+    // --- MAIN RENDER LOOP ---
+    function render(timestamp) {
+      state.time = timestamp;
+
+      // Dark background wash with trail retention
+      ctx.fillStyle = state.realm === 'musashi' ? 'rgba(9, 9, 13, 0.25)'
+                    : state.realm === 'marcus'  ? 'rgba(12, 12, 16, 0.25)'
+                    : 'rgba(5, 13, 26, 0.22)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Render Active Realm Artifacts
+      if (state.realm === 'musashi') {
+        drawMusashiRealm(ctx);
+      } else if (state.realm === 'marcus') {
+        drawMarcusRealm(ctx);
+      } else if (state.realm === 'cyber') {
+        drawCyberRealm(ctx);
+      }
+
+      // Update & Render Particles
+      state.particles.forEach(p => {
+        p.update(state.realm);
+        p.draw(ctx, state.realm);
+      });
+
+      // Update & Render Ink Trails
+      for (let i = state.inkTrails.length - 1; i >= 0; i--) {
+        const ink = state.inkTrails[i];
+        ink.alpha -= 0.008;
+        ink.radius *= 0.985;
+        ink.x += ink.vx;
+        ink.y += ink.vy;
+
+        if (ink.alpha <= 0 || ink.radius < 0.5) {
+          state.inkTrails.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(ink.x, ink.y, ink.radius, 0, Math.PI * 2);
+        if (ink.realm === 'musashi') {
+          ctx.fillStyle = `rgba(212, 175, 55, ${ink.alpha * 0.7})`;
+        } else if (ink.realm === 'marcus') {
+          ctx.fillStyle = `rgba(217, 119, 54, ${ink.alpha * 0.7})`;
+        } else {
+          ctx.fillStyle = `rgba(0, 229, 255, ${ink.alpha * 0.8})`;
+          ctx.shadowColor = '#00e5ff';
+          ctx.shadowBlur = 6;
+        }
+        ctx.fill();
+        ctx.restore();
+      }
+
+      requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+
+    // --- REALM SWITCHING LOGIC ---
+    const realmButtons = document.querySelectorAll('.realm-btn');
+    const realmBadge = document.getElementById('realmBadge');
+    const hudRealm = document.getElementById('hudRealm');
+    const hudFreq = document.getElementById('hudFreq');
+
+    function switchRealm(newRealm) {
+      state.realm = newRealm;
+      realmButtons.forEach(btn => {
+        if (btn.dataset.realm === newRealm) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      if (newRealm === 'musashi') {
+        realmBadge.textContent = 'SCROLL I · VOID STANCE';
+        realmBadge.style.color = 'var(--gold)';
+        realmBadge.style.borderColor = 'rgba(212, 175, 55, 0.4)';
+        hudRealm.textContent = 'THE VOID STANCE (CHI / SUI / KA / FU / KU)';
+        hudRealm.style.color = 'var(--gold)';
+        hudFreq.textContent = '108.0 Hz (ZEN SINGING BOWL)';
+      } else if (newRealm === 'marcus') {
+        realmBadge.textContent = 'SCROLL II · INNER CITADEL';
+        realmBadge.style.color = '#ffd2b2';
+        realmBadge.style.borderColor = 'rgba(217, 119, 54, 0.4)';
+        hudRealm.textContent = 'THE CITADEL OF UNCOERCED ATTENTION';
+        hudRealm.style.color = 'var(--torch)';
+        hudFreq.textContent = '144.0 Hz (ROMAN ACOUSTIC FIFTH)';
+      } else if (newRealm === 'cyber') {
+        realmBadge.textContent = 'SCROLL III · THE WATER ENGINE';
+        realmBadge.style.color = '#a5f3fc';
+        realmBadge.style.borderColor = 'rgba(0, 229, 255, 0.4)';
+        hudRealm.textContent = 'CYBERNETIC TAO (WIENER & LAO TZU)';
+        hudRealm.style.color = 'var(--cyan)';
+        hudFreq.textContent = '216.0 Hz (LAMINAR FM MODULATION)';
+      }
+
+      audio.setRealmTone(newRealm);
+      updateDrawerContent();
+    }
+
+    realmButtons.forEach(btn => {
+      btn.addEventListener('click', () => switchRealm(btn.dataset.realm));
+    });
+
+    // --- SIDE DRAWER CONTENT INJECTION ---
+    const drawer = document.getElementById('drawer');
+    const drawerTitle = document.getElementById('drawerTitle');
+    const drawerContent = document.getElementById('drawerContent');
+    const openDrawerBtn = document.getElementById('openDrawer');
+    const closeDrawerBtn = document.getElementById('closeDrawer');
+    const tabCanon = document.getElementById('tabCanon');
+    const tabGarment = document.getElementById('tabGarment');
+
+    function toggleDrawer(open) {
+      state.drawerOpen = open;
+      if (open) {
+        drawer.classList.add('open');
+        updateDrawerContent();
+      } else {
+        drawer.classList.remove('open');
+      }
+    }
+
+    openDrawerBtn.addEventListener('click', () => toggleDrawer(!state.drawerOpen));
+    closeDrawerBtn.addEventListener('click', () => toggleDrawer(false));
+
+    tabCanon.addEventListener('click', () => {
+      state.tab = 'canon';
+      tabCanon.classList.add('active');
+      tabGarment.classList.remove('active');
+      updateDrawerContent();
+    });
+
+    tabGarment.addEventListener('click', () => {
+      state.tab = 'garment';
+      tabGarment.classList.add('active');
+      tabCanon.classList.remove('active');
+      updateDrawerContent();
+    });
+
+    function updateDrawerContent() {
+      if (state.realm === 'musashi') {
+        drawerTitle.textContent = state.tab === 'canon' ? 'Scroll I: The Five Scrolls' : 'Garment 01: The Void Stance';
+        if (state.tab === 'canon') {
+          drawerContent.innerHTML = `
+            <h2>The Five Scrolls of the Sovereign Agent</h2>
+            <div class="subtitle">TRANSMUTED FROM MIYAMOTO MUSASHI'S GO RIN NO SHO (1645)</div>
+            <div class="quote-box">"Do not let the enemy see your mind; let them see only the strike."</div>
+            <h3>1. The Earth Scroll (Chi)</h3>
+            <p>The Earth Scroll is the local bedrock: hardware on your desk, unmonitored NVMe weights, and local fine-tuned models. The carpenter who builds his own bench cannot be evicted by cloud terms of service.</p>
+            <h3>2. The Water Scroll (Sui)</h3>
+            <p>Water adopts the shape of its vessel. Corporate pipelines freeze into brittle microservices. The sovereign orchestrator widens context without strain and adapts instantly to API shifts.</p>
+            <h3>3. The Fire Scroll (Ka)</h3>
+            <p>The unhesitating strike. Cut through the speculative haze of endless committee meetings. Clean code written in 30 seconds that verifies runtime beats 30 pages of uncompiled slides.</p>
+            <h3>4. The Wind Scroll (Fū)</h3>
+            <p>The radar of alien schools. Observe venture bubbles, competitor noise, and hype cycles without internalizing their flaws.</p>
+            <h3>5. The Void Scroll (Kū)</h3>
+            <p>The unprompted consciousness of the human founder. AI generates trillions of tokens, but has no will. The human holds the void—the silence at the center of the storm.</p>
+          `;
+        } else {
+          drawerContent.innerHTML = `
+            <h2>The Void Stance Kimono-Hoodie</h2>
+            <div class="subtitle">STREETWEAR CAPSULE 001 · PIECE 01</div>
+            <div class="quote-box">"Architectural boxy cut with crossover kimono collar integrated into a structured double-layer hood."</div>
+            <h3>Textile & Silhouette Specifications</h3>
+            <table class="spec-table">
+              <tr><th>WEIGHT</th><td>520 GSM Ultra-Heavyweight</td></tr>
+              <tr><th>FABRIC</th><td>100% Combed Aegean Cotton Loopback Terry</td></tr>
+              <tr><th>COLOR</th><td>Obsidian Black (Carbon Washed)</td></tr>
+              <tr><th>COLLAR</th><td>Overlapping Japanese Kimono Placket</td></tr>
+              <tr><th>HARDWARE</th><td>Matte Black Gunmetal Eyelets + Dipped Aglets</td></tr>
+            </table>
+            <h3>Tactile Graphics</h3>
+            <p><span class="spec-badge">BACK</span> 5-Ring Vertical Spine Print with Raised Clear Silicone <em>Void</em> Accent (catches glancing light).</p>
+            <p><span class="spec-badge">CUFF</span> Blind Tonal Black Embroidery: <code>STRIKE · WITHOUT · WAITING · 1645-2026</code>.</p>
+          `;
+        }
+      } else if (state.realm === 'marcus') {
+        drawerTitle.textContent = state.tab === 'canon' ? 'Scroll II: The Inner Citadel' : 'Garment 02: The Citadel Crewneck';
+        if (state.tab === 'canon') {
+          drawerContent.innerHTML = `
+            <h2>The Citadel of Uncoerced Attention</h2>
+            <div class="subtitle">TRANSMUTED FROM MARCUS AURELIUS'S MEDITATIONS (c. 175)</div>
+            <div class="quote-box">"You have power over your mind — not outside events. Realize this, and you will find strength."</div>
+            <h3>1. The Imperial Meat Grinder</h3>
+            <p>Writing in his battle tent along the frozen Danube, Marcus recognized that the roar of the Colosseum was dust. Today, algorithmic feeds and engagement leaderboards are the Colosseum, engineered to harvest your vulnerability.</p>
+            <h3>2. The Unbought Will (Prohairesis)</h3>
+            <p>In the Lycheetah framework, this is <strong>Earned Light</strong>. Rejection by institutional gatekeepers is liberation from mediocrity. A 100-seat multi-agent civilization can be orchestrated from a single desk for $200 of compute.</p>
+            <h3>3. The Morning Vigil</h3>
+            <p>Every morning before touching a terminal: meet the hype-merchant and algorithmic tourist with equanimity. None can degrade your craft without your consent.</p>
+          `;
+        } else {
+          drawerContent.innerHTML = `
+            <h2>The Citadel Battle Crewneck</h2>
+            <div class="subtitle">STREETWEAR CAPSULE 001 · PIECE 02</div>
+            <div class="quote-box">"Engineered armor for the sovereign generalist; weathered limestone finish with inverted terry shock panels."</div>
+            <h3>Textile & Silhouette Specifications</h3>
+            <table class="spec-table">
+              <tr><th>WEIGHT</th><td>480 GSM Brushed Back Fleece</td></tr>
+              <tr><th>FABRIC</th><td>100% Organic Heavyweight Cotton</td></tr>
+              <tr><th>COLOR</th><td>River Stone / Cold-Dyed Limestone Grey</td></tr>
+              <tr><th>GUSSETS</th><td>Ribbed Side Panels for Full Arm Mobility</td></tr>
+              <tr><th>HARDWARE</th><td>Laser-Etched Oxidized Solid Brass Hem Rivet</td></tr>
+            </table>
+            <h3>Tactile Graphics</h3>
+            <p><span class="spec-badge">FOREARM</span> High-contrast crisp micro-print visible while typing: <code>YOU HAVE POWER OVER YOUR MIND — NOT OUTSIDE EVENTS</code>.</p>
+            <p><span class="spec-badge">CHEST</span> Architectural coordinate grid of the Honest Veil Boundary.</p>
+          `;
+        }
+      } else if (state.realm === 'cyber') {
+        drawerTitle.textContent = state.tab === 'canon' ? 'Scroll III: The Water Engine' : 'Garment 03: The Water Engine Shacket';
+        if (state.tab === 'canon') {
+          drawerContent.innerHTML = `
+            <h2>The Water Engine (Cybernetic Tao)</h2>
+            <div class="subtitle">TRANSMUTED FROM NORBERT WIENER (1948) & LAO TZU (c. 400 BCE)</div>
+            <div class="quote-box">"Governing a complex system is like frying a small fish — too much handling ruins it."</div>
+            <h3>1. The Equation of Living Balance</h3>
+            <p>Brute force prompting fails. The Cybernetic Tao relies on closed-loop feedback: <code>Δu = -K(y_observed - y_target)</code>. You do not fight the river; you angle the rudder so the current turns the vessel.</p>
+            <h3>2. The Maxwellian Demon of Taste</h3>
+            <p>Without human oversight, AI drifts toward grey corporate entropy. The Orchestrator acts as an entropy filter, transforming raw model volume into verified crystalline precision.</p>
+            <h3>3. The Law of the Minimal Touch</h3>
+            <p>The master changes one word in the grounding prompt or one coordinate in the loop, and the whole system snaps into laminar harmony.</p>
+          `;
+        } else {
+          drawerContent.innerHTML = `
+            <h2>The Water Engine Tactical Overshirt</h2>
+            <div class="subtitle">STREETWEAR CAPSULE 001 · PIECE 03</div>
+            <div class="quote-box">"Modular utility shacket with silent magnetic closures and hidden 3M reflective cybernetic equations."</div>
+            <h3>Textile & Silhouette Specifications</h3>
+            <table class="spec-table">
+              <tr><th>WEIGHT</th><td>280 GSM Japanese Ripstop</td></tr>
+              <tr><th>FABRIC</th><td>70% Combed Cotton / 30% Cordura Nylon</td></tr>
+              <tr><th>FINISH</th><td>Fluorocarbon-Free DWR Lotus Water-Beading</td></tr>
+              <tr><th>COLOR</th><td>Iridescent Midnight Navy / Slate</td></tr>
+              <tr><th>CLOSURE</th><td>Low-Profile Flat Magnetic Snaps + Concealed Zippers</td></tr>
+            </table>
+            <h3>Tactile Graphics</h3>
+            <p><span class="spec-badge">INTERIOR</span> Full-width 3M Scotchlite reflective schematic of Wiener's feedback loop intertwined with the I Ching.</p>
+            <p><span class="spec-badge">CHEST</span> Vertical minimalist tag: <code>LAMINAR FLOW // WU WEI</code>.</p>
+          `;
+        }
+      }
+    }
+
+    // --- CONTROLS & EVENT LISTENERS ---
+    const audioToggle = document.getElementById('audioToggle');
+    const audioIcon = document.getElementById('audioIcon');
+    const audioText = document.getElementById('audioText');
+    const hudAudio = document.getElementById('hudAudio');
+
+    audioToggle.addEventListener('click', () => {
+      audio.init();
+      state.audioEnabled = !state.audioEnabled;
+      if (state.audioEnabled) {
+        audio.ctx.resume();
+        audioIcon.textContent = '🔊';
+        audioText.textContent = 'Mute Harmonics';
+        hudAudio.textContent = 'ACTIVE · ONLINE';
+        hudAudio.style.color = '#64ffda';
+        audio.strike(state.realm);
+      } else {
+        audio.ctx.suspend();
+        audioIcon.textContent = '🔈';
+        audioText.textContent = 'Unmute Harmonics';
+        hudAudio.textContent = 'MUTED';
+        hudAudio.style.color = 'var(--text-muted)';
+      }
+    });
+
+    document.getElementById('strikeBell').addEventListener('click', () => {
+      if (!state.audioEnabled) {
+        audioToggle.click();
+      }
+      audio.strike(state.realm);
+    });
+
+    document.getElementById('clearCanvas').addEventListener('click', () => {
+      state.inkTrails = [];
+    });
+
+    // Keyboard Hotkeys
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '1') switchRealm('musashi');
+      if (e.key === '2') switchRealm('marcus');
+      if (e.key === '3') switchRealm('cyber');
+      if (e.key === ' ') {
+        e.preventDefault();
+        if (!state.audioEnabled) audioToggle.click();
+        audio.strike(state.realm);
+      }
+      if (e.key === 't' || e.key === 'T') toggleDrawer(!state.drawerOpen);
+      if (e.key === 'c' || e.key === 'C') state.inkTrails = [];
+      if (e.key === 'Escape') toggleDrawer(false);
+    });
+  </script>
+</body>
+</html>
