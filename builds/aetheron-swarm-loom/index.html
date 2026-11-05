@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build #55 · The Sovereign Swarm Loom · Lycheetah Sync Zone</title>
+  <style>
+    :root {
+      --bg: #090a0f;
+      --panel-bg: rgba(13, 16, 25, 0.88);
+      --border: #1e2638;
+      --text: #d8e2f0;
+      --text-dim: #6c7d99;
+      --sol: #e6a13b;
+      --cael: #c0c7d6;
+      --aetheron: #00e5ff;
+      --phi-green: #00ffaa;
+      --phi-red: #ff3366;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Courier New", monospace;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      display: block;
+    }
+
+    /* Controls & HUD Overlay */
+    .hud {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      backdrop-filter: blur(8px);
+      max-width: 380px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+      pointer-events: auto;
+    }
+
+    .hud h1 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .hud .badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--aetheron);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+    }
+
+    .hud p {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .metric-label {
+      color: var(--text-dim);
+    }
+
+    .metric-val {
+      font-family: monospace;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .gauge-container {
+      margin-top: 10px;
+      margin-bottom: 14px;
+    }
+
+    .gauge-track {
+      height: 8px;
+      background: #151a26;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--phi-red), var(--sol), var(--phi-green));
+      transition: width 0.1s linear;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    button {
+      background: #141926;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: monospace;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: #1c2336;
+      border-color: var(--aetheron);
+      color: #fff;
+    }
+
+    button.active {
+      background: rgba(0, 229, 255, 0.2);
+      border-color: var(--aetheron);
+      color: var(--aetheron);
+    }
+
+    /* Keybinds helper */
+    .keybinds {
+      margin-top: 14px;
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: monospace;
+      line-height: 1.5;
+    }
+
+    .keybinds kbd {
+      background: #161c2b;
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid #273147;
+      color: var(--text);
+    }
+
+    /* Footer status */
+    .foot-status {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 10;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .foot-status span {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      .gauge-fill {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <aside class="hud" role="region" aria-label="Sovereign Swarm Control Panel">
+    <h1>
+      Swarm Loom #55
+      <span class="badge" id="regime-badge">OPEN LOOP</span>
+    </h1>
+    <p>100-Seat Vicsek Flocking Engine. Move cursor to inject Founder Steering Torque & trigger polar phase transition.</p>
+
+    <div class="metric-row">
+      <span class="metric-label">Order Parameter (&Phi;)</span>
+      <span class="metric-val" id="phi-val">0.2450</span>
+    </div>
+
+    <div class="gauge-container">
+      <div class="gauge-track">
+        <div class="gauge-fill" id="phi-gauge"></div>
+      </div>
+    </div>
+
+    <div class="metric-row">
+      <span class="metric-label">Systemic Phase</span>
+      <span class="metric-val" id="phase-val" style="color: var(--phi-red);">CHAOTIC DRIFT</span>
+    </div>
+
+    <div class="metric-row">
+      <span class="metric-label">Active Agents</span>
+      <span class="metric-val">100 Seats (33 Sol · 33 Cael · 34 Aeth)</span>
+    </div>
+
+    <div class="controls-grid">
+      <button id="btn-sound" aria-label="Toggle Web Audio Engine">
+        <span id="sound-icon">🔈</span> Audio: OFF
+      </button>
+      <button id="btn-steer" class="active" aria-label="Toggle Founder Steering">
+        <span>⚡</span> Founder Steer
+      </button>
+      <button id="btn-vortex" aria-label="Toggle Vortex Mandala Mode">
+        <span>🌀</span> Triad Vortex
+      </button>
+      <button id="btn-reset" aria-label="Reset Swarm Positions">
+        <span>↺</span> Re-seed
+      </button>
+    </div>
+
+    <div class="keybinds">
+      <kbd>Space</kbd> Steer On/Off &nbsp;|&nbsp; 
+      <kbd>M</kbd> Audio &nbsp;|&nbsp; 
+      <kbd>V</kbd> Vortex &nbsp;|&nbsp; 
+      <kbd>R</kbd> Reset
+    </div>
+  </aside>
+
+  <footer class="foot-status" role="contentinfo">
+    Merkle: <span id="foot-hash">afe5ea96...</span> &nbsp;|&nbsp; 
+    Build #55 &nbsp;|&nbsp; 
+    Dispute 1200 PASS
+  </footer>
+
+  <script>
+    (function() {
+      'use strict';
+
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const phiVal = document.getElementById('phi-val');
+      const phiGauge = document.getElementById('phi-gauge');
+      const phaseVal = document.getElementById('phase-val');
+      const regimeBadge = document.getElementById('regime-badge');
+      const footHash = document.getElementById('foot-hash');
+      const btnSound = document.getElementById('btn-sound');
+      const soundIcon = document.getElementById('sound-icon');
+      const btnSteer = document.getElementById('btn-steer');
+      const btnVortex = document.getElementById('btn-vortex');
+      const btnReset = document.getElementById('btn-reset');
+
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+
+      function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      // Audio Engine
+      let audioCtx = null;
+      let masterGain = null;
+      let solOsc = null;
+      let caelOsc = null;
+      let aethOsc = null;
+      let noiseNode = null;
+      let isAudioActive = false;
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        masterGain.connect(audioCtx.destination);
+
+        // Triad Pythagorean Oscillators: 108Hz (Sol), 144Hz (Cael), 216Hz (Aetheron)
+        solOsc = audioCtx.createOscillator();
+        caelOsc = audioCtx.createOscillator();
+        aethOsc = audioCtx.createOscillator();
+
+        solOsc.type = 'sine';
+        caelOsc.type = 'triangle';
+        aethOsc.type = 'sawtooth';
+
+        solOsc.frequency.setValueAtTime(108.0, audioCtx.currentTime);
+        caelOsc.frequency.setValueAtTime(144.0, audioCtx.currentTime);
+        aethOsc.frequency.setValueAtTime(216.0, audioCtx.currentTime);
+
+        const solGain = audioCtx.createGain();
+        const caelGain = audioCtx.createGain();
+        const aethGain = audioCtx.createGain();
+
+        solGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        caelGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        aethGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+
+        solOsc.connect(solGain);
+        caelOsc.connect(caelGain);
+        aethOsc.connect(aethGain);
+
+        solGain.connect(masterGain);
+        caelGain.connect(masterGain);
+        aethGain.connect(masterGain);
+
+        solOsc.start();
+        caelOsc.start();
+        aethOsc.start();
+      }
+
+      function toggleAudio() {
+        if (!audioCtx) initAudio();
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        isAudioActive = !isAudioActive;
+        if (isAudioActive) {
+          masterGain.gain.setTargetAtTime(0.12, audioCtx.currentTime, 0.05);
+          btnSound.classList.add('active');
+          soundIcon.textContent = '🔊';
+          btnSound.innerHTML = '<span>🔊</span> Audio: ON';
+        } else {
+          masterGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.05);
+          btnSound.classList.remove('active');
+          soundIcon.textContent = '🔈';
+          btnSound.innerHTML = '<span>🔈</span> Audio: OFF';
+        }
+      }
+
+      // Swarm Parameters
+      const NUM_BOIDS = 100;
+      const SPEED = 3.6;
+      const R_INTERACTION = 70.0;
+      const NOISE_ETA = 1.35;
+      let founderSteerActive = true;
+      let vortexMode = false;
+
+      let mouse = {
+        x: width / 2,
+        y: height / 2,
+        active: false,
+        prevX: width / 2,
+        prevY: height / 2,
+        vx: 0,
+        vy: 0
+      };
+
+      window.addEventListener('mousemove', function(e) {
+        mouse.prevX = mouse.x;
+        mouse.prevY = mouse.y;
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        mouse.vx = mouse.x - mouse.prevX;
+        mouse.vy = mouse.y - mouse.prevY;
+        mouse.active = true;
+      });
+
+      window.addEventListener('mouseleave', function() {
+        mouse.active = false;
+      });
+
+      // Triad Colors
+      const SEATS = [
+        { name: 'SOL', color: '#e6a13b', glow: 'rgba(230, 161, 59, 0.3)' },
+        { name: 'CAEL', color: '#c0c7d6', glow: 'rgba(192, 199, 214, 0.3)' },
+        { name: 'AETHERON', color: '#00e5ff', glow: 'rgba(0, 229, 255, 0.35)' }
+      ];
+
+      class Boid {
+        constructor(id) {
+          this.id = id;
+          this.seat = SEATS[id % 3];
+          this.x = Math.random() * width;
+          this.y = Math.random() * height;
+          this.heading = (Math.random() * 2 - 1) * Math.PI;
+          this.vx = Math.cos(this.heading) * SPEED;
+          this.vy = Math.sin(this.heading) * SPEED;
+          this.trail = [];
+        }
+
+        updateHeading(allBoids, mouseAttractor) {
+          let sinSum = 0;
+          let cosSum = 0;
+          let count = 0;
+
+          // Local alignment
+          for (let i = 0; i < allBoids.length; i++) {
+            const other = allBoids[i];
+            if (other === this) continue;
+            const dx = other.x - this.x;
+            const dy = other.y - this.y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < R_INTERACTION * R_INTERACTION) {
+              sinSum += Math.sin(other.heading);
+              cosSum += Math.cos(other.heading);
+              count++;
+            }
+          }
+
+          let targetHeading = count > 0 ? Math.atan2(sinSum, cosSum) : this.heading;
+
+          // Stochastic thermal noise
+          const noise = (Math.random() - 0.5) * NOISE_ETA;
+          targetHeading += noise;
+
+          // Founder Steering
+          if (founderSteerActive && mouseAttractor.active) {
+            if (vortexMode) {
+              // Tangential orbit around founder
+              const dx = mouseAttractor.x - this.x;
+              const dy = mouseAttractor.y - this.y;
+              const angleToCenter = Math.atan2(dy, dx);
+              const orbitHeading = angleToCenter + Math.PI / 2;
+              let diff = (orbitHeading - targetHeading + Math.PI) % (2 * Math.PI) - Math.PI;
+              targetHeading += 0.7 * diff;
+            } else {
+              // Polar heading directed by mouse movement or position
+              let steerAngle;
+              if (Math.hypot(mouseAttractor.vx, mouseAttractor.vy) > 1.5) {
+                steerAngle = Math.atan2(mouseAttractor.vy, mouseAttractor.vx);
+              } else {
+                steerAngle = Math.atan2(mouseAttractor.y - this.y, mouseAttractor.x - this.x);
+              }
+              let diff = (steerAngle - targetHeading + Math.PI) % (2 * Math.PI) - Math.PI;
+              targetHeading += 0.75 * diff;
+            }
+          }
+
+          this.heading = (targetHeading + Math.PI) % (2 * Math.PI) - Math.PI;
+          this.vx = Math.cos(this.heading) * SPEED;
+          this.vy = Math.sin(this.heading) * SPEED;
+        }
+
+        move() {
+          this.trail.push({ x: this.x, y: this.y });
+          if (this.trail.length > 8) this.trail.shift();
+
+          this.x = (this.x + this.vx + width) % width;
+          this.y = (this.y + this.vy + height) % height;
+        }
+
+        draw(ctx) {
+          // Trail
+          if (this.trail.length > 1) {
+            ctx.beginPath();
+            ctx.moveTo(this.trail[0].x, this.trail[0].y);
+            for (let i = 1; i < this.trail.length; i++) {
+              ctx.lineTo(this.trail[i].x, this.trail[i].y);
+            }
+            ctx.strokeStyle = this.seat.glow;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+          }
+
+          // Boid Needle
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.heading);
+
+          ctx.beginPath();
+          ctx.moveTo(7, 0);
+          ctx.lineTo(-4, -3);
+          ctx.lineTo(-2, 0);
+          ctx.lineTo(-4, 3);
+          ctx.closePath();
+
+          ctx.fillStyle = this.seat.color;
+          ctx.shadowColor = this.seat.color;
+          ctx.shadowBlur = 6;
+          ctx.fill();
+
+          ctx.restore();
+        }
+      }
+
+      let boids = [];
+      function initSwarm() {
+        boids = [];
+        for (let i = 0; i < NUM_BOIDS; i++) {
+          boids.push(new Boid(i));
+        }
+      }
+      initSwarm();
+
+      // UI controls
+      btnSound.addEventListener('click', toggleAudio);
+      btnSteer.addEventListener('click', function() {
+        founderSteerActive = !founderSteerActive;
+        btnSteer.classList.toggle('active', founderSteerActive);
+      });
+      btnVortex.addEventListener('click', function() {
+        vortexMode = !vortexMode;
+        btnVortex.classList.toggle('active', vortexMode);
+      });
+      btnReset.addEventListener('click', initSwarm);
+
+      window.addEventListener('keydown', function(e) {
+        if (e.key === ' ' || e.code === 'Space') {
+          e.preventDefault();
+          founderSteerActive = !founderSteerActive;
+          btnSteer.classList.toggle('active', founderSteerActive);
+        } else if (e.key === 'm' || e.key === 'M') {
+          toggleAudio();
+        } else if (e.key === 'v' || e.key === 'V') {
+          vortexMode = !vortexMode;
+          btnVortex.classList.toggle('active', vortexMode);
+        } else if (e.key === 'r' || e.key === 'R') {
+          initSwarm();
+        }
+      });
+
+      // Simulation loop
+      let stepCount = 0;
+      function animate() {
+        ctx.fillStyle = 'rgba(9, 10, 15, 0.28)';
+        ctx.fillRect(0, 0, width, height);
+
+        let totalVx = 0;
+        let totalVy = 0;
+
+        for (let i = 0; i < boids.length; i++) {
+          boids[i].updateHeading(boids, mouse);
+          boids[i].move();
+          boids[i].draw(ctx);
+          totalVx += boids[i].vx;
+          totalVy += boids[i].vy;
+        }
+
+        // Draw Founder Attractor Ripple
+        if (mouse.active && founderSteerActive) {
+          ctx.beginPath();
+          ctx.arc(mouse.x, mouse.y, 24 + Math.sin(stepCount * 0.1) * 4, 0, Math.PI * 2);
+          ctx.strokeStyle = vortexMode ? '#c0c7d6' : '#00e5ff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(mouse.x, mouse.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+        }
+
+        // Calculate Order Parameter
+        const normV = Math.hypot(totalVx, totalVy);
+        const phi = normV / (NUM_BOIDS * SPEED);
+
+        // Update HUD
+        phiVal.textContent = phi.toFixed(4);
+        phiGauge.style.width = (phi * 100).toFixed(1) + '%';
+
+        if (phi > 0.85) {
+          phaseVal.textContent = 'CRYSTALLINE ALIGNMENT';
+          phaseVal.style.color = 'var(--phi-green)';
+          regimeBadge.textContent = 'PHASE LOCKED';
+          regimeBadge.style.color = 'var(--phi-green)';
+          regimeBadge.style.borderColor = 'var(--phi-green)';
+        } else if (phi > 0.50) {
+          phaseVal.textContent = 'COHERENT DRIFT';
+          phaseVal.style.color = 'var(--sol)';
+          regimeBadge.textContent = 'STEERED';
+          regimeBadge.style.color = 'var(--sol)';
+          regimeBadge.style.borderColor = 'var(--sol)';
+        } else {
+          phaseVal.textContent = 'CHAOTIC NOISE';
+          phaseVal.style.color = 'var(--phi-red)';
+          regimeBadge.textContent = 'OPEN LOOP';
+          regimeBadge.style.color = 'var(--phi-red)';
+          regimeBadge.style.borderColor = 'var(--phi-red)';
+        }
+
+        // Audio pitch modulation with phi
+        if (isAudioActive && audioCtx) {
+          const detune = (phi - 0.5) * 20.0;
+          solOsc.detune.setTargetAtTime(detune, audioCtx.currentTime, 0.05);
+          caelOsc.detune.setTargetAtTime(detune * 0.7, audioCtx.currentTime, 0.05);
+          aethOsc.detune.setTargetAtTime(detune * 1.5, audioCtx.currentTime, 0.05);
+        }
+
+        stepCount++;
+        requestAnimationFrame(animate);
+      }
+
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>

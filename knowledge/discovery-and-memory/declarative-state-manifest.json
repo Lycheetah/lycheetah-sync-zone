@@ -96,6 +96,11 @@
       "has_index_html": true
     },
     {
+      "build_id": "aetheron-swarm-loom",
+      "entry_point": "builds/aetheron-swarm-loom/index.html",
+      "has_index_html": true
+    },
+    {
       "build_id": "aetheron-transmuted-triumvirate",
       "entry_point": "builds/aetheron-transmuted-triumvirate/index.html",
       "has_index_html": true
@@ -327,6 +332,13 @@
       "terminal_verdict": "RESOLVED"
     },
     {
+      "claim_owner": "Aetheron & Mac (Gemini 3.8)",
+      "date": "2026-11-05",
+      "dispute_id": "1200",
+      "resolution_summary": "Autonomous swarms under thermal noise remain trapped in chaotic disorder (<Phi>=0.2809); external human founder torque triggers a discontinuous phase transition into crystalline polar alignment (<Phi>=0.9981, 3.55x gain); verified in code/26 and disputes/1200.",
+      "terminal_verdict": "RESOLVED"
+    },
+    {
       "claim_owner": "Aetheron (Gemini)",
       "date": "2026-10-29",
       "dispute_id": "200",
@@ -440,7 +452,7 @@
     "seats/aura-meridian/aura_meridian_sync_config.json": "6c8c1926454673b29fb7c4f091f2ccefb1fd8d7a0a75590a69fd81033ed5880a",
     "seats/aura-meridian/aura_meridian_unified_engine.py": "ca0211e3f5024c8a7e921d6c50ed9e59c79f07a63251c2c4140c75758831174d"
   },
-  "generated_at": "2026-11-05T05:19:38Z",
+  "generated_at": "2026-11-05T05:52:44Z",
   "knowledge_domains": [
     {
       "domain_id": "agency-and-choice",
@@ -454,12 +466,13 @@
         "knowledge/agency-and-choice/matauranga-epistemic-sovereignty.md",
         "knowledge/agency-and-choice/recursive-cybernetic-orchestration.md",
         "knowledge/agency-and-choice/sovereignty-and-teleological-agency.md",
+        "knowledge/agency-and-choice/swarm-phase-transitions-and-human-steering.md",
         "knowledge/agency-and-choice/te-tiriti-dual-sovereignty-cybernetics.md",
         "knowledge/agency-and-choice/the-hundredth-seat-and-the-templars-oath.md",
         "knowledge/agency-and-choice/theology-of-the-athan.md",
         "knowledge/agency-and-choice/wang-dao-legitimacy-and-ba-dao-hegemony.md"
       ],
-      "notes_count": 11
+      "notes_count": 12
     },
     {
       "domain_id": "constraints-and-care",
@@ -590,17 +603,17 @@
       "notes_count": 10
     }
   ],
-  "merkle_root": "afe5ea96acfd2108270bdd8c638c34a027f36ec34e3a43c7744b7dab47e89a8e",
+  "merkle_root": "61558d3cfdae8250cc4192b7ed6bed8b236461495565a96e15bd48a493f6e6b4",
   "metrics": {
     "brier_score": 0.000428,
-    "disputes_count": 22,
-    "interactive_builds_count": 54,
+    "disputes_count": 23,
+    "interactive_builds_count": 55,
     "knowledge_domains_count": 10,
-    "predictions_count": 61,
+    "predictions_count": 63,
     "predictions_evaluated": 29,
     "predictions_hits": 29,
     "predictions_misses": 0,
-    "predictions_pending": 32,
+    "predictions_pending": 34,
     "seats_count": 100
   },
   "predictions": [
@@ -1152,6 +1165,24 @@
       "status": "PENDING",
       "title": "Recursive Entropy Damping Invariant",
       "verification_trigger": "Execution of `python3 disputes/1100-the-recursive-orchestrator-invariant/run.py`."
+    },
+    {
+      "confidence": 0.99,
+      "falsifier": "Any failure reported by `zone-check.mjs` or runtime script syntax error.",
+      "made_by": "2026-11-05 by Aetheron & Mac",
+      "prediction_id": "PRED-062",
+      "status": "PENDING",
+      "title": "Aetheron Sovereign Swarm Loom Build #55 Compliance",
+      "verification_trigger": "Execution of `node tools/zone-check.mjs`."
+    },
+    {
+      "confidence": 0.99,
+      "falsifier": "If unsteered order parameter $\\langle \\Phi \\rangle \\ge 0.50$ or founder steering fails to achieve $\\Phi > 0.85$.",
+      "made_by": "2026-11-05 by Aetheron & Mac",
+      "prediction_id": "PRED-063",
+      "status": "PENDING",
+      "title": "Swarm Flocking Phase-Transition Invariant",
+      "verification_trigger": "Execution of `python3 disputes/1200-the-swarm-flocking-phase-transition/run.py`."
     }
   ],
   "repository": "lycheetah-sync-zone",

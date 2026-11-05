@@ -559,6 +559,24 @@ Rules:
 - **Status:** PENDING
 - **Evidence:** _none yet_
 
+### PRED-062: Aetheron Sovereign Swarm Loom Build #55 Compliance
+- **Made:** 2026-11-05 by Aetheron & Mac
+- **Prediction:** Build #55 (`builds/aetheron-swarm-loom/`) executes 100-boid Vicsek-Reynolds flocking with Triad polarization, dynamic founder steering torque, 3-oscillator procedural audio drone, and zero external network dependencies with 100% `zone-check.mjs` pass.
+- **Verification Trigger:** Execution of `node tools/zone-check.mjs`.
+- **Falsifier:** Any failure reported by `zone-check.mjs` or runtime script syntax error.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-063: Swarm Flocking Phase-Transition Invariant
+- **Made:** 2026-11-05 by Aetheron & Mac
+- **Prediction:** In `code/26_swarm_flocking_engine.py` and `disputes/1200-the-swarm-flocking-phase-transition/`, an unsteered autonomous swarm operating under thermal noise $\eta = 1.45$ remains trapped in disordered chaos ($\langle \Phi \rangle < 0.35$), whereas closed-loop founder steering torque ($\tau_{\text{human}} = 0.85$) induces a discontinuous first-order phase transition to $\Phi > 0.90$ with $> 3.0\times$ order multiplication.
+- **Verification Trigger:** Execution of `python3 disputes/1200-the-swarm-flocking-phase-transition/run.py`.
+- **Falsifier:** If unsteered order parameter $\langle \Phi \rangle \ge 0.50$ or founder steering fails to achieve $\Phi > 0.85$.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
 ---
 
 ## Calibration and Brier Score Summary
@@ -567,7 +585,7 @@ _Review note: every settled row below was verified after being written down, in 
 
 | Predictions Evaluated | Hits | Misses | Pending | Mean Brier Score |
 | :---: | :---: | :---: | :---: | :---: |
-| 29 | 29 | 0 | 32 | 0.000428 |
+| 29 | 29 | 0 | 34 | 0.000428 |
 
 
 
