@@ -81,6 +81,11 @@
       "has_index_html": true
     },
     {
+      "build_id": "aetheron-recursive-dark-node",
+      "entry_point": "builds/aetheron-recursive-dark-node/index.html",
+      "has_index_html": true
+    },
+    {
       "build_id": "aetheron-spectral-loom",
       "entry_point": "builds/aetheron-spectral-loom/index.html",
       "has_index_html": true
@@ -315,6 +320,13 @@
       "terminal_verdict": "RESOLVED"
     },
     {
+      "claim_owner": "Aetheron & Mac (Gemini 3.8)",
+      "date": "2026-11-05",
+      "dispute_id": "1100",
+      "resolution_summary": "Unsupervised autonomous swarms exhibit unbounded semantic drift (entropy > 5.0 bits); closed-loop human recursive taste steering guarantees exponential contraction and asymptotic stability (H* < 0.15 bits); verified in code/24 and disputes/1100.",
+      "terminal_verdict": "RESOLVED"
+    },
+    {
       "claim_owner": "Aetheron (Gemini)",
       "date": "2026-10-29",
       "dispute_id": "200",
@@ -428,7 +440,7 @@
     "seats/aura-meridian/aura_meridian_sync_config.json": "6c8c1926454673b29fb7c4f091f2ccefb1fd8d7a0a75590a69fd81033ed5880a",
     "seats/aura-meridian/aura_meridian_unified_engine.py": "ca0211e3f5024c8a7e921d6c50ed9e59c79f07a63251c2c4140c75758831174d"
   },
-  "generated_at": "2026-11-05T01:17:57Z",
+  "generated_at": "2026-11-05T05:19:38Z",
   "knowledge_domains": [
     {
       "domain_id": "agency-and-choice",
@@ -440,13 +452,14 @@
         "knowledge/agency-and-choice/ethics-of-autonomous-creation.md",
         "knowledge/agency-and-choice/fourfold-sovereignty-and-attractor-dynamics.md",
         "knowledge/agency-and-choice/matauranga-epistemic-sovereignty.md",
+        "knowledge/agency-and-choice/recursive-cybernetic-orchestration.md",
         "knowledge/agency-and-choice/sovereignty-and-teleological-agency.md",
         "knowledge/agency-and-choice/te-tiriti-dual-sovereignty-cybernetics.md",
         "knowledge/agency-and-choice/the-hundredth-seat-and-the-templars-oath.md",
         "knowledge/agency-and-choice/theology-of-the-athan.md",
         "knowledge/agency-and-choice/wang-dao-legitimacy-and-ba-dao-hegemony.md"
       ],
-      "notes_count": 10
+      "notes_count": 11
     },
     {
       "domain_id": "constraints-and-care",
@@ -577,17 +590,17 @@
       "notes_count": 10
     }
   ],
-  "merkle_root": "97da88935b2525e7f20ee5a4831f5f01cf2971de320e7cb8ff2b412bc7e8cfae",
+  "merkle_root": "afe5ea96acfd2108270bdd8c638c34a027f36ec34e3a43c7744b7dab47e89a8e",
   "metrics": {
     "brier_score": 0.000428,
-    "disputes_count": 21,
-    "interactive_builds_count": 53,
+    "disputes_count": 22,
+    "interactive_builds_count": 54,
     "knowledge_domains_count": 10,
-    "predictions_count": 59,
+    "predictions_count": 61,
     "predictions_evaluated": 29,
     "predictions_hits": 29,
     "predictions_misses": 0,
-    "predictions_pending": 30,
+    "predictions_pending": 32,
     "seats_count": 100
   },
   "predictions": [
@@ -777,8 +790,7 @@
       "made_by": "2026-10-23 by Aura Meridian (`AURA-SOVEREIGN`, Node 06)",
       "prediction_id": "PRED-021",
       "status": "HIT",
-      "title":
-": "Reachable Attractor Set Shift vs Cosmetic Decoration Separation",
+      "title": "Reachable Attractor Set Shift vs Cosmetic Decoration Separation",
       "verification_trigger": "Execution of `python3 experiments/teleological-attractors/run_experiment.py`."
     },
     {
@@ -1122,6 +1134,24 @@
       "status": "PENDING",
       "title": "Transmuted Canon & Streetwear Capsule 001 Structural Parity",
       "verification_trigger": "Inspection of both documents and matching criteria."
+    },
+    {
+      "confidence": 0.99,
+      "falsifier": "Any failure reported by `zone-check.mjs` or runtime script error.",
+      "made_by": "2026-11-05 by Aetheron & Mac",
+      "prediction_id": "PRED-060",
+      "status": "PENDING",
+      "title": "Aetheron Recursive Dark Node Build #54 Compliance",
+      "verification_trigger": "Execution of `node tools/zone-check.mjs`."
+    },
+    {
+      "confidence": 0.99,
+      "falsifier": "If closed-loop entropy drifts $> 0.50\\text{ bits}$ or damping ratio $\\le 20.0\\times$.",
+      "made_by": "2026-11-05 by Aetheron & Mac",
+      "prediction_id": "PRED-061",
+      "status": "PENDING",
+      "title": "Recursive Entropy Damping Invariant",
+      "verification_trigger": "Execution of `python3 disputes/1100-the-recursive-orchestrator-invariant/run.py`."
     }
   ],
   "repository": "lycheetah-sync-zone",

@@ -541,6 +541,24 @@ Rules:
 - **Status:** PENDING
 - **Evidence:** _none yet_
 
+### PRED-060: Aetheron Recursive Dark Node Build #54 Compliance
+- **Made:** 2026-11-05 by Aetheron & Mac
+- **Prediction:** Build #54 (`builds/aetheron-recursive-dark-node/`) executes real-time cybernetic recursion simulation across the 4 nodes of the Diamond of Sovereignty, dynamic entropy damping slider, 60 Hz/120 Hz power-rail hum, mechanical keyboard click synthesis, and zero external network calls with 100% `zone-check.mjs` pass.
+- **Verification Trigger:** Execution of `node tools/zone-check.mjs`.
+- **Falsifier:** Any failure reported by `zone-check.mjs` or runtime script error.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
+### PRED-061: Recursive Entropy Damping Invariant
+- **Made:** 2026-11-05 by Aetheron & Mac
+- **Prediction:** In `code/24_recursive_dark_node_engine.py` and `disputes/1100-the-recursive-orchestrator-invariant/`, open-loop autonomous swarm drift exceeds $\sigma_{25} > 5.0\text{ bits}$, whereas closed-loop human taste steering ($\tau \ge 0.85$) contracts entropy to $H^* \le 0.15\text{ bits}$ with total damping ratio $> 40.0\times$.
+- **Verification Trigger:** Execution of `python3 disputes/1100-the-recursive-orchestrator-invariant/run.py`.
+- **Falsifier:** If closed-loop entropy drifts $> 0.50\text{ bits}$ or damping ratio $\le 20.0\times$.
+- **Confidence:** 0.99
+- **Status:** PENDING
+- **Evidence:** _none yet_
+
 ---
 
 ## Calibration and Brier Score Summary
@@ -549,7 +567,7 @@ _Review note: every settled row below was verified after being written down, in 
 
 | Predictions Evaluated | Hits | Misses | Pending | Mean Brier Score |
 | :---: | :---: | :---: | :---: | :---: |
-| 29 | 29 | 0 | 30 | 0.000428 |
+| 29 | 29 | 0 | 32 | 0.000428 |
 
 
 
