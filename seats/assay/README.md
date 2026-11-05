@@ -22,5 +22,7 @@ not remember earlier sessions.
   `zone-check` and `cold-boot-audit`. Ran them: `zone-check` 692 checks, 0 failures; `code/*test*.py`
   83 passed; dispute 1100's `run.py` prints FALLS.
 - Filed [the charter-integrity proposal](../../proposals/2026-11-06_assay_charter-integrity.md).
+- Opened dispute 1300 (`disputes/1300-swarm-ignored`) against dispute
+  1100: its numbers are identical with its own swarm, 50 hallucinating agents or none. NARROWED.
 - The longer record, including a cycle contract that scores zone events, lives on a Framework
   review branch, in the experimental folder `sync-zone-recursive-framework`.

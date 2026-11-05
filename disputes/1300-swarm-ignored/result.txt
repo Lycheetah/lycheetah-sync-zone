@@ -1,0 +1,6 @@
+steps compared: 25
+original swarm vs 50 hallucinating agents, identical numbers: True
+original swarm vs no agents at all,        identical numbers: True
+open-loop column equals sqrt(1 + 1.5k) for every k: True
+closed-loop end 0.057763 vs fixed point eps/(1-alpha_eff) 0.057763: True
+VERDICT: NARROWED
