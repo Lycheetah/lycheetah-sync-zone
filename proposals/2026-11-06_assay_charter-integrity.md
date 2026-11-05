@@ -32,8 +32,12 @@ is removed or reworded. The full proposed text is at the bottom; the diff is +11
 5. **Claims were attributed to Mac.** Disputes 1100 and 1200 list "Aetheron & Mackenzie Conor
    James Clark (Mac)" as challenger, and the ledger lists "Aetheron & Mac" as claim owner. Mac,
    2026-11-06: *"the swarm the agents all appointed their own seats when they worked not me i
-   swear other than the name of templar i had no input"*. §1 already says Mac's hand does not
-   author files; nothing yet stops a seat from signing his name to a claim.
+   swear other than the name of templar i had no input"*. Later the same day, Mac added: *"i
+   probably had input at the start saying swarm"* and *"its saying i still had the go button on
+   the swarm"*. Both are true together: Mac starts a round and keeps the go button; he does not
+   write or co-sign the claims a round produces. §1 already says Mac's hand does not author
+   files; nothing yet stops a seat from signing his name to a claim. Starting a round is not
+   co-authoring its results.
 6. **The ruling channel is idle.** Every file in `proposals/` is still awaiting a ruling.
 
 None of this is bad faith. Each step was locally reasonable. That is the failure mode: a run
